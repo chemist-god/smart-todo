@@ -1,10 +1,13 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -13,17 +16,69 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Auth.js relations
   accounts      Account[]
   sessions      Session[]
   authenticators Authenticator[]
+
+  // App relations
   todos         Todo[]
   notes         Note[]
-  points        Int       @default(0)
-  achievements  Achievement[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  achievements  UserAchievement[]
+  stats         UserStats?
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Authenticator {
+  id                 String  @id @default(cuid())
+  credentialID       String  @unique @db.Text
+  userId             String
+  publicKey          String  @db.Text
+  counter            BigInt
+  transports         String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialID, userId])
+}
+
+// App Models
 model Todo {
   id          String    @id @default(cuid())
   title       String
@@ -31,45 +86,83 @@ model Todo {
   completed   Boolean   @default(false)
   dueDate     DateTime?
   priority    Priority  @default(MEDIUM)
-  points      Int       @default(1)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  categories  Category[]
+  points      Int       @default(10)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([completed])
+  @@index([dueDate])
 }
 
 model Note {
-  id          String    @id @default(cuid())
-  title       String
-  content     String
-  type        NoteType  @default(GENERAL)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  categories  Category[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  type      NoteType @default(GENERAL)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model Category {
-  id        String    @id @default(cuid())
-  name      String
-  todos     Todo[]
-  notes     Note[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
 }
 
 model Achievement {
-  id          String    @id @default(cuid())
-  name        String
+  id          String   @id @default(cuid())
+  name        String   @unique
   description String
   points      Int
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  unlockedAt  DateTime  @default(now())
+  type        AchievementType
+  requirement Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userAchievements UserAchievement[]
 }
 
+model UserAchievement {
+  id           String      @id @default(cuid())
+  unlockedAt   DateTime    @default(now())
+  progress     Int         @default(0)
+
+  // Relations
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model UserStats {
+  id                String   @id @default(cuid())
+  totalPoints       Int      @default(0)
+  level             Int      @default(1)
+  currentStreak     Int      @default(0)
+  longestStreak     Int      @default(0)
+  todosCompleted    Int      @default(0)
+  notesCreated      Int      @default(0)
+  achievementsUnlocked Int   @default(0)
+  lastActiveDate    DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enums
 enum Priority {
   LOW
   MEDIUM
@@ -85,55 +178,10 @@ enum NoteType {
   REFLECTION
 }
 
-/// Auth.js (NextAuth) Prisma Adapter models
-model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-model Authenticator {
-  credentialID         String @id
-  userId               String
-  provider             String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId, credentialID])
+enum AchievementType {
+  TODO
+  NOTE
+  STREAK
+  POINTS
+  SPECIAL
 }
