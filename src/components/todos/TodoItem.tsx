@@ -15,18 +15,22 @@ interface Todo {
     title: string;
     description?: string;
     completed: boolean;
-    dueDate?: Date;
+    dueDate?: string;
     priority: "LOW" | "MEDIUM" | "HIGH";
     points: number;
-    createdAt: Date;
+    createdAt: string;
+    completedAt?: string;
 }
 
 interface TodoItemProps {
     todo: Todo;
+    onUpdate: (todoId: string, updates: Partial<Todo>) => Promise<void>;
+    onDelete: (todoId: string) => Promise<void>;
 }
 
-export default function TodoItem({ todo }: TodoItemProps) {
+export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const priorityColors = {
         LOW: "bg-green-100 text-green-800 border-green-200",
@@ -48,19 +52,46 @@ export default function TodoItem({ todo }: TodoItemProps) {
 
     const isOverdue = todo.dueDate && new Date() > new Date(todo.dueDate) && !todo.completed;
 
+    const handleToggleComplete = async () => {
+        if (isUpdating) return;
+
+        setIsUpdating(true);
+        try {
+            await onUpdate(todo.id, { completed: !todo.completed });
+        } catch (error) {
+            console.error('Failed to toggle todo:', error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (isUpdating) return;
+
+        if (confirm('Are you sure you want to delete this todo?')) {
+            setIsUpdating(true);
+            try {
+                await onDelete(todo.id);
+            } catch (error) {
+                console.error('Failed to delete todo:', error);
+            } finally {
+                setIsUpdating(false);
+            }
+        }
+    };
+
     return (
         <div className={`bg-white border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${todo.completed ? 'border-green-200 bg-green-50' :
-                isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200'
+            isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200'
             }`}>
             <div className="flex items-start space-x-3">
                 {/* Checkbox */}
                 <input
                     type="checkbox"
                     checked={todo.completed}
-                    onChange={() => {
-                        // TODO: Implement toggle completion
-                    }}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
+                    onChange={handleToggleComplete}
+                    disabled={isUpdating}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors disabled:opacity-50"
                 />
 
                 {/* Content */}
@@ -105,6 +136,9 @@ export default function TodoItem({ todo }: TodoItemProps) {
                             </div>
                         )}
                         <span>Created {format(new Date(todo.createdAt), "MMM d")}</span>
+                        {todo.completedAt && (
+                            <span>Completed {format(new Date(todo.completedAt), "MMM d")}</span>
+                        )}
                     </div>
                 </div>
 
@@ -118,19 +152,9 @@ export default function TodoItem({ todo }: TodoItemProps) {
                         <ChevronDownIcon className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     <button
-                        onClick={() => {
-                            // TODO: Implement edit
-                        }}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Edit"
-                    >
-                        <PencilIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => {
-                            // TODO: Implement delete
-                        }}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        onClick={handleDelete}
+                        disabled={isUpdating}
+                        className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
                         title="Delete"
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -154,6 +178,9 @@ export default function TodoItem({ todo }: TodoItemProps) {
                                 <div>Priority: {priorityLabels[todo.priority]}</div>
                                 <div>Points: {todo.points}</div>
                                 <div>Status: {todo.completed ? 'Completed' : 'Pending'}</div>
+                                {todo.completedAt && (
+                                    <div>Completed: {format(new Date(todo.completedAt), "MMM d, yyyy 'at' h:mm a")}</div>
+                                )}
                             </div>
                         </div>
                     </div>

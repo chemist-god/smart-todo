@@ -1,21 +1,141 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TodoItem from "./TodoItem";
 import { FunnelIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 
-export default function TodoList() {
+interface Todo {
+    id: string;
+    title: string;
+    description?: string;
+    completed: boolean;
+    dueDate?: string;
+    priority: "LOW" | "MEDIUM" | "HIGH";
+    points: number;
+    createdAt: string;
+    completedAt?: string;
+}
+
+interface TodoListProps {
+    onTodoChange?: () => void;
+}
+
+export default function TodoList({ onTodoChange }: TodoListProps) {
     const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
     const [sortBy, setSortBy] = useState<"created" | "due" | "priority">("created");
+    const [todos, setTodos] = useState<Todo[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // TODO: Replace with actual data from API
-    const todos: any[] = [];
+    useEffect(() => {
+        fetchTodos();
+    }, [filter, sortBy]);
+
+    const fetchTodos = async () => {
+        try {
+            setLoading(true);
+            const params = new URLSearchParams({
+                filter,
+                sortBy,
+            });
+
+            const response = await fetch(`/api/todos?${params}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch todos');
+            }
+
+            const data = await response.json();
+            setTodos(data);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleTodoUpdate = async (todoId: string, updates: Partial<Todo>) => {
+        try {
+            const response = await fetch(`/api/todos/${todoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update todo');
+            }
+
+            // Refresh the todos list
+            await fetchTodos();
+
+            // Notify parent component
+            if (onTodoChange) {
+                onTodoChange();
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to update todo');
+        }
+    };
+
+    const handleTodoDelete = async (todoId: string) => {
+        try {
+            const response = await fetch(`/api/todos/${todoId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete todo');
+            }
+
+            // Refresh the todos list
+            await fetchTodos();
+
+            // Notify parent component
+            if (onTodoChange) {
+                onTodoChange();
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete todo');
+        }
+    };
 
     const filteredTodos = todos.filter((todo) => {
         if (filter === "active") return !todo.completed;
         if (filter === "completed") return todo.completed;
         return true;
     });
+
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span className="ml-2 text-gray-600">Loading todos...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800">Error: {error}</p>
+                    <button
+                        onClick={fetchTodos}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                    >
+                        Try again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -29,8 +149,8 @@ export default function TodoList() {
                             <button
                                 onClick={() => setFilter("all")}
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "all"
-                                        ? "bg-blue-100 text-blue-700 font-medium"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "bg-blue-100 text-blue-700 font-medium"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                             >
                                 All
@@ -38,8 +158,8 @@ export default function TodoList() {
                             <button
                                 onClick={() => setFilter("active")}
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "active"
-                                        ? "bg-blue-100 text-blue-700 font-medium"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "bg-blue-100 text-blue-700 font-medium"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                             >
                                 Active
@@ -47,8 +167,8 @@ export default function TodoList() {
                             <button
                                 onClick={() => setFilter("completed")}
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "completed"
-                                        ? "bg-blue-100 text-blue-700 font-medium"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "bg-blue-100 text-blue-700 font-medium"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                             >
                                 Completed
@@ -99,7 +219,12 @@ export default function TodoList() {
                     </div>
                 ) : (
                     filteredTodos.map((todo) => (
-                        <TodoItem key={todo.id} todo={todo} />
+                        <TodoItem
+                            key={todo.id}
+                            todo={todo}
+                            onUpdate={handleTodoUpdate}
+                            onDelete={handleTodoDelete}
+                        />
                     ))
                 )}
             </div>

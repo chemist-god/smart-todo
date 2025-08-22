@@ -17,14 +17,15 @@ interface Note {
     title: string;
     content: string;
     type: "GENERAL" | "BIBLE_STUDY" | "CONFERENCE" | "SONG" | "QUOTE" | "REFLECTION";
-    createdAt: Date;
+    createdAt: string;
 }
 
 interface NoteItemProps {
     note: Note;
+    onDelete: (noteId: string) => Promise<void>;
 }
 
-export default function NoteItem({ note }: NoteItemProps) {
+export default function NoteItem({ note, onDelete }: NoteItemProps) {
     const typeConfig = {
         GENERAL: {
             color: "bg-gray-100 text-gray-800 border-gray-200",
@@ -60,6 +61,16 @@ export default function NoteItem({ note }: NoteItemProps) {
 
     const config = typeConfig[note.type];
     const IconComponent = config.icon;
+
+    const handleDelete = async () => {
+        if (confirm('Are you sure you want to delete this note?')) {
+            try {
+                await onDelete(note.id);
+            } catch (error) {
+                console.error('Failed to delete note:', error);
+            }
+        }
+    };
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
@@ -111,9 +122,7 @@ export default function NoteItem({ note }: NoteItemProps) {
                             <PencilIcon className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => {
-                                // TODO: Implement delete
-                            }}
+                            onClick={handleDelete}
                             className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                             title="Delete note"
                         >

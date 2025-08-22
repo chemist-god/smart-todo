@@ -1,15 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NoteItem from "./NoteItem";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-export default function NoteList() {
+interface Note {
+    id: string;
+    title: string;
+    content: string;
+    type: "GENERAL" | "BIBLE_STUDY" | "CONFERENCE" | "SONG" | "QUOTE" | "REFLECTION";
+    createdAt: string;
+}
+
+interface NoteListProps {
+    onNoteChange?: () => void;
+}
+
+export default function NoteList({ onNoteChange }: NoteListProps) {
     const [filter, setFilter] = useState<"all" | "GENERAL" | "BIBLE_STUDY" | "CONFERENCE" | "SONG" | "QUOTE" | "REFLECTION">("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // TODO: Replace with actual data from API
-    const notes: any[] = [];
+    useEffect(() => {
+        fetchNotes();
+    }, [filter, searchQuery]);
+
+    const fetchNotes = async () => {
+        try {
+            setLoading(true);
+            const params = new URLSearchParams();
+            if (filter !== "all") {
+                params.append("filter", filter);
+            }
+            if (searchQuery) {
+                params.append("search", searchQuery);
+            }
+
+            const response = await fetch(`/api/notes?${params}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch notes');
+            }
+
+            const data = await response.json();
+            setNotes(data);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleNoteDelete = async (noteId: string) => {
+        try {
+            const response = await fetch(`/api/notes/${noteId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete note');
+            }
+
+            // Refresh the notes list
+            await fetchNotes();
+
+            // Notify parent component
+            if (onNoteChange) {
+                onNoteChange();
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete note');
+        }
+    };
 
     const filteredNotes = notes.filter((note) => {
         const matchesFilter = filter === "all" || note.type === filter;
@@ -29,6 +93,35 @@ export default function NoteList() {
         { value: "REFLECTION", label: "Reflection", color: "bg-pink-100 text-pink-800" },
     ];
 
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                        <span className="ml-2 text-gray-600">Loading notes...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800">Error: {error}</p>
+                    <button
+                        onClick={fetchNotes}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                    >
+                        Try again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             {/* Search and Filters */}
@@ -42,7 +135,7 @@ export default function NoteList() {
                             placeholder="Search notes..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         />
                     </div>
 
@@ -56,7 +149,7 @@ export default function NoteList() {
                                     key={type.value}
                                     onClick={() => setFilter(type.value as any)}
                                     className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === type.value
-                                            ? "bg-blue-100 text-blue-700 font-medium"
+                                            ? "bg-purple-100 text-purple-700 font-medium"
                                             : type.color + " hover:opacity-80"
                                         }`}
                                 >
@@ -97,7 +190,11 @@ export default function NoteList() {
                     </div>
                 ) : (
                     filteredNotes.map((note) => (
-                        <NoteItem key={note.id} note={note} />
+                        <NoteItem
+                            key={note.id}
+                            note={note}
+                            onDelete={handleNoteDelete}
+                        />
                     ))
                 )}
             </div>
