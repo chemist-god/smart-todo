@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
     CheckCircleIcon,
@@ -15,55 +16,40 @@ interface Achievement {
     name: string;
     description: string;
     points: number;
-    unlockedAt?: Date;
-    progress?: number;
-    total?: number;
+    type: string;
+    requirement: number;
+    progress: number;
+    total: number;
+    unlockedAt?: string;
+    isUnlocked: boolean;
 }
 
 export default function AchievementList() {
-    // TODO: Replace with actual data from API
-    const achievements: Achievement[] = [
-        {
-            id: "1",
-            name: "First Todo",
-            description: "Create your first todo item",
-            points: 10,
-            progress: 0,
-            total: 1
-        },
-        {
-            id: "2",
-            name: "Todo Master",
-            description: "Complete 10 todos",
-            points: 50,
-            progress: 0,
-            total: 10
-        },
-        {
-            id: "3",
-            name: "Note Taker",
-            description: "Create your first note",
-            points: 15,
-            progress: 0,
-            total: 1
-        },
-        {
-            id: "4",
-            name: "Consistent",
-            description: "Complete todos for 7 days in a row",
-            points: 100,
-            progress: 0,
-            total: 7
-        },
-        {
-            id: "5",
-            name: "High Priority",
-            description: "Complete 5 high priority todos",
-            points: 75,
-            progress: 0,
-            total: 5
-        },
-    ];
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchAchievements();
+    }, []);
+
+    const fetchAchievements = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/achievements');
+            if (!response.ok) {
+                throw new Error('Failed to fetch achievements');
+            }
+
+            const data = await response.json();
+            setAchievements(data);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getAchievementIcon = (name: string) => {
         if (name.includes("Todo")) return CheckCircleIcon;
@@ -78,6 +64,40 @@ export default function AchievementList() {
         return Math.min((achievement.progress / achievement.total) * 100, 100);
     };
 
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Available Achievements</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="bg-white border rounded-lg p-4 animate-pulse">
+                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-full mb-3"></div>
+                            <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Available Achievements</h2>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800">Error: {error}</p>
+                    <button
+                        onClick={fetchAchievements}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                    >
+                        Try again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">Available Achievements</h2>
@@ -86,37 +106,37 @@ export default function AchievementList() {
                 {achievements.map((achievement) => {
                     const IconComponent = getAchievementIcon(achievement.name);
                     const progressPercentage = getProgressPercentage(achievement);
-                    const isUnlocked = !!achievement.unlockedAt;
+                    const isUnlocked = achievement.isUnlocked;
                     const isInProgress = achievement.progress && achievement.progress > 0;
 
                     return (
                         <div
                             key={achievement.id}
                             className={`bg-white border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${isUnlocked
-                                    ? "border-green-200 bg-green-50"
-                                    : isInProgress
-                                        ? "border-blue-200 bg-blue-50"
-                                        : "border-gray-200"
+                                ? "border-green-200 bg-green-50"
+                                : isInProgress
+                                    ? "border-blue-200 bg-blue-50"
+                                    : "border-gray-200"
                                 }`}
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                     <div className="flex items-center space-x-2 mb-2">
                                         <div className={`p-2 rounded-lg ${isUnlocked ? "bg-green-100" :
-                                                isInProgress ? "bg-blue-100" : "bg-gray-100"
+                                            isInProgress ? "bg-blue-100" : "bg-gray-100"
                                             }`}>
                                             <IconComponent className={`w-4 h-4 ${isUnlocked ? "text-green-600" :
-                                                    isInProgress ? "text-blue-600" : "text-gray-400"
+                                                isInProgress ? "text-blue-600" : "text-gray-400"
                                                 }`} />
                                         </div>
                                         <h3 className={`font-medium ${isUnlocked ? "text-green-800" :
-                                                isInProgress ? "text-blue-800" : "text-gray-900"
+                                            isInProgress ? "text-blue-800" : "text-gray-900"
                                             }`}>
                                             {achievement.name}
                                         </h3>
                                     </div>
                                     <p className={`text-sm mb-3 ${isUnlocked ? "text-green-600" :
-                                            isInProgress ? "text-blue-600" : "text-gray-600"
+                                        isInProgress ? "text-blue-600" : "text-gray-600"
                                         }`}>
                                         {achievement.description}
                                     </p>
@@ -124,8 +144,8 @@ export default function AchievementList() {
 
                                 <div className="flex items-center space-x-2">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isUnlocked
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-gray-100 text-gray-800"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-gray-100 text-gray-800"
                                         }`}>
                                         <StarIcon className="w-3 h-3 mr-1" />
                                         {achievement.points}
@@ -157,10 +177,10 @@ export default function AchievementList() {
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
                                             className={`h-2 rounded-full transition-all duration-300 ${isUnlocked
-                                                    ? "bg-green-500"
-                                                    : isInProgress
-                                                        ? "bg-blue-500"
-                                                        : "bg-gray-300"
+                                                ? "bg-green-500"
+                                                : isInProgress
+                                                    ? "bg-blue-500"
+                                                    : "bg-gray-300"
                                                 }`}
                                             style={{ width: `${progressPercentage}%` }}
                                         ></div>
