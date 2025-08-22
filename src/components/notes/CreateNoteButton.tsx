@@ -3,20 +3,52 @@
 import { useState } from "react";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function CreateNoteButton() {
+interface CreateNoteButtonProps {
+    onNoteCreated?: () => void;
+}
+
+export default function CreateNoteButton({ onNoteCreated }: CreateNoteButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         content: "",
         type: "GENERAL",
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement create note API call
-        console.log("Creating note:", formData);
-        setIsOpen(false);
-        setFormData({ title: "", content: "", type: "GENERAL" });
+
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch('/api/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create note');
+            }
+
+            // Reset form and close modal
+            setFormData({ title: "", content: "", type: "GENERAL" });
+            setIsOpen(false);
+
+            // Notify parent component to refresh
+            if (onNoteCreated) {
+                onNoteCreated();
+            }
+        } catch (error) {
+            console.error('Error creating note:', error);
+            alert('Failed to create note. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -52,7 +84,8 @@ export default function CreateNoteButton() {
                             <h3 className="text-lg font-semibold text-gray-900">Create New Note</h3>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                disabled={isSubmitting}
+                                className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                             >
                                 <XMarkIcon className="h-6 w-6" />
                             </button>
@@ -70,7 +103,8 @@ export default function CreateNoteButton() {
                                     value={formData.title}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors disabled:opacity-50"
                                     placeholder="Note title..."
                                 />
                             </div>
@@ -84,7 +118,8 @@ export default function CreateNoteButton() {
                                     name="type"
                                     value={formData.type}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors disabled:opacity-50"
                                 >
                                     {noteTypes.map((type) => (
                                         <option key={type.value} value={type.value}>
@@ -108,7 +143,8 @@ export default function CreateNoteButton() {
                                     onChange={handleChange}
                                     required
                                     rows={8}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+                                    disabled={isSubmitting}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none disabled:opacity-50"
                                     placeholder="Write your note content here..."
                                 />
                             </div>
@@ -117,15 +153,24 @@ export default function CreateNoteButton() {
                                 <button
                                     type="button"
                                     onClick={() => setIsOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 border border-transparent rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 border border-transparent rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 disabled:opacity-50"
                                 >
-                                    Create Note
+                                    {isSubmitting ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Creating...
+                                        </>
+                                    ) : (
+                                        'Create Note'
+                                    )}
                                 </button>
                             </div>
                         </form>
