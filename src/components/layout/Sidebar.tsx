@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
 import {
     HomeIcon,
     CheckCircleIcon,
@@ -27,6 +28,25 @@ const navigation = [
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
+    const [userStats, setUserStats] = useState({ level: 1, totalPoints: 0 });
+
+    useEffect(() => {
+        if (session?.user) {
+            fetchUserStats();
+        }
+    }, [session]);
+
+    const fetchUserStats = async () => {
+        try {
+            const response = await fetch('/api/stats');
+            if (response.ok) {
+                const data = await response.json();
+                setUserStats({ level: data.level, totalPoints: data.totalPoints });
+            }
+        } catch (error) {
+            console.error('Failed to fetch user stats:', error);
+        }
+    };
 
     return (
         <div className="flex h-full w-64 flex-col bg-gradient-to-b from-blue-50 to-indigo-50 border-r border-gray-200">
@@ -76,7 +96,7 @@ export default function Sidebar() {
                             <p className="text-sm font-medium text-gray-900 truncate">
                                 {session.user.name || session.user.email}
                             </p>
-                            <p className="text-xs text-gray-500">Level 1 • 0 XP</p>
+                            <p className="text-xs text-gray-500">Level {userStats.level} • {userStats.totalPoints} XP</p>
                         </div>
                         <button
                             onClick={() => signOut()}
