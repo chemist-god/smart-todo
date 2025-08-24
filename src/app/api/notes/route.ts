@@ -147,33 +147,33 @@ async function awardAchievement(userId: string, achievementName: string) {
         });
 
         if (achievement) {
-            await prisma.userAchievement.upsert({
+            // Check if user already has this achievement
+            const existingAchievement = await prisma.userAchievement.findFirst({
                 where: {
-                    userId_achievementId: {
-                        userId,
-                        achievementId: achievement.id,
-                    },
-                },
-                update: {
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
-                },
-                create: {
                     userId,
                     achievementId: achievement.id,
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
                 },
             });
 
-            // Update user stats
-            await prisma.userStats.update({
-                where: { userId },
-                data: {
-                    totalPoints: { increment: achievement.points },
-                    achievementsUnlocked: { increment: 1 },
-                },
-            });
+            if (!existingAchievement) {
+                await prisma.userAchievement.create({
+                    data: {
+                        userId,
+                        achievementId: achievement.id,
+                        unlockedAt: new Date(),
+                        progress: achievement.requirement,
+                    },
+                });
+
+                // Update user stats
+                await prisma.userStats.update({
+                    where: { userId },
+                    data: {
+                        totalPoints: { increment: achievement.points },
+                        achievementsUnlocked: { increment: 1 },
+                    },
+                });
+            }
         }
     } catch (error) {
         console.error("Error awarding achievement:", error);
