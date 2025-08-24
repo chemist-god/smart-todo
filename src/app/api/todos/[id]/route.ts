@@ -105,13 +105,14 @@ export async function PUT(
             },
         });
 
-        // Update user stats
-        await updateUserStats(user.id);
-
-        // Check for achievements
+        // Update user stats and award points if completed
         if (completed && !existingTodo.completed) {
+            // Award points for completing the todo
+            await awardPoints(user.id, existingTodo.points);
             await checkAndAwardAchievements(user.id);
         }
+
+        await updateUserStats(user.id);
 
         return NextResponse.json(todo);
     } catch (error) {
@@ -217,6 +218,20 @@ async function checkAndAwardAchievements(userId: string) {
     }
 }
 
+// Helper function to award points
+async function awardPoints(userId: string, points: number) {
+    try {
+        await prisma.userStats.update({
+            where: { userId },
+            data: {
+                totalPoints: { increment: points },
+            },
+        });
+    } catch (error) {
+        console.error("Error awarding points:", error);
+    }
+}
+
 // Helper function to award an achievement
 async function awardAchievement(userId: string, achievementName: string) {
     try {
@@ -225,33 +240,33 @@ async function awardAchievement(userId: string, achievementName: string) {
         });
 
         if (achievement) {
-            await prisma.userAchievement.upsert({
+            // Check if user already has this achievement
+            const existingAchievement = await prisma.userAchievement.findFirst({
                 where: {
-                    userId_achievementId: {
-                        userId,
-                        achievementId: achievement.id,
-                    },
-                },
-                update: {
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
-                },
-                create: {
                     userId,
                     achievementId: achievement.id,
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
                 },
             });
 
-            // Update user stats
-            await prisma.userStats.update({
-                where: { userId },
-                data: {
-                    totalPoints: { increment: achievement.points },
-                    achievementsUnlocked: { increment: 1 },
-                },
-            });
+            if (!existingAchievement) {
+                await prisma.userAchievement.create({
+                    data: {
+                        userId,
+                        achievementId: achievement.id,
+                        unlockedAt: new Date(),
+                        progress: achievement.requirement,
+                    },
+                });
+
+                // Update user stats
+                await prisma.userStats.update({
+                    where: { userId },
+                    data: {
+                        totalPoints: { increment: achievement.points },
+                        achievementsUnlocked: { increment: 1 },
+                    },
+                });
+            }
         }
     } catch (error) {
         console.error("Error awarding achievement:", error);
