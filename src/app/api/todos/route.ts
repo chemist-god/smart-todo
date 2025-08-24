@@ -109,6 +109,9 @@ export async function POST(request: NextRequest) {
         // Update user stats
         await updateUserStats(user.id);
 
+        // Check for achievements
+        await checkAndAwardTodoAchievements(user.id);
+
         return NextResponse.json(todo, { status: 201 });
     } catch (error) {
         console.error("Error creating todo:", error);
@@ -140,6 +143,82 @@ async function updateUserStats(userId: string) {
         });
     } catch (error) {
         console.error("Error updating user stats:", error);
+    }
+}
+
+// Helper function to check and award todo achievements
+async function checkAndAwardTodoAchievements(userId: string) {
+    try {
+        const [totalTodos, completedTodos] = await Promise.all([
+            prisma.todo.count({ where: { userId } }),
+            prisma.todo.count({ where: { userId, completed: true } }),
+        ]);
+
+        // Check for "First Todo" achievement
+        if (totalTodos === 1) {
+            await awardAchievement(userId, "First Todo");
+        }
+
+        // Check for "Todo Master" achievement
+        if (completedTodos === 10) {
+            await awardAchievement(userId, "Todo Master");
+        }
+
+        // Check for "High Priority" achievement
+        const highPriorityCompleted = await prisma.todo.count({
+            where: {
+                userId,
+                completed: true,
+                priority: "HIGH",
+            },
+        });
+
+        if (highPriorityCompleted === 5) {
+            await awardAchievement(userId, "High Priority");
+        }
+    } catch (error) {
+        console.error("Error checking todo achievements:", error);
+    }
+}
+
+// Helper function to award an achievement
+async function awardAchievement(userId: string, achievementName: string) {
+    try {
+        const achievement = await prisma.achievement.findUnique({
+            where: { name: achievementName },
+        });
+
+        if (achievement) {
+            // Check if user already has this achievement
+            const existingAchievement = await prisma.userAchievement.findFirst({
+                where: {
+                    userId,
+                    achievementId: achievement.id,
+                },
+            });
+
+            if (!existingAchievement) {
+                await prisma.userAchievement.create({
+                    data: {
+                        userId,
+                        achievementId: achievement.id,
+                        unlockedAt: new Date(),
+                        progress: achievement.requirement,
+                    },
+                });
+
+                // Update user stats
+                await prisma.userStats.update({
+                    where: { userId },
+                    data: {
+                        totalPoints: { increment: achievement.points },
+                        achievementsUnlocked: { increment: 1 },
+                    },
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Error awarding achievement:", error);
     }
 }
 
