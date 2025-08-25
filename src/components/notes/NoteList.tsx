@@ -122,6 +122,11 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
         );
     }
 
+    const handleNoteEdit = async (note: Note) => {
+        // Navigate to edit page or open edit modal
+        window.location.href = `/notes/edit/${note.id}`;
+    };
+
     return (
         <div className="space-y-4">
             {/* Search and Filters */}
@@ -194,6 +199,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                             key={note.id}
                             note={note}
                             onDelete={handleNoteDelete}
+                            onEdit={handleNoteEdit}
                         />
                     ))
                 )}
