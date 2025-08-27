@@ -1,58 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, LightBulbIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { Todo } from '@prisma/client';
 import TodoItem from "./TodoItem";
 
-interface Todo {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  dueDate?: string;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  points: number;
-  createdAt: string;
-  completedAt?: string;
+interface FocusTask extends Todo {
+  // Add any additional properties if needed
 }
 
 export default function FocusTasks() {
   const [focusTasks, setFocusTasks] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchFocusTasks = async () => {
+    try {
+      setRefreshing(true);
+      const response = await fetch('/api/todos/focus');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch focus tasks');
+      }
+      
+      const data = await response.json();
+      setFocusTasks(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching focus tasks:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     fetchFocusTasks();
   }, []);
 
-  const fetchFocusTasks = async () => {
+  const handleTaskComplete = async (taskId: string) => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/todos/focus');
+      // Optimistic UI update
+      setFocusTasks(prev => prev.map(task => 
+        task.id === taskId ? { ...task, completed: true } : task
+      ));
+      
+      // Update the task on the server
+      const response = await fetch(`/api/todos/${taskId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: true })
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch focus tasks');
+        throw new Error('Failed to update task');
       }
-      const data = await response.json();
-      setFocusTasks(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
+      
+      // Refetch focus tasks to get updated list
+      fetchFocusTasks();
+    } catch (error) {
+      console.error('Error completing task:', error);
+      // Revert optimistic update on error
+      fetchFocusTasks();
     }
   };
 
-  const handleTaskComplete = (taskId: string) => {
-    // Optimistic UI update
-    setFocusTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, completed: true } : task
-    ));
-    
-    // Refetch to get updated focus tasks
-    fetchFocusTasks();
-  };
-
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <div className="animate-pulse space-y-4">
         {[1, 2, 3].map((i) => (
@@ -66,6 +84,14 @@ export default function FocusTasks() {
     return (
       <div className="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
         <p>Error loading focus tasks: {error}</p>
+        <button
+          onClick={fetchFocusTasks}
+          disabled={refreshing}
+          className="mt-2 text-sm text-red-700 dark:text-red-300 hover:underline flex items-center"
+        >
+          <ArrowPathIcon className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Retrying...' : 'Retry'}
+        </button>
       </div>
     );
   }
@@ -89,9 +115,19 @@ export default function FocusTasks() {
           <LightBulbIcon className="h-5 w-5 inline-block mr-2 text-yellow-500" />
           Focus Tasks (80/20 Rule)
         </h2>
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
-          {focusTasks.length} tasks
-        </span>
+        <div className="flex items-center">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 mr-2">
+            {focusTasks.length} tasks
+          </span>
+          <button
+            onClick={fetchFocusTasks}
+            disabled={refreshing}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            title="Refresh"
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
       
       <div className="space-y-3">
@@ -101,7 +137,7 @@ export default function FocusTasks() {
             <div className="pl-3">
               <TodoItem 
                 todo={task} 
-                onComplete={handleTaskComplete} 
+                onComplete={() => handleTaskComplete(task.id)}
                 className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
               />
             </div>
@@ -110,8 +146,8 @@ export default function FocusTasks() {
       </div>
       
       <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center">
-        <ExclamationTriangleIcon className="h-4 w-4 mr-1 text-yellow-500" />
-        These are your highest impact tasks based on the 80/20 rule
+        <ExclamationTriangleIcon className="h-4 w-4 mr-1 text-yellow-500 flex-shrink-0" />
+        <span>These are your highest impact tasks based on the 80/20 rule and Eisenhower matrix</span>
       </div>
     </div>
   );
