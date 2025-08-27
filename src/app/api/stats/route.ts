@@ -58,9 +58,34 @@ export async function GET(request: NextRequest) {
             return todoDate.toDateString() === today.toDateString();
         }).length;
 
-        // Get notes count
+        // Get notes count and category breakdown
         const notesCount = await prisma.note.count({
             where: { userId: user.id },
+        });
+
+        // Get category counts
+        const categoryCounts = await prisma.note.groupBy({
+            by: ['type'],
+            where: { userId: user.id },
+            _count: {
+                type: true
+            }
+        });
+
+        // Convert to the expected format
+        const categoryCount = {
+            GENERAL: 0,
+            BIBLE_STUDY: 0,
+            CONFERENCE: 0,
+            SONG: 0,
+            QUOTE: 0,
+            REFLECTION: 0
+        };
+
+        categoryCounts.forEach(cat => {
+            if (cat.type in categoryCount) {
+                categoryCount[cat.type as keyof typeof categoryCount] = cat._count.type;
+            }
         });
 
         // Get achievements count
@@ -130,6 +155,7 @@ export async function GET(request: NextRequest) {
             longestStreak,
             todosCompleted,
             notesCreated: notesCount,
+            categoryCount,
             achievementsUnlocked,
             totalTodos,
             pendingTodos,
