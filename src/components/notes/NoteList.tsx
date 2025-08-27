@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import NoteItem from "./NoteItem";
+import EditNoteModal from "./EditNoteModal";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 interface Note {
@@ -22,6 +23,8 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [editingNote, setEditingNote] = useState<Note | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     useEffect(() => {
         fetchNotes();
@@ -75,6 +78,26 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
         }
     };
 
+    const handleNoteEdit = (note: Note) => {
+        setEditingNote(note);
+        setIsEditModalOpen(true);
+    };
+
+    const handleNoteUpdated = async () => {
+        // Refresh the notes list
+        await fetchNotes();
+
+        // Notify parent component
+        if (onNoteChange) {
+            onNoteChange();
+        }
+    };
+
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false);
+        setEditingNote(null);
+    };
+
     const filteredNotes = notes.filter((note) => {
         const matchesFilter = filter === "all" || note.type === filter;
         const matchesSearch = searchQuery === "" ||
@@ -122,11 +145,6 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
         );
     }
 
-    const handleNoteEdit = async (note: Note) => {
-        // Navigate to edit page or open edit modal
-        window.location.href = `/notes/edit/${note.id}`;
-    };
-
     return (
         <div className="space-y-4">
             {/* Search and Filters */}
@@ -154,8 +172,8 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                                     key={type.value}
                                     onClick={() => setFilter(type.value as any)}
                                     className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === type.value
-                                            ? "bg-purple-100 text-purple-700 font-medium"
-                                            : type.color + " hover:opacity-80"
+                                        ? "bg-purple-100 text-purple-700 font-medium"
+                                        : type.color + " hover:opacity-80"
                                         }`}
                                 >
                                     {type.label}
@@ -204,6 +222,14 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                     ))
                 )}
             </div>
+
+            {/* Edit Modal */}
+            <EditNoteModal
+                note={editingNote}
+                isOpen={isEditModalOpen}
+                onClose={handleCloseEditModal}
+                onNoteUpdated={handleNoteUpdated}
+            />
         </div>
     );
 }

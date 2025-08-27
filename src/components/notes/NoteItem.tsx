@@ -23,9 +23,10 @@ interface Note {
 interface NoteItemProps {
     note: Note;
     onDelete: (noteId: string) => Promise<void>;
+    onEdit: (note: Note) => void;
 }
 
-export default function NoteItem({ note, onDelete }: NoteItemProps) {
+export default function NoteItem({ note, onDelete, onEdit }: NoteItemProps) {
     const typeConfig = {
         GENERAL: {
             color: "bg-gray-100 text-gray-800 border-gray-200",
@@ -113,9 +114,7 @@ export default function NoteItem({ note, onDelete }: NoteItemProps) {
                             <EyeIcon className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => {
-                                // TODO: Implement edit
-                            }}
+                            onClick={() => onEdit(note)}
                             className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
                             title="Edit note"
                         >
