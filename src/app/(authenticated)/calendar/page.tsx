@@ -1,29 +1,145 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { Toaster, toast } from "sonner";
+import { SmartCalendar } from "@/components/calendar/SmartCalendar";
+import { Todo } from "@prisma/client";
 
 export default function CalendarPage() {
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-white">
-                <h1 className="text-2xl font-bold mb-2">Calendar</h1>
-                <p className="text-green-100">View your tasks and deadlines in a calendar view</p>
-            </div>
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-            {/* Calendar Content */}
-            <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center">
-                <CalendarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
-                <p className="text-gray-500 mb-4">
-                    A comprehensive calendar view of your todos and deadlines is coming soon!
-                </p>
-                <p className="text-sm text-gray-400">
-                    This feature will allow you to see all your tasks organized by date,
-                    with visual indicators for priorities and completion status.
-                </p>
-            </div>
-        </div>
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  // Fetch todos
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    const fetchTodos = async () => {
+      try {
+        const response = await fetch("/api/todos");
+        if (!response.ok) throw new Error("Failed to fetch todos");
+        const data = await response.json();
+        setTodos(data);
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load todos. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTodos();
+  }, [status]);
+
+  const handleCreateEvent = async (event: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const response = await fetch("/api/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (!response.ok) throw new Error("Failed to create event");
+
+      const newEvent = await response.json();
+      setTodos(prev => [...prev, newEvent]);
+      toast({
+        title: "Success",
+        description: "Event created successfully!",
+      });
+    } catch (error) {
+      console.error("Error creating event:", error);
+      throw error;
+    }
+  };
+
+  const handleUpdateEvent = async (id: string, updates: Partial<Todo>) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) throw new Error("Failed to update event");
+
+      const updatedEvent = await response.json();
+      setTodos(prev =>
+        prev.map(todo => (todo.id === id ? { ...todo, ...updatedEvent } : todo))
+      );
+      toast({
+        title: "Success",
+        description: "Event updated successfully!",
+      });
+    } catch (error) {
+      console.error("Error updating event:", error);
+      throw error;
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete event");
+
+      setTodos(prev => prev.filter(todo => todo.id !== id));
+      toast({
+        title: "Success",
+        description: "Event deleted successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      throw error;
+    }
+  };
+
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Toaster position="top-right" />
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+          Calendar
+        </h1>
+        
+        <div className="h-[calc(100vh-200px)]">
+          <SmartCalendar
+            todos={todos}
+            onEventCreate={handleCreateEvent}
+            onEventUpdate={handleUpdateEvent}
+            onEventDelete={handleDeleteEvent}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
