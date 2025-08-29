@@ -33,7 +33,7 @@ export default function CalendarPage() {
     }
   }, [status, todos]);
 
-  const handleCreateEvent = async (event: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleCreateEvent = async (event: Record<string, unknown>) => {
     try {
       const response = await fetch("/api/todos", {
         method: "POST",
@@ -46,20 +46,17 @@ export default function CalendarPage() {
       if (!response.ok) throw new Error("Failed to create event");
 
       await mutate();
-      toast({
-        title: "Success",
-        description: "Event created successfully!",
-      });
+      toast.success("Event created successfully!");
     } catch (error) {
       console.error("Error creating event:", error);
       throw error;
     }
   };
 
-  const handleUpdateEvent = async (id: string, updates: Partial<Todo>) => {
+  const handleUpdateEvent = async (id: string, updates: Record<string, unknown>) => {
     try {
       const response = await fetch(`/api/todos/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -69,10 +66,7 @@ export default function CalendarPage() {
       if (!response.ok) throw new Error("Failed to update event");
 
       await mutate();
-      toast({
-        title: "Success",
-        description: "Event updated successfully!",
-      });
+      toast.success("Event updated successfully!");
     } catch (error) {
       console.error("Error updating event:", error);
       throw error;
@@ -88,10 +82,7 @@ export default function CalendarPage() {
       if (!response.ok) throw new Error("Failed to delete event");
 
       await mutate();
-      toast({
-        title: "Success",
-        description: "Event deleted successfully!",
-      });
+      toast.success("Event deleted successfully!");
     } catch (error) {
       console.error("Error deleting event:", error);
       throw error;
