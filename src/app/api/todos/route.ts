@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from '@/lib/auth';
 import { prisma } from "@/lib/prisma";
 
@@ -6,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();
-        
+
         if (!session?.user?.id) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
         const sortBy = searchParams.get("sortBy") || "created";
 
         // Build where clause
-        let where: any = { userId: session.user.id };
+        const where: { userId: string; completed?: boolean } = { userId: session.user.id };
         if (filter === "active") {
             where.completed = false;
         } else if (filter === "completed") {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Build orderBy
-        let orderBy: any = {};
+        let orderBy: Prisma.TodoOrderByWithRelationInput | Prisma.TodoOrderByWithRelationInput[] = {};
         if (sortBy === "due") {
             orderBy = { dueDate: 'asc' };
         } else if (sortBy === "priority") {
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const session = await auth();
-        
+
         if (!session?.user?.id) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await request.json();
-        
+
         // Validate required fields
         if (!data.title) {
             return NextResponse.json(
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
 // Helper function to update user stats
 async function updateUserStats(userId: string) {
     try {
-        const [totalTodos, completedTodos] = await Promise.all([
+        const [/* totalTodos */, completedTodos] = await Promise.all([
             prisma.todo.count({ where: { userId } }),
             prisma.todo.count({ where: { userId, completed: true } }),
         ]);

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircleIcon, LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Todo } from '@prisma/client';
 import TodoItem from "./TodoItem";
 
-interface FocusTask extends Todo {
-  // Add any additional properties if needed
-}
+// Using Prisma Todo type directly for focus tasks
 
 export default function FocusTasks() {
   const [focusTasks, setFocusTasks] = useState<Todo[]>([]);
@@ -19,12 +17,12 @@ export default function FocusTasks() {
     try {
       setRefreshing(true);
       const response = await fetch('/api/todos/focus');
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to fetch focus tasks');
       }
-      
+
       const data = await response.json();
       setFocusTasks(Array.isArray(data) ? data : []);
       setError(null);
@@ -44,10 +42,10 @@ export default function FocusTasks() {
   const handleTaskComplete = async (taskId: string) => {
     try {
       // Optimistic UI update
-      setFocusTasks(prev => prev.map(task => 
+      setFocusTasks(prev => prev.map(task =>
         task.id === taskId ? { ...task, completed: true } : task
       ));
-      
+
       // Update the task on the server
       const response = await fetch(`/api/todos/${taskId}`, {
         method: 'PATCH',
@@ -60,7 +58,7 @@ export default function FocusTasks() {
       if (!response.ok) {
         throw new Error('Failed to update task');
       }
-      
+
       // Refetch focus tasks to get updated list
       fetchFocusTasks();
     } catch (error) {
@@ -129,14 +127,14 @@ export default function FocusTasks() {
           </button>
         </div>
       </div>
-      
+
       <div className="space-y-3">
         {focusTasks.map((task) => (
           <div key={task.id} className="relative group">
             <div className="absolute -left-1 top-0 bottom-0 w-1 bg-yellow-500 rounded-l-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="pl-3">
-              <TodoItem 
-                todo={task} 
+              <TodoItem
+                todo={task}
                 onComplete={() => handleTaskComplete(task.id)}
                 className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
               />
@@ -144,7 +142,7 @@ export default function FocusTasks() {
           </div>
         ))}
       </div>
-      
+
       <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center">
         <ExclamationTriangleIcon className="h-4 w-4 mr-1 text-yellow-500 flex-shrink-0" />
         <span>These are your highest impact tasks based on the 80/20 rule and Eisenhower matrix</span>

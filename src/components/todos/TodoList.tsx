@@ -181,7 +181,7 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
                         <span className="text-sm font-medium text-gray-700">Sort:</span>
                         <select
                             value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as any)}
+                            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                             className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         >
                             <option value="created">Created Date</option>
