@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import NoteItem from "./NoteItem";
 import EditNoteModal from "./EditNoteModal";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
@@ -21,40 +23,22 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
     const [filter, setFilter] = useState<"all" | "GENERAL" | "BIBLE_STUDY" | "CONFERENCE" | "SONG" | "QUOTE" | "REFLECTION">("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [notes, setNotes] = useState<Note[]>([]);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingNote, setEditingNote] = useState<Note | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    useEffect(() => {
-        fetchNotes();
+    const queryKey = useMemo(() => {
+        const params = new URLSearchParams();
+        if (filter !== "all") params.append("filter", filter);
+        if (searchQuery) params.append("search", searchQuery);
+        return `/api/notes?${params.toString()}`;
     }, [filter, searchQuery]);
 
-    const fetchNotes = async () => {
-        try {
-            setLoading(true);
-            const params = new URLSearchParams();
-            if (filter !== "all") {
-                params.append("filter", filter);
-            }
-            if (searchQuery) {
-                params.append("search", searchQuery);
-            }
+    const { data, isLoading, mutate } = useSWR<Note[]>(queryKey, fetcher, { revalidateOnFocus: true, refreshInterval: 30000 });
 
-            const response = await fetch(`/api/notes?${params}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch notes');
-            }
-
-            const data = await response.json();
-            setNotes(data);
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
+    useMemo(() => {
+        if (data) setNotes(data);
+    }, [data]);
 
     const handleNoteDelete = async (noteId: string) => {
         try {
@@ -67,7 +51,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
             }
 
             // Refresh the notes list
-            await fetchNotes();
+            await mutate();
 
             // Notify parent component
             if (onNoteChange) {
@@ -85,7 +69,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
 
     const handleNoteUpdated = async () => {
         // Refresh the notes list
-        await fetchNotes();
+        await mutate();
 
         // Notify parent component
         if (onNoteChange) {
@@ -116,7 +100,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
         { value: "REFLECTION", label: "Reflection", color: "bg-pink-100 text-pink-800" },
     ];
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="space-y-4">
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
@@ -135,7 +119,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p className="text-red-800">Error: {error}</p>
                     <button
-                        onClick={fetchNotes}
+                        onClick={() => mutate()}
                         className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
                     >
                         Try again
@@ -170,7 +154,7 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                             {noteTypes.map((type) => (
                                 <button
                                     key={type.value}
-                                    onClick={() => setFilter(type.value as any)}
+                                    onClick={() => setFilter(type.value as typeof filter)}
                                     className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === type.value
                                         ? "bg-purple-100 text-purple-700 font-medium"
                                         : type.color + " hover:opacity-80"

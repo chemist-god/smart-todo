@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search") || "";
 
         // Build where clause
-        let where: any = { userId: user.id };
+        const where: {
+            userId: string;
+            type?: string;
+            OR?: Array<{ title: { contains: string; mode: "insensitive" } } | { content: { contains: string; mode: "insensitive" } }>;
+        } = { userId: user.id };
         if (filter !== "all") {
             where.type = filter;
         }
