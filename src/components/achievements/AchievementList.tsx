@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// no local React state currently needed
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { format } from "date-fns";
 import {
     CheckCircleIcon,
@@ -25,31 +27,7 @@ interface Achievement {
 }
 
 export default function AchievementList() {
-    const [achievements, setAchievements] = useState<Achievement[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        fetchAchievements();
-    }, []);
-
-    const fetchAchievements = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch('/api/achievements');
-            if (!response.ok) {
-                throw new Error('Failed to fetch achievements');
-            }
-
-            const data = await response.json();
-            setAchievements(data);
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: achievements, error, isLoading, mutate } = useSWR<Achievement[]>("/api/achievements", fetcher, { refreshInterval: 30000 });
 
     const getAchievementIcon = (name: string) => {
         if (name.includes("Todo")) return CheckCircleIcon;
@@ -64,7 +42,7 @@ export default function AchievementList() {
         return Math.min((achievement.progress / achievement.total) * 100, 100);
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900">Available Achievements</h2>
@@ -88,7 +66,7 @@ export default function AchievementList() {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p className="text-red-800">Error: {error}</p>
                     <button
-                        onClick={fetchAchievements}
+                        onClick={() => mutate()}
                         className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
                     >
                         Try again
