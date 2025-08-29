@@ -38,7 +38,15 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { Todo } from '@prisma/client';
+// UI-facing calendar event shape
+type CalendarEvent = {
+  id: string;
+  title: string;
+  description: string | null;
+  completed: boolean;
+  dueDate: string | Date | null;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | string;
+};
 
 const priorityOptions = [
   { value: 'LOW', label: 'Low' },
@@ -52,11 +60,11 @@ const formSchema = z.object({
   dueDate: z.date({
     required_error: 'Due date is required',
   }),
-  dueTime: z.string().optional(),
+  // We ignore time granularity for now; extend later if needed
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH'], {
     required_error: 'Please select a priority',
   }),
-  allDay: z.boolean().default(false),
+  allDay: z.boolean().default(true),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,10 +72,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface EventFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  event: Todo | null;
+  event: CalendarEvent | null;
   selectedDate?: Date;
-  onCreate: (data: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  onUpdate: (id: string, data: Partial<Todo>) => Promise<void>;
+  onCreate: (data: Record<string, unknown>) => Promise<void>;
+  onUpdate: (id: string, data: Record<string, unknown>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -89,9 +97,8 @@ export function EventForm({
       title: event?.title || '',
       description: event?.description || '',
       dueDate: event?.dueDate ? new Date(event.dueDate) : selectedDate,
-      dueTime: event?.dueTime || '12:00',
       priority: (event?.priority as 'LOW' | 'MEDIUM' | 'HIGH') || 'MEDIUM',
-      allDay: !event?.dueTime,
+      allDay: true,
     },
   });
 
@@ -102,7 +109,6 @@ export function EventForm({
       title: data.title,
       description: data.description,
       dueDate: data.dueDate.toISOString(),
-      dueTime: data.allDay ? null : data.dueTime || '12:00',
       priority: data.priority,
       completed: event?.completed || false,
     };
@@ -116,7 +122,7 @@ export function EventForm({
 
   const handleDelete = async () => {
     if (!event) return;
-    
+
     try {
       setIsDeleting(true);
       await onDelete(event.id);
@@ -131,12 +137,12 @@ export function EventForm({
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Event' : 'Create New Event'}</DialogTitle>
           <DialogDescription>
-            {isEditing 
+            {isEditing
               ? 'Update the event details below.'
               : 'Fill in the details to create a new event.'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
