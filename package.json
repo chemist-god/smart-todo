@@ -19,6 +19,7 @@
     "@fullcalendar/core": "^6.1.11",
     "@fullcalendar/daygrid": "^6.1.11",
     "@fullcalendar/interaction": "^6.1.11",
+    "@fullcalendar/list": "^6.1.19",
     "@fullcalendar/react": "^6.1.11",
     "@fullcalendar/timegrid": "^6.1.11",
     "@heroicons/react": "^2.2.0",
@@ -43,8 +44,8 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
-    "swr": "^2.2.5",
     "sonner": "^2.0.7",
+    "swr": "^2.2.5",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.5"
   },

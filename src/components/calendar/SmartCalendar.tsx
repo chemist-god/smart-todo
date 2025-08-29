@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 import { EventClickArg, DateSelectArg, EventChangeArg, EventContentArg } from '@fullcalendar/core';
 import { format } from 'date-fns';
@@ -119,6 +120,25 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
     );
   };
 
+  // Initialize and persist view preference
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? (localStorage.getItem('calendar:view') as ViewType | null) : null;
+    if (stored) {
+      setView(stored);
+      const api = calendarRef.current?.getApi();
+      api?.changeView(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('calendar:view', view);
+    }
+    const api = calendarRef.current?.getApi();
+    api?.changeView(view);
+  }, [view]);
+
   const handleCreateEvent = async (data: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await onEventCreate(data);
@@ -167,6 +187,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
               High
             </button>
           </div>
+          {/* View toggles */}
           <Tabs
             value={view}
             onValueChange={(value) => setView(value as ViewType)}
@@ -191,6 +212,33 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
               </TabsTrigger>
             </TabsList>
           </Tabs>
+          {/* Navigation controls */}
+          <div className="hidden sm:flex items-center gap-2 mr-2">
+            <Button
+              variant="outline"
+              onClick={() => calendarRef.current?.getApi().today()}
+            >
+              Today
+            </Button>
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <Button
+                variant="outline"
+                className="rounded-r-none"
+                onClick={() => calendarRef.current?.getApi().prev()}
+                aria-label="Previous"
+              >
+                ‹
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-l-none"
+                onClick={() => calendarRef.current?.getApi().next()}
+                aria-label="Next"
+              >
+                ›
+              </Button>
+            </div>
+          </div>
           <Button
             onClick={() => {
               setSelectedEvent(null);
@@ -213,7 +261,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       <div className="flex-1 rounded-lg border bg-card text-card-foreground shadow-sm relative">
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
           initialView={view}
           editable={true}
           selectable={true}
