@@ -8,7 +8,7 @@ import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 import { EventClickArg, DateSelectArg, EventChangeArg, EventContentArg } from '@fullcalendar/core';
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
-import { CalendarIcon, List, Grid2X2, CalendarDays } from 'lucide-react';
+import { CalendarIcon, List, Grid2X2, CalendarDays, Clock, X, Pencil, Trash2, Check } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { toast } from 'sonner';
 import { Todo } from '@prisma/client';
@@ -29,6 +29,8 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
   const [selectedEvent, setSelectedEvent] = useState<Todo | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedAllDay, setSelectedAllDay] = useState<boolean>(true);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const calendarRef = useRef<FullCalendar>(null);
   const externalRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +69,8 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     setSelectedDate(selectInfo.start);
+    setSelectedAllDay(selectInfo.allDay ?? true);
+    setSelectedTime(selectInfo.allDay ? null : format(selectInfo.start, 'HH:mm'));
     setSelectedEvent(null);
     setIsFormOpen(true);
   };
@@ -198,7 +202,15 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
         </div>
       </div>
 
-      <div className="flex-1 rounded-lg border bg-card text-card-foreground shadow-sm">
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
+        <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: getPriorityColor('HIGH') }} /> High</div>
+        <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: getPriorityColor('MEDIUM') }} /> Medium</div>
+        <div className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: getPriorityColor('LOW') }} /> Low</div>
+        <div className="flex items-center gap-1"><Clock className="h-3 w-3 text-red-500" /> Overdue</div>
+      </div>
+
+      <div className="flex-1 rounded-lg border bg-card text-card-foreground shadow-sm relative">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -251,13 +263,66 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
             meridiem: false,
             hour12: false,
           }}
-          eventClassNames={({ event }) =>
-            cn(
+          eventClassNames={({ event }) => {
+            const isCompleted = Boolean(event.extendedProps.completed);
+            const start = event.start as Date | null;
+            const isOverdue = !!start && start.getTime() < Date.now() && !isCompleted;
+            return cn(
               'cursor-pointer hover:opacity-90 transition-opacity',
-              event.extendedProps.completed && 'opacity-60 line-through'
-            )
-          }
+              isCompleted && 'opacity-60 line-through',
+              isOverdue && 'ring-2 ring-red-400'
+            );
+          }}
         />
+
+        {selectedEvent && (
+          <div className="absolute top-0 right-0 h-full w-80 bg-white dark:bg-gray-900 border-l shadow-lg p-4 flex flex-col">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white truncate pr-2">{selectedEvent.title}</h3>
+              <button onClick={() => setSelectedEvent(null)} className="text-gray-500 hover:text-gray-700">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Priority:</span>
+                <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: `${getPriorityColor(selectedEvent.priority)}20`, color: getPriorityColor(selectedEvent.priority) }}>
+                  {selectedEvent.priority}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">When:</span>
+                <span>{selectedEvent.dueDate ? format(new Date(selectedEvent.dueDate), selectedEvent.dueTime ? 'PP p' : 'PP') : '—'}</span>
+              </div>
+              {selectedEvent.description && (
+                <div>
+                  <div className="text-gray-500 mb-1">Details</div>
+                  <div className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+                    {selectedEvent.description}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="mt-auto pt-3 flex items-center justify-between">
+              <button
+                onClick={async () => {
+                  await onEventUpdate(selectedEvent.id, { completed: !selectedEvent.completed });
+                }}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded ${selectedEvent.completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}
+              >
+                <Check className="h-4 w-4" /> {selectedEvent.completed ? 'Completed' : 'Mark done'}
+              </button>
+              <div className="space-x-2">
+                <button onClick={() => setIsFormOpen(true)} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white">
+                  <Pencil className="h-4 w-4" /> Edit
+                </button>
+                <button onClick={() => onEventDelete(selectedEvent.id)} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-red-600 text-white">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <EventForm
