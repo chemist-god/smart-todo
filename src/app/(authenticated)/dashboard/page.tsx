@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import {
     CheckCircleIcon,
     DocumentTextIcon,
@@ -46,39 +48,30 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchStats = async () => {
-        try {
-            setRefreshing(true);
-            const response = await fetch('/api/stats');
-            if (response.ok) {
-                const data = await response.json();
-                setStats(data);
-            }
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+    const { data, error, mutate } = useSWR<Stats>("/api/stats", fetcher, { refreshInterval: 30000 });
 
     useEffect(() => {
-        fetchStats();
-    }, []);
+        if (data) {
+            setStats(data);
+            setLoading(false);
+        }
+    }, [data]);
 
-    const handleRefresh = () => {
-        fetchStats();
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await mutate();
+        setRefreshing(false);
     };
 
-    const StatCard = ({ 
-        title, 
-        value, 
-        icon: Icon, 
+    const StatCard = ({
+        title,
+        value,
+        icon: Icon,
         color = 'blue',
-        loading: isLoading 
-    }: { 
-        title: string; 
-        value: number | string; 
+        loading: isLoading
+    }: {
+        title: string;
+        value: number | string;
         icon: React.ComponentType<{ className?: string }>;
         color?: string;
         loading?: boolean;
@@ -108,7 +101,7 @@ export default function DashboardPage() {
 
     const ProgressBar = ({ value, max, color = 'blue' }: { value: number; max: number; color?: string }) => (
         <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-            <div 
+            <div
                 className={`h-2.5 rounded-full bg-${color}-500`}
                 style={{ width: `${Math.min(100, (value / max) * 100)}%` }}
             ></div>
@@ -144,31 +137,31 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard 
-                    title="Total Points" 
-                    value={stats.totalPoints} 
-                    icon={TrophyIcon} 
+                <StatCard
+                    title="Total Points"
+                    value={stats.totalPoints}
+                    icon={TrophyIcon}
                     color="yellow"
                     loading={refreshing}
                 />
-                <StatCard 
-                    title="Current Streak" 
-                    value={`${stats.currentStreak} days`} 
-                    icon={FireIcon} 
+                <StatCard
+                    title="Current Streak"
+                    value={`${stats.currentStreak} days`}
+                    icon={FireIcon}
                     color="red"
                     loading={refreshing}
                 />
-                <StatCard 
-                    title="Todos Today" 
-                    value={`${stats.todayTodos} of ${stats.pendingTodos}`} 
-                    icon={CheckCircleIcon} 
+                <StatCard
+                    title="Todos Today"
+                    value={`${stats.todayTodos} of ${stats.pendingTodos}`}
+                    icon={CheckCircleIcon}
                     color="green"
                     loading={refreshing}
                 />
-                <StatCard 
-                    title="Achievements" 
-                    value={`${stats.achievementsUnlocked}`} 
-                    icon={TrophyIcon} 
+                <StatCard
+                    title="Achievements"
+                    value={`${stats.achievementsUnlocked}`}
+                    icon={TrophyIcon}
                     color="purple"
                     loading={refreshing}
                 />
@@ -207,10 +200,10 @@ export default function DashboardPage() {
                                     <span className="text-gray-500 dark:text-gray-400">Level {stats.level}</span>
                                     <span className="font-medium">{stats.totalPoints} / {stats.xpToNextLevel} XP</span>
                                 </div>
-                                <ProgressBar 
-                                    value={stats.totalPoints % 100} 
-                                    max={100} 
-                                    color="blue" 
+                                <ProgressBar
+                                    value={stats.totalPoints % 100}
+                                    max={100}
+                                    color="blue"
                                 />
                                 <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
                                     {100 - (stats.totalPoints % 100)} XP to next level
