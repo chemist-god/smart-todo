@@ -7,12 +7,18 @@ import { Loader2 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { SmartCalendar } from "@/components/calendar/SmartCalendar";
 import { Todo } from "@prisma/client";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 export default function CalendarPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: todos, mutate } = useSWR<Todo[]>(
+    status === "authenticated" ? "/api/todos?sortBy=due" : null,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -21,30 +27,11 @@ export default function CalendarPage() {
     }
   }, [status, router]);
 
-  // Fetch todos
   useEffect(() => {
-    if (status !== "authenticated") return;
-
-    const fetchTodos = async () => {
-      try {
-        const response = await fetch("/api/todos");
-        if (!response.ok) throw new Error("Failed to fetch todos");
-        const data = await response.json();
-        setTodos(data);
-      } catch (error) {
-        console.error("Error fetching todos:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load todos. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTodos();
-  }, [status]);
+    if (status === "authenticated" && todos) {
+      setIsLoading(false);
+    }
+  }, [status, todos]);
 
   const handleCreateEvent = async (event: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -58,8 +45,7 @@ export default function CalendarPage() {
 
       if (!response.ok) throw new Error("Failed to create event");
 
-      const newEvent = await response.json();
-      setTodos(prev => [...prev, newEvent]);
+      await mutate();
       toast({
         title: "Success",
         description: "Event created successfully!",
@@ -82,10 +68,7 @@ export default function CalendarPage() {
 
       if (!response.ok) throw new Error("Failed to update event");
 
-      const updatedEvent = await response.json();
-      setTodos(prev =>
-        prev.map(todo => (todo.id === id ? { ...todo, ...updatedEvent } : todo))
-      );
+      await mutate();
       toast({
         title: "Success",
         description: "Event updated successfully!",
@@ -104,7 +87,7 @@ export default function CalendarPage() {
 
       if (!response.ok) throw new Error("Failed to delete event");
 
-      setTodos(prev => prev.filter(todo => todo.id !== id));
+      await mutate();
       toast({
         title: "Success",
         description: "Event deleted successfully!",
@@ -130,10 +113,10 @@ export default function CalendarPage() {
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           Calendar
         </h1>
-        
+
         <div className="h-[calc(100vh-200px)]">
           <SmartCalendar
-            todos={todos}
+            todos={todos || []}
             onEventCreate={handleCreateEvent}
             onEventUpdate={handleUpdateEvent}
             onEventDelete={handleDeleteEvent}

@@ -76,12 +76,12 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       dueDate: event.start ? event.start.toISOString() : new Date().toISOString(),
       dueTime: event.allDay ? null : format(event.start || new Date(), 'HH:mm'),
     };
-    
+
     try {
       await onEventUpdate(event.id, updates);
-  toast('Event updated: The event has been successfully rescheduled.');
+      toast('Event updated: The event has been successfully rescheduled.');
     } catch (error) {
-  toast('Error: Failed to update event.');
+      toast('Error: Failed to update event.');
       // Revert the change on error
       changeInfo.revert();
     }
@@ -90,30 +90,30 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
   const handleCreateEvent = async (data: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await onEventCreate(data);
-  toast('Event created: Your event has been created successfully.');
+      toast('Event created: Your event has been created successfully.');
       setIsFormOpen(false);
     } catch (error) {
-  toast('Error: Failed to create event.');
+      toast('Error: Failed to create event.');
     }
   };
 
   const handleUpdateEvent = async (id: string, updates: Partial<Todo>) => {
     try {
       await onEventUpdate(id, updates);
-  toast('Event updated: Your event has been updated successfully.');
+      toast('Event updated: Your event has been updated successfully.');
       setIsFormOpen(false);
     } catch (error) {
-  toast('Error: Failed to update event.');
+      toast('Error: Failed to update event.');
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
     try {
       await onEventDelete(id);
-  toast('Event deleted: Your event has been deleted.');
+      toast('Event deleted: Your event has been deleted.');
       setIsFormOpen(false);
     } catch (error) {
-  toast('Error: Failed to delete event.');
+      toast('Error: Failed to delete event.');
     }
   };
 
@@ -122,8 +122,8 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Calendar</h2>
         <div className="flex items-center space-x-2">
-          <Tabs 
-            value={view} 
+          <Tabs
+            value={view}
             onValueChange={(value) => setView(value as ViewType)}
             className="mr-4"
           >
@@ -175,6 +175,13 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
           select={handleDateSelect}
           eventChange={handleEventChange}
           height="100%"
+          datesSet={(arg) => {
+            const api = calendarRef.current?.getApi();
+            if (!api) return;
+            if (api.view.type !== view) {
+              setView(api.view.type as ViewType);
+            }
+          }}
           eventTimeFormat={{
             hour: '2-digit',
             minute: '2-digit',
