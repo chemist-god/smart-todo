@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { EventClickArg, DateSelectArg, EventApi, EventChangeArg } from '@fullcalendar/core';
+import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
+import { EventClickArg, DateSelectArg, EventChangeArg, EventContentArg } from '@fullcalendar/core';
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
 import { CalendarIcon, List, Grid2X2, CalendarDays } from 'lucide-react';
@@ -30,6 +30,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const calendarRef = useRef<FullCalendar>(null);
+  const externalRef = useRef<HTMLDivElement>(null);
 
   // Convert todos to FullCalendar events
   const events = todos.map(todo => ({
@@ -80,11 +81,38 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
     try {
       await onEventUpdate(event.id, updates);
       toast('Event updated: The event has been successfully rescheduled.');
-    } catch (error) {
+    } catch {
       toast('Error: Failed to update event.');
       // Revert the change on error
       changeInfo.revert();
     }
+  };
+
+  // External draggable sources (priority chips)
+  useEffect(() => {
+    if (!externalRef.current) return;
+    const draggable = new Draggable(externalRef.current, {
+      itemSelector: '.fc-external',
+      eventData: (el) => {
+        const priority = (el as HTMLElement).dataset.priority || 'MEDIUM';
+        const title = (el as HTMLElement).dataset.title || 'New Todo';
+        return { title, extendedProps: { priority } };
+      },
+    });
+    return () => draggable.destroy();
+  }, []);
+
+  // Custom render for events
+  const renderEventContent = (arg: EventContentArg) => {
+    const isCompleted = Boolean(arg.event.extendedProps.completed);
+    const priority = String(arg.event.extendedProps.priority || 'MEDIUM');
+    const dotColor = getPriorityColor(priority);
+    return (
+      <div className="flex items-center gap-1 truncate">
+        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
+        <span className={`truncate ${isCompleted ? 'line-through opacity-70' : ''}`}>{arg.event.title}</span>
+      </div>
+    );
   };
 
   const handleCreateEvent = async (data: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -122,6 +150,19 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Calendar</h2>
         <div className="flex items-center space-x-2">
+          {/* External drag sources */}
+          <div ref={externalRef} className="hidden md:flex items-center space-x-2 mr-4">
+            <span className="text-xs text-gray-500 mr-1">Drag to create:</span>
+            <button className="fc-external px-2 py-1 text-xs rounded bg-green-100 text-green-700" data-priority="LOW" data-title="Low priority">
+              Low
+            </button>
+            <button className="fc-external px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700" data-priority="MEDIUM" data-title="Medium priority">
+              Med
+            </button>
+            <button className="fc-external px-2 py-1 text-xs rounded bg-red-100 text-red-700" data-priority="HIGH" data-title="High priority">
+              High
+            </button>
+          </div>
           <Tabs
             value={view}
             onValueChange={(value) => setView(value as ViewType)}
@@ -171,11 +212,33 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
           initialDate={selectedDate}
           headerToolbar={false}
           events={events}
+          droppable={true}
+          eventReceive={async (info) => {
+            // Create a new todo from external drag
+            const start = info.event.start || new Date();
+            const isAllDay = info.event.allDay;
+            const ext = info.event.extendedProps as { priority?: 'LOW' | 'MEDIUM' | 'HIGH' };
+            const priority: 'LOW' | 'MEDIUM' | 'HIGH' = ext?.priority || 'MEDIUM';
+            const title = info.event.title || 'New Todo';
+            try {
+              await handleCreateEvent({
+                title,
+                description: '',
+                dueDate: start.toISOString(),
+                dueTime: isAllDay ? null : format(start, 'HH:mm'),
+                priority,
+                completed: false,
+              });
+            } catch {
+              info.revert();
+            }
+          }}
+          eventContent={renderEventContent}
           eventClick={handleEventClick}
           select={handleDateSelect}
           eventChange={handleEventChange}
           height="100%"
-          datesSet={(arg) => {
+          datesSet={() => {
             const api = calendarRef.current?.getApi();
             if (!api) return;
             if (api.view.type !== view) {
