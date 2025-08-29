@@ -12,14 +12,22 @@ import { Button } from '../ui/button';
 import { CalendarIcon, List, Grid2X2, CalendarDays, Clock, X, Pencil, Trash2, Check } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { toast } from 'sonner';
-import { Todo } from '@prisma/client';
+// Use a UI-facing todo type to avoid Prisma Date typing and missing fields
+interface CalendarTodo {
+  id: string;
+  title: string;
+  description: string | null;
+  completed: boolean;
+  dueDate: string | Date | null;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | string;
+}
 import { cn } from '@/lib/utils';
 import { EventForm } from './EventForm';
 
 interface SmartCalendarProps {
-  todos: Todo[];
-  onEventCreate: (event: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  onEventUpdate: (id: string, updates: Partial<Todo>) => Promise<void>;
+  todos: CalendarTodo[];
+  onEventCreate: (event: Record<string, unknown>) => Promise<void>;
+  onEventUpdate: (id: string, updates: Record<string, unknown>) => Promise<void>;
   onEventDelete: (id: string) => Promise<void>;
 }
 
@@ -27,11 +35,10 @@ type ViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek';
 
 export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDelete }: SmartCalendarProps) {
   const [view, setView] = useState<ViewType>('dayGridMonth');
-  const [selectedEvent, setSelectedEvent] = useState<Todo | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarTodo | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedAllDay, setSelectedAllDay] = useState<boolean>(true);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  // We currently treat dueDate as the single source of timing (no separate dueTime)
   const calendarRef = useRef<FullCalendar>(null);
   const externalRef = useRef<HTMLDivElement>(null);
 
@@ -39,9 +46,9 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
   const events = todos.map(todo => ({
     id: todo.id,
     title: todo.title,
-    start: todo.dueDate ? new Date(todo.dueDate) : new Date(),
-    end: todo.dueDate ? new Date(new Date(todo.dueDate).getTime() + 60 * 60 * 1000) : new Date(),
-    allDay: !todo.dueTime,
+    start: todo.dueDate ? new Date(todo.dueDate as string | Date) : new Date(),
+    end: todo.dueDate ? new Date(new Date(todo.dueDate as string | Date).getTime() + 60 * 60 * 1000) : new Date(),
+    allDay: true,
     extendedProps: {
       description: todo.description,
       priority: todo.priority,
@@ -70,8 +77,6 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     setSelectedDate(selectInfo.start);
-    setSelectedAllDay(selectInfo.allDay ?? true);
-    setSelectedTime(selectInfo.allDay ? null : format(selectInfo.start, 'HH:mm'));
     setSelectedEvent(null);
     setIsFormOpen(true);
   };
@@ -80,7 +85,6 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
     const { event } = changeInfo;
     const updates = {
       dueDate: event.start ? event.start.toISOString() : new Date().toISOString(),
-      dueTime: event.allDay ? null : format(event.start || new Date(), 'HH:mm'),
     };
 
     try {
@@ -139,7 +143,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
     api?.changeView(view);
   }, [view]);
 
-  const handleCreateEvent = async (data: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleCreateEvent = async (data: Record<string, unknown>) => {
     try {
       await onEventCreate(data);
       toast('Event created: Your event has been created successfully.');
@@ -149,7 +153,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
     }
   };
 
-  const handleUpdateEvent = async (id: string, updates: Partial<Todo>) => {
+  const handleUpdateEvent = async (id: string, updates: Record<string, unknown>) => {
     try {
       await onEventUpdate(id, updates);
       toast('Event updated: Your event has been updated successfully.');
@@ -276,7 +280,6 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
           eventReceive={async (info) => {
             // Create a new todo from external drag
             const start = info.event.start || new Date();
-            const isAllDay = info.event.allDay;
             const ext = info.event.extendedProps as { priority?: 'LOW' | 'MEDIUM' | 'HIGH' };
             const priority: 'LOW' | 'MEDIUM' | 'HIGH' = ext?.priority || 'MEDIUM';
             const title = info.event.title || 'New Todo';
@@ -285,7 +288,6 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
                 title,
                 description: '',
                 dueDate: start.toISOString(),
-                dueTime: isAllDay ? null : format(start, 'HH:mm'),
                 priority,
                 completed: false,
               });
@@ -340,7 +342,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">When:</span>
-                <span>{selectedEvent.dueDate ? format(new Date(selectedEvent.dueDate), selectedEvent.dueTime ? 'PP p' : 'PP') : '—'}</span>
+                <span>{selectedEvent.dueDate ? format(new Date(selectedEvent.dueDate), 'PP') : '—'}</span>
               </div>
               {selectedEvent.description && (
                 <div>
@@ -376,7 +378,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       <EventForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}
-        event={selectedEvent}
+        event={selectedEvent as unknown as any}
         selectedDate={selectedDate}
         onCreate={handleCreateEvent}
         onUpdate={handleUpdateEvent}
