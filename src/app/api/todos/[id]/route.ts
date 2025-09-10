@@ -5,11 +5,11 @@ import { prisma } from '@/lib/prisma';
 // GET /api/todos/[id] - Get a specific todo
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -17,9 +17,10 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     const todo = await prisma.todo.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -44,11 +45,11 @@ export async function GET(
 // PATCH /api/todos/[id] - Update a todo
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -56,12 +57,13 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const data = await request.json();
-    
+
     // Check if todo exists and belongs to user
     const existingTodo = await prisma.todo.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -75,13 +77,12 @@ export async function PATCH(
 
     const updatedTodo = await prisma.todo.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         title: data.title,
         description: data.description,
         dueDate: data.dueDate,
-        dueTime: data.dueTime,
         priority: data.priority,
         completed: data.completed,
       },
@@ -100,11 +101,11 @@ export async function PATCH(
 // DELETE /api/todos/[id] - Delete a todo
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -112,10 +113,11 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     // Check if todo exists and belongs to user
     const existingTodo = await prisma.todo.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -129,7 +131,7 @@ export async function DELETE(
 
     await prisma.todo.delete({
       where: {
-        id: params.id,
+        id,
       },
     });
 
