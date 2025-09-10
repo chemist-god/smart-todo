@@ -29,7 +29,7 @@ const navigation = [
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
-    const { data: stats } = useSWR(session?.user ? "/api/stats" : null, fetcher, { refreshInterval: 30000 });
+    const { data: stats } = useSWR<{ level: number; totalPoints: number }>(session?.user ? "/api/stats" : null, fetcher, { refreshInterval: 30000 });
 
     return (
         <div className="flex h-full w-64 flex-col bg-gradient-to-b from-blue-50 to-indigo-50 border-r border-gray-200">
