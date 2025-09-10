@@ -44,6 +44,8 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
+    "react-remove-scroll-bar": "^2.3.8",
+    "react-style-singleton": "^2.2.3",
     "sonner": "^2.0.7",
     "swr": "^2.2.5",
     "tailwind-merge": "^3.3.1",
