@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // GET /api/notes - Get all notes for the current user
 export async function GET(request: NextRequest) {
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search") || "";
 
         // Build where clause
-        let where: any = { userId: user.id };
+        const where: any = { userId: user.id };
         if (filter !== "all") {
             where.type = filter;
         }
@@ -147,33 +145,33 @@ async function awardAchievement(userId: string, achievementName: string) {
         });
 
         if (achievement) {
-            await prisma.userAchievement.upsert({
+            // Check if user already has this achievement
+            const existingAchievement = await prisma.userAchievement.findFirst({
                 where: {
-                    userId_achievementId: {
-                        userId,
-                        achievementId: achievement.id,
-                    },
-                },
-                update: {
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
-                },
-                create: {
                     userId,
                     achievementId: achievement.id,
-                    unlockedAt: new Date(),
-                    progress: achievement.requirement,
                 },
             });
 
-            // Update user stats
-            await prisma.userStats.update({
-                where: { userId },
-                data: {
-                    totalPoints: { increment: achievement.points },
-                    achievementsUnlocked: { increment: 1 },
-                },
-            });
+            if (!existingAchievement) {
+                await prisma.userAchievement.create({
+                    data: {
+                        userId,
+                        achievementId: achievement.id,
+                        unlockedAt: new Date(),
+                        progress: achievement.requirement,
+                    },
+                });
+
+                // Update user stats
+                await prisma.userStats.update({
+                    where: { userId },
+                    data: {
+                        totalPoints: { increment: achievement.points },
+                        achievementsUnlocked: { increment: 1 },
+                    },
+                });
+            }
         }
     } catch (error) {
         console.error("Error awarding achievement:", error);

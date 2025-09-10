@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // GET /api/notes/[id] - Get a specific note
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -15,9 +13,10 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const note = await prisma.note.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id,
             },
             include: {
@@ -48,7 +47,7 @@ export async function GET(
 // PUT /api/notes/[id] - Update a note
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -56,13 +55,14 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
         const { title, content, type } = body;
 
         // Check if note exists and belongs to user
         const existingNote = await prisma.note.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id,
             },
         });
@@ -77,7 +77,7 @@ export async function PUT(
         if (type !== undefined) updateData.type = type;
 
         const note = await prisma.note.update({
-            where: { id: params.id },
+            where: { id },
             data: updateData,
             include: {
                 user: {
@@ -103,7 +103,7 @@ export async function PUT(
 // DELETE /api/notes/[id] - Delete a note
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -111,10 +111,11 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         // Check if note exists and belongs to user
         const existingNote = await prisma.note.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id,
             },
         });
@@ -124,7 +125,7 @@ export async function DELETE(
         }
 
         await prisma.note.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         // Update user stats

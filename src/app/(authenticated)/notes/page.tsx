@@ -7,11 +7,27 @@ import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 interface Stats {
     notesCreated: number;
+    categoryCount: {
+        GENERAL: number;
+        BIBLE_STUDY: number;
+        CONFERENCE: number;
+        SONG: number;
+        QUOTE: number;
+        REFLECTION: number;
+    };
 }
 
 export default function NotesPage() {
     const [stats, setStats] = useState<Stats>({
         notesCreated: 0,
+        categoryCount: {
+            GENERAL: 0,
+            BIBLE_STUDY: 0,
+            CONFERENCE: 0,
+            SONG: 0,
+            QUOTE: 0,
+            REFLECTION: 0
+        }
     });
     const [loading, setLoading] = useState(true);
 
@@ -20,9 +36,7 @@ export default function NotesPage() {
             const response = await fetch('/api/stats');
             if (response.ok) {
                 const data = await response.json();
-                setStats({
-                    notesCreated: data.notesCreated,
-                });
+                setStats(data);
             }
         } catch (error) {
             console.error('Failed to fetch stats:', error);
@@ -64,38 +78,48 @@ export default function NotesPage() {
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-purple-600 mr-2" />
+                        <DocumentTextIcon className="w-5 h-5 text-gray-600 mr-2" />
+                        <span className="text-sm font-medium text-gray-600">General</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {loading ? "..." : stats.categoryCount.GENERAL}
+                    </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center">
+                        <DocumentTextIcon className="w-5 h-5 text-blue-600 mr-2" />
                         <span className="text-sm font-medium text-gray-600">Bible Study</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">0</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {loading ? "..." : stats.categoryCount.BIBLE_STUDY}
+                    </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center">
+                        <DocumentTextIcon className="w-5 h-5 text-purple-600 mr-2" />
+                        <span className="text-sm font-medium text-gray-600">Conference</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {loading ? "..." : stats.categoryCount.CONFERENCE}
+                    </p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex items-center">
                         <DocumentTextIcon className="w-5 h-5 text-green-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Conference</span>
+                        <span className="text-sm font-medium text-gray-600">Song</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">0</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {loading ? "..." : stats.categoryCount.SONG}
+                    </p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex items-center">
                         <DocumentTextIcon className="w-5 h-5 text-yellow-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Song</span>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">0</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-pink-600 mr-2" />
                         <span className="text-sm font-medium text-gray-600">Quote</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">0</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-indigo-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Reflection</span>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">0</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {loading ? "..." : stats.categoryCount.QUOTE}
+                    </p>
                 </div>
             </div>
 

@@ -1,29 +1,119 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { Toaster, toast } from "sonner";
+import { SmartCalendar } from "@/components/calendar/SmartCalendar";
+import { Todo } from "@prisma/client";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 export default function CalendarPage() {
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-white">
-                <h1 className="text-2xl font-bold mb-2">Calendar</h1>
-                <p className="text-green-100">View your tasks and deadlines in a calendar view</p>
-            </div>
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: todos, mutate } = useSWR<Todo[]>(
+    status === "authenticated" ? "/api/todos?sortBy=due" : null,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
 
-            {/* Calendar Content */}
-            <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center">
-                <CalendarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
-                <p className="text-gray-500 mb-4">
-                    A comprehensive calendar view of your todos and deadlines is coming soon!
-                </p>
-                <p className="text-sm text-gray-400">
-                    This feature will allow you to see all your tasks organized by date,
-                    with visual indicators for priorities and completion status.
-                </p>
-            </div>
-        </div>
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === "authenticated" && todos) {
+      setIsLoading(false);
+    }
+  }, [status, todos]);
+
+  const handleCreateEvent = async (event: Record<string, unknown>) => {
+    try {
+      const response = await fetch("/api/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (!response.ok) throw new Error("Failed to create event");
+
+      await mutate();
+      toast.success("Event created successfully!");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      throw error;
+    }
+  };
+
+  const handleUpdateEvent = async (id: string, updates: Record<string, unknown>) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) throw new Error("Failed to update event");
+
+      await mutate();
+      toast.success("Event updated successfully!");
+    } catch (error) {
+      console.error("Error updating event:", error);
+      throw error;
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete event");
+
+      await mutate();
+      toast.success("Event deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      throw error;
+    }
+  };
+
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Toaster position="top-right" />
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+          Calendar
+        </h1>
+
+        <div className="h-[calc(100vh-200px)]">
+          <SmartCalendar
+            todos={todos || []}
+            onEventCreate={handleCreateEvent}
+            onEventUpdate={handleUpdateEvent}
+            onEventDelete={handleDeleteEvent}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
