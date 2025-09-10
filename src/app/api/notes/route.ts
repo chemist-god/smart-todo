@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search") || "";
 
         // Build where clause
-        const where: any = { userId: user.id };
+        const where: Record<string, unknown> = { userId: user.id };
         if (filter !== "all") {
             where.type = filter;
         }

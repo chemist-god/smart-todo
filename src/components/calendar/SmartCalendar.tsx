@@ -13,6 +13,14 @@ import { CalendarIcon, List, Grid2X2, CalendarDays, Clock, X, Pencil, Trash2, Ch
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { toast } from 'sonner';
 // Use a UI-facing todo type to avoid Prisma Date typing and missing fields
+type CalendarEvent = {
+  id: string;
+  title: string;
+  description: string | null;
+  completed: boolean;
+  dueDate: string | Date | null;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | string;
+};
 interface CalendarTodo {
   id: string;
   title: string;
@@ -378,7 +386,7 @@ export function SmartCalendar({ todos, onEventCreate, onEventUpdate, onEventDele
       <EventForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}
-        event={selectedEvent as unknown as any}
+        event={selectedEvent as unknown as CalendarEvent | null}
         selectedDate={selectedDate}
         onCreate={handleCreateEvent}
         onUpdate={handleUpdateEvent}

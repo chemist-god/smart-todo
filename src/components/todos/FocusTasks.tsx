@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { Todo as PrismaTodo } from '@prisma/client';
 import TodoItem from "./TodoItem";
 
 // Convert Prisma Todo to component Todo type
@@ -35,16 +34,16 @@ export default function FocusTasks() {
       }
 
       const data = await response.json();
-      const transformedData: Todo[] = Array.isArray(data) ? data.map((task: any) => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || undefined,
-        completed: task.completed,
-        dueDate: task.dueDate || undefined,
+      const transformedData: Todo[] = Array.isArray(data) ? data.map((task: Record<string, unknown>) => ({
+        id: task.id as string,
+        title: task.title as string,
+        description: (task.description as string) || undefined,
+        completed: task.completed as boolean,
+        dueDate: (task.dueDate as string) || undefined,
         priority: task.priority as "LOW" | "MEDIUM" | "HIGH",
-        points: task.points,
-        createdAt: task.createdAt,
-        completedAt: task.completedAt || undefined
+        points: task.points as number,
+        createdAt: task.createdAt as string,
+        completedAt: (task.completedAt as string) || undefined
       })) : [];
       setFocusTasks(transformedData);
       setError(null);
@@ -157,10 +156,10 @@ export default function FocusTasks() {
             <div className="pl-3">
               <TodoItem
                 todo={task}
-                onUpdate={async (todoId, updates) => {
-                  await handleTaskComplete(todoId);
+                onUpdate={async () => {
+                  await handleTaskComplete(task.id);
                 }}
-                onDelete={async (todoId) => {
+                onDelete={async () => {
                   // Handle delete if needed
                   console.log('Delete not implemented for focus tasks');
                 }}

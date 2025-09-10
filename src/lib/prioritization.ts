@@ -1,10 +1,5 @@
 import { Todo } from '@prisma/client';
 
-interface TaskWithImpact extends Todo {
-  impactScore: number;
-  effortScore: number;
-  priorityScore: number;
-}
 
 /**
  * Implements the 80/20 rule (Pareto Principle) for task prioritization
