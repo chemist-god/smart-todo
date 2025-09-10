@@ -71,7 +71,7 @@ export async function PUT(
             return NextResponse.json({ error: "Note not found" }, { status: 404 });
         }
 
-        const updateData: any = {};
+        const updateData: Record<string, unknown> = {};
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
         if (type !== undefined) updateData.type = type;
