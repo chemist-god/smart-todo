@@ -57,14 +57,10 @@ const priorityOptions = [
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  dueDate: z.date({
-    required_error: 'Due date is required',
-  }),
+  dueDate: z.date(),
   // We ignore time granularity for now; extend later if needed
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH'], {
-    required_error: 'Please select a priority',
-  }),
-  allDay: z.boolean().default(true),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+  allDay: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -218,21 +214,6 @@ export function EventForm({
                 )}
               />
 
-              {!watchAllDay && (
-                <FormField
-                  control={form.control}
-                  name="dueTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Time</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <FormField
                 control={form.control}
