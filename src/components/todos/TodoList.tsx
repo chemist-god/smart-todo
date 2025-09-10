@@ -57,7 +57,7 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
     const handleTodoUpdate = async (todoId: string, updates: Partial<Todo>) => {
         try {
             const response = await fetch(`/api/todos/${todoId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
