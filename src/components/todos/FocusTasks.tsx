@@ -2,10 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { Todo } from '@prisma/client';
+import { Todo as PrismaTodo } from '@prisma/client';
 import TodoItem from "./TodoItem";
 
-// Using Prisma Todo type directly for focus tasks
+// Convert Prisma Todo to component Todo type
+type Todo = {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  dueDate?: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  points: number;
+  createdAt: string;
+  completedAt?: string;
+};
 
 export default function FocusTasks() {
   const [focusTasks, setFocusTasks] = useState<Todo[]>([]);
@@ -24,7 +35,18 @@ export default function FocusTasks() {
       }
 
       const data = await response.json();
-      setFocusTasks(Array.isArray(data) ? data : []);
+      const transformedData: Todo[] = Array.isArray(data) ? data.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || undefined,
+        completed: task.completed,
+        dueDate: task.dueDate || undefined,
+        priority: task.priority as "LOW" | "MEDIUM" | "HIGH",
+        points: task.points,
+        createdAt: task.createdAt,
+        completedAt: task.completedAt || undefined
+      })) : [];
+      setFocusTasks(transformedData);
       setError(null);
     } catch (err) {
       console.error('Error fetching focus tasks:', err);
@@ -135,8 +157,13 @@ export default function FocusTasks() {
             <div className="pl-3">
               <TodoItem
                 todo={task}
-                onComplete={() => handleTaskComplete(task.id)}
-                className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
+                onUpdate={async (todoId, updates) => {
+                  await handleTaskComplete(todoId);
+                }}
+                onDelete={async (todoId) => {
+                  // Handle delete if needed
+                  console.log('Delete not implemented for focus tasks');
+                }}
               />
             </div>
           </div>
