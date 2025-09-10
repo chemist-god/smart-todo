@@ -24,7 +24,7 @@ export function applyParetoPrinciple(tasks: Todo[]): Todo[] {
 
     // Effort score (inverse of points, since higher points might indicate more effort)
     const effortScore = Math.min(10, Math.max(1, Math.ceil(task.points / 10)));
-    
+
     // Calculate impact score (higher is better)
     const impactScore = (priorityMultiplier * task.points) / effortScore;
 
@@ -60,10 +60,10 @@ export function applyEisenhowerMatrix(tasks: Todo[]): {
 
   return tasks.reduce((acc, task) => {
     const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-    const isUrgent = dueDate 
+    const isUrgent = dueDate
       ? (dueDate.getTime() - now.getTime()) <= (3 * oneDay) // Due in 3 days or less
       : false;
-    
+
     const isImportant = task.priority === 'HIGH' || task.priority === 'MEDIUM';
 
     if (isImportant && isUrgent) {
@@ -103,7 +103,7 @@ export function calculateTaskPriority(task: Todo): number {
     const dueDate = new Date(task.dueDate);
     const timeDiff = dueDate.getTime() - now.getTime();
     const daysUntilDue = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    
+
     if (daysUntilDue <= 1) timeScore = 10;
     else if (daysUntilDue <= 3) timeScore = 7;
     else if (daysUntilDue <= 7) timeScore = 5;
@@ -123,18 +123,21 @@ export function calculateTaskPriority(task: Todo): number {
  */
 export function getRecommendedFocusTasks(tasks: Todo[]): Todo[] {
   if (tasks.length === 0) return [];
-  
+
   // Get top 20% tasks using Pareto
   const paretoTasks = applyParetoPrinciple(tasks);
-  
+
   // Get important & urgent tasks from Eisenhower
   const { importantUrgent } = applyEisenhowerMatrix(tasks);
-  
-  // Combine and deduplicate
-  const combined = [...new Set([...paretoTasks, ...importantUrgent])];
-  
+
+  // Combine and deduplicate by ID
+  const combined = [...paretoTasks, ...importantUrgent];
+  const uniqueTasks = combined.filter((task, index, self) =>
+    index === self.findIndex(t => t.id === task.id)
+  );
+
   // Sort by calculated priority
-  return combined.sort((a, b) => 
+  return uniqueTasks.sort((a, b) =>
     calculateTaskPriority(b) - calculateTaskPriority(a)
   );
 }
