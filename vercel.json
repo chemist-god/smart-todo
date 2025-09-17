@@ -1,7 +1,4 @@
 {
-    "buildCommand": "prisma generate && prisma migrate deploy && next build",
-    "installCommand": "npm install",
-    "env": {
-        "PRISMA_GENERATE_DATAPROXY": "true"
-    }
+    "buildCommand": "npx prisma generate && npx prisma migrate deploy && next build",
+    "installCommand": "npm install"
 }
