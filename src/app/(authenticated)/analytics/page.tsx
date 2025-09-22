@@ -3,10 +3,11 @@
 import { useState } from "react";
 import ProductivityChart from "@/components/analytics/ProductivityChart";
 import PatternAnalysis from "@/components/analytics/PatternAnalysis";
+import GoalsOverview from "@/components/analytics/GoalsOverview";
 import ExportButton from "@/components/analytics/ExportButton";
 
 export default function AnalyticsPage() {
-    const [activeTab, setActiveTab] = useState<'productivity' | 'patterns'>('productivity');
+    const [activeTab, setActiveTab] = useState<'productivity' | 'patterns' | 'goals'>('productivity');
     const [period, setPeriod] = useState('30');
 
     return (
@@ -44,6 +45,15 @@ export default function AnalyticsPage() {
                         >
                             Pattern Analysis
                         </button>
+                        <button
+                            onClick={() => setActiveTab('goals')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'goals'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Goals Overview
+                        </button>
                     </nav>
                 </div>
 
@@ -51,6 +61,7 @@ export default function AnalyticsPage() {
                 <div className="p-6">
                     {activeTab === 'productivity' && <ProductivityChart />}
                     {activeTab === 'patterns' && <PatternAnalysis />}
+                    {activeTab === 'goals' && <GoalsOverview />}
                 </div>
             </div>
         </div>
