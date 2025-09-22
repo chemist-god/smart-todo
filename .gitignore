@@ -45,3 +45,6 @@ next-env.d.ts
 prisma/dev.db
 
 .vercel
+
+roadmap.md
+scope.md
