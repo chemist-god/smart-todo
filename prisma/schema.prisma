@@ -29,6 +29,7 @@ model User {
   notes         Note[]
   achievements  UserAchievement[]
   stats         UserStats?
+  goals         Goal[]
 }
 
 model Account {
@@ -184,4 +185,56 @@ enum AchievementType {
   STREAK
   POINTS
   SPECIAL
+}
+
+// Goal tracking models
+model Goal {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        GoalType
+  target      Int         // Target value (e.g., number of tasks, points, etc.)
+  current     Int         @default(0) // Current progress
+  unit        String      // Unit of measurement (e.g., "tasks", "points", "days")
+  startDate   DateTime
+  endDate     DateTime?
+  isCompleted Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones  Milestone[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([type])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  target      Int
+  current     Int      @default(0)
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  goalId      String
+  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+}
+
+enum GoalType {
+  TASKS_COMPLETED
+  POINTS_EARNED
+  STREAK_DAYS
+  NOTES_CREATED
+  ACHIEVEMENTS_UNLOCKED
+  CUSTOM
 }

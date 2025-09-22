@@ -14,13 +14,15 @@ import {
     TrophyIcon,
     ArrowRightOnRectangleIcon,
     CalendarIcon,
-    ChartBarIcon
+    ChartBarIcon,
+    FlagIcon
 } from "@heroicons/react/24/outline";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
     { name: "Todos", href: "/todos", icon: CheckCircleIcon },
     { name: "Notes", href: "/notes", icon: DocumentTextIcon },
+    { name: "Goals", href: "/goals", icon: FlagIcon },
     { name: "Calendar", href: "/calendar", icon: CalendarIcon },
     { name: "Analytics", href: "/analytics", icon: ChartBarIcon },
     { name: "Achievements", href: "/achievements", icon: TrophyIcon },
