@@ -1,8 +1,8 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { useState, useEffect } from 'react';
-import { fetcher } from '@/lib/fetcher';
+import { useState } from 'react';
+import { usePatternAnalytics } from '@/hooks/useData';
 import { ClockIcon, CalendarIcon, ChartBarIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 
 interface PatternData {
@@ -48,25 +48,10 @@ interface PatternData {
 }
 
 export default function PatternAnalysis() {
-    const [data, setData] = useState<PatternData | null>(null);
-    const [loading, setLoading] = useState(true);
     const [period, setPeriod] = useState('30');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetcher<PatternData>(`/api/analytics/patterns?period=${period}`);
-                setData(response);
-            } catch (error) {
-                console.error('Error fetching pattern data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [period]);
+    // Use enhanced hook with caching and real-time updates
+    const { data, isLoading: loading, refreshAnalytics } = usePatternAnalytics(period);
 
     if (loading) {
         return (
