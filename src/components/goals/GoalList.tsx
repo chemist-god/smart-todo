@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Goal, Milestone } from '@prisma/client';
-import { fetcher } from '@/lib/fetcher';
+import { useGoals } from '@/hooks/useData';
 import GoalCard from './GoalCard';
 import CreateGoalModal from './CreateGoalModal';
 import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
@@ -16,52 +16,22 @@ interface GoalWithProgress extends Goal {
 }
 
 export default function GoalList() {
-    const [goals, setGoals] = useState<GoalWithProgress[]>([]);
-    const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
     const [typeFilter, setTypeFilter] = useState<string>('all');
 
-    useEffect(() => {
-        fetchGoals();
-    }, [filter, typeFilter]);
-
-    const fetchGoals = async () => {
-        try {
-            setLoading(true);
-            const params = new URLSearchParams();
-            if (filter !== 'all') {
-                params.append('status', filter);
-            }
-            if (typeFilter !== 'all') {
-                params.append('type', typeFilter);
-            }
-
-            const response = await fetcher<GoalWithProgress[]>(`/api/goals?${params.toString()}`);
-            setGoals(response);
-        } catch (error) {
-            console.error('Error fetching goals:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Use enhanced hook with real-time updates
+    const {
+        goals,
+        isLoading: loading,
+        addGoal,
+        updateGoal,
+        deleteGoal
+    } = useGoals(filter, typeFilter);
 
     const handleCreateGoal = async (goalData: any) => {
         try {
-            const response = await fetch('/api/goals', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(goalData),
-            });
-
-            if (response.ok) {
-                await fetchGoals(); // Refresh the list
-            } else {
-                const error = await response.json();
-                console.error('Error creating goal:', error);
-            }
+            await addGoal(goalData);
         } catch (error) {
             console.error('Error creating goal:', error);
         }
@@ -78,15 +48,7 @@ export default function GoalList() {
         }
 
         try {
-            const response = await fetch(`/api/goals/${goalId}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                await fetchGoals(); // Refresh the list
-            } else {
-                console.error('Error deleting goal');
-            }
+            await deleteGoal(goalId);
         } catch (error) {
             console.error('Error deleting goal:', error);
         }
@@ -94,19 +56,7 @@ export default function GoalList() {
 
     const handleToggleActive = async (goalId: string, isActive: boolean) => {
         try {
-            const response = await fetch(`/api/goals/${goalId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ isActive }),
-            });
-
-            if (response.ok) {
-                await fetchGoals(); // Refresh the list
-            } else {
-                console.error('Error updating goal');
-            }
+            await updateGoal(goalId, { isActive });
         } catch (error) {
             console.error('Error updating goal:', error);
         }
@@ -114,19 +64,7 @@ export default function GoalList() {
 
     const handleUpdateProgress = async (goalId: string, current: number) => {
         try {
-            const response = await fetch(`/api/goals/${goalId}/progress`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ current }),
-            });
-
-            if (response.ok) {
-                await fetchGoals(); // Refresh the list
-            } else {
-                console.error('Error updating progress');
-            }
+            await updateGoal(goalId, { current });
         } catch (error) {
             console.error('Error updating progress:', error);
         }
