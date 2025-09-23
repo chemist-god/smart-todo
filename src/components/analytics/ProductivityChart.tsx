@@ -1,8 +1,8 @@
 "use client";
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { useState, useEffect } from 'react';
-import { fetcher } from '@/lib/fetcher';
+import { useState } from 'react';
+import { useProductivityAnalytics } from '@/hooks/useData';
 
 interface ProductivityData {
     period: string;
@@ -32,25 +32,10 @@ interface ProductivityData {
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export default function ProductivityChart() {
-    const [data, setData] = useState<ProductivityData | null>(null);
-    const [loading, setLoading] = useState(true);
     const [period, setPeriod] = useState('30');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetcher<ProductivityData>(`/api/analytics/productivity?period=${period}`);
-                setData(response);
-            } catch (error) {
-                console.error('Error fetching productivity data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [period]);
+    // Use enhanced hook with caching and real-time updates
+    const { data, isLoading: loading, refreshAnalytics } = useProductivityAnalytics(period);
 
     if (loading) {
         return (
