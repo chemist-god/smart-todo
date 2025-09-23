@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { Goal, Milestone } from '@prisma/client';
-import { fetcher } from '@/lib/fetcher';
+import { useGoals } from '@/hooks/useData';
 import { FlagIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -15,24 +14,8 @@ interface GoalWithProgress extends Goal {
 }
 
 export default function GoalsOverview() {
-    const [goals, setGoals] = useState<GoalWithProgress[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchGoals = async () => {
-            try {
-                setLoading(true);
-                const response = await fetcher<GoalWithProgress[]>('/api/goals?status=active');
-                setGoals(response);
-            } catch (error) {
-                console.error('Error fetching goals:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchGoals();
-    }, []);
+    // Use enhanced hook with real-time updates for active goals
+    const { goals, isLoading: loading } = useGoals('active', 'all');
 
     const getGoalTypeColor = (type: string) => {
         switch (type) {
