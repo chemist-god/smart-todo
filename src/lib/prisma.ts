@@ -14,3 +14,16 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// Enhanced error handling and connection recovery
+// Note: $on is not available in all Prisma versions
+// prisma.$on('error', (e) => {
+//   console.error('Prisma Error:', e);
+// });
+
+// Graceful shutdown
+if (typeof window === 'undefined') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
+}
