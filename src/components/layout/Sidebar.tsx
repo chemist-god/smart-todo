@@ -15,7 +15,8 @@ import {
     ArrowRightOnRectangleIcon,
     CalendarIcon,
     ChartBarIcon,
-    FlagIcon
+    FlagIcon,
+    CurrencyDollarIcon
 } from "@heroicons/react/24/outline";
 
 const navigation = [
@@ -23,6 +24,7 @@ const navigation = [
     { name: "Todos", href: "/todos", icon: CheckCircleIcon },
     { name: "Notes", href: "/notes", icon: DocumentTextIcon },
     { name: "Goals", href: "/goals", icon: FlagIcon },
+    { name: "Stakes", href: "/stakes", icon: CurrencyDollarIcon },
     { name: "Calendar", href: "/calendar", icon: CalendarIcon },
     { name: "Analytics", href: "/analytics", icon: ChartBarIcon },
     { name: "Achievements", href: "/achievements", icon: TrophyIcon },
