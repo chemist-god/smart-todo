@@ -30,6 +30,13 @@ model User {
   achievements  UserAchievement[]
   stats         UserStats?
   goals         Goal[]
+  
+  // SmartStake relations
+  wallet        UserWallet?
+  stakes        Stake[]
+  rewards       Reward[]
+  penalties     Penalty[]
+  transactions  WalletTransaction[]
 }
 
 model Account {
@@ -237,4 +244,169 @@ enum GoalType {
   NOTES_CREATED
   ACHIEVEMENTS_UNLOCKED
   CUSTOM
+}
+
+// SmartStake Models
+model Stake {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?
+  stakeType       StakeType
+  status          StakeStatus @default(ACTIVE)
+  
+  // Financial Details
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  userStake       Decimal     @db.Decimal(10, 2)
+  friendStakes    Decimal     @default(0) @db.Decimal(10, 2)
+  penaltyAmount   Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Task Details
+  taskId          String?
+  deadline        DateTime
+  completionProof String?     @db.Text
+  
+  // Rewards & Penalties
+  rewardAmount    Decimal     @default(0) @db.Decimal(10, 2)
+  penaltyPool     Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  completedAt     DateTime?
+  
+  // Relations
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  participants    StakeParticipant[]
+  rewards         Reward[]
+  penalties       Penalty[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([stakeType])
+  @@index([deadline])
+}
+
+model StakeParticipant {
+  id              String      @id @default(cuid())
+  stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
+  participantId   String
+  participantName String
+  amount          Decimal     @db.Decimal(10, 2)
+  isSupporter     Boolean     @default(true)
+  
+  joinedAt        DateTime    @default(now())
+  
+  @@index([stakeId])
+  @@index([participantId])
+}
+
+model Reward {
+  id              String      @id @default(cuid())
+  stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal     @db.Decimal(10, 2)
+  rewardType      RewardType
+  description     String?
+  
+  awardedAt       DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([stakeId])
+}
+
+model Penalty {
+  id              String      @id @default(cuid())
+  stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal     @db.Decimal(10, 2)
+  reason          String
+  
+  appliedAt       DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([stakeId])
+}
+
+model UserWallet {
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  balance         Decimal     @default(0) @db.Decimal(10, 2)
+  totalEarned     Decimal     @default(0) @db.Decimal(10, 2)
+  totalLost       Decimal     @default(0) @db.Decimal(10, 2)
+  totalStaked     Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Advanced Metrics
+  completionRate  Decimal     @default(0) @db.Decimal(5, 2)
+  currentStreak   Int         @default(0)
+  longestStreak   Int         @default(0)
+  rank            Int         @default(0)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  transactions    WalletTransaction[]
+  
+  @@index([userId])
+  @@index([rank])
+  @@index([completionRate])
+}
+
+model WalletTransaction {
+  id              String      @id @default(cuid())
+  walletId        String
+  wallet          UserWallet  @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  amount          Decimal     @db.Decimal(10, 2)
+  description     String
+  referenceId     String?
+  
+  createdAt       DateTime    @default(now())
+  
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// SmartStake Enums
+enum StakeType {
+  SELF_STAKE
+  SOCIAL_STAKE
+  CHALLENGE_STAKE
+  TEAM_STAKE
+  CHARITY_STAKE
+}
+
+enum StakeStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  CANCELLED
+  EXPIRED
+  DISPUTED
+}
+
+enum RewardType {
+  SELF_REWARD
+  POOL_REWARD
+  PENALTY_REWARD
+  FRIEND_REWARD
+  STREAK_BONUS
+  ACHIEVEMENT_BONUS
 }
