@@ -5,6 +5,8 @@ import Sidebar from "./Sidebar";
 import AuthStatus from "../auth/AuthStatus";
 import SWRProvider from "../providers/SWRProvider";
 import RealtimeStatus from "../ui/RealtimeStatus";
+import ErrorBoundary from "../ui/ErrorBoundary";
+import { ToastProvider } from "../ui/Toast";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -39,16 +41,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
     }
 
     return (
-        <SWRProvider>
-            <div className="flex h-screen bg-gray-50">
-                <Sidebar />
-                <main className="flex-1 overflow-auto">
-                    <div className="p-6">
-                        {children}
+        <ErrorBoundary>
+            <ToastProvider>
+                <SWRProvider>
+                    <div className="flex h-screen bg-gray-50">
+                        <Sidebar />
+                        <main className="flex-1 overflow-auto">
+                            <div className="p-6">
+                                {children}
+                            </div>
+                        </main>
+                        <RealtimeStatus />
                     </div>
-                </main>
-                <RealtimeStatus />
-            </div>
-        </SWRProvider>
+                </SWRProvider>
+            </ToastProvider>
+        </ErrorBoundary>
     );
 }
