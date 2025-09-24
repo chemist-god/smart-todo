@@ -12,7 +12,7 @@ const updateProgressSchema = z.object({
 // PUT /api/goals/[id]/progress - Update goal progress
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -20,13 +20,14 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
         const validatedData = updateProgressSchema.parse(body);
 
         // Check if goal exists and belongs to user
         const goal = await prisma.goal.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id
             },
             include: {
@@ -40,7 +41,7 @@ export async function PUT(
 
         // Update goal progress
         const updatedGoal = await prisma.goal.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 current: Math.min(validatedData.current, goal.target), // Don't exceed target
                 updatedAt: new Date()
@@ -56,7 +57,7 @@ export async function PUT(
         const isCompleted = updatedGoal.current >= updatedGoal.target;
         if (isCompleted && !updatedGoal.isCompleted) {
             await prisma.goal.update({
-                where: { id: params.id },
+                where: { id },
                 data: { isCompleted: true }
             });
         }
@@ -110,7 +111,7 @@ export async function PUT(
 // POST /api/goals/[id]/progress - Auto-update progress based on goal type
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -118,10 +119,12 @@ export async function POST(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
+
         // Check if goal exists and belongs to user
         const goal = await prisma.goal.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id
             }
         });
@@ -205,7 +208,7 @@ export async function POST(
 
         // Update goal progress
         const updatedGoal = await prisma.goal.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 current: Math.min(newProgress, goal.target),
                 updatedAt: new Date()
@@ -221,7 +224,7 @@ export async function POST(
         const isCompleted = updatedGoal.current >= updatedGoal.target;
         if (isCompleted && !updatedGoal.isCompleted) {
             await prisma.goal.update({
-                where: { id: params.id },
+                where: { id },
                 data: { isCompleted: true }
             });
         }
