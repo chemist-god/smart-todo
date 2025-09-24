@@ -17,7 +17,7 @@ const updateGoalSchema = z.object({
 // GET /api/goals/[id] - Get a specific goal
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -25,9 +25,10 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const goal = await prisma.goal.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id
             },
             include: {
@@ -66,7 +67,7 @@ export async function GET(
 // PUT /api/goals/[id] - Update a goal
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -74,13 +75,14 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
         const validatedData = updateGoalSchema.parse(body);
 
         // Check if goal exists and belongs to user
         const existingGoal = await prisma.goal.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id
             }
         });
@@ -91,7 +93,7 @@ export async function PUT(
 
         // Update the goal
         const updatedGoal = await prisma.goal.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 ...validatedData,
                 endDate: validatedData.endDate ? new Date(validatedData.endDate) : undefined,
@@ -136,7 +138,7 @@ export async function PUT(
 // DELETE /api/goals/[id] - Delete a goal
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const user = await getCurrentUser();
@@ -144,10 +146,12 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
+
         // Check if goal exists and belongs to user
         const existingGoal = await prisma.goal.findFirst({
             where: {
-                id: params.id,
+                id,
                 userId: user.id
             }
         });
@@ -158,7 +162,7 @@ export async function DELETE(
 
         // Delete the goal (milestones will be deleted automatically due to cascade)
         await prisma.goal.delete({
-            where: { id: params.id }
+            where: { id }
         });
 
         return NextResponse.json({ message: "Goal deleted successfully" });
