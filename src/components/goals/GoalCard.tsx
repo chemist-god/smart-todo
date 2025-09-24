@@ -13,6 +13,8 @@ import {
     PauseIcon
 } from '@heroicons/react/24/outline';
 import { format, isAfter, isBefore } from 'date-fns';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import { useToast } from '../ui/Toast';
 
 interface GoalWithProgress extends Goal {
     progress: number;
@@ -39,6 +41,8 @@ export default function GoalCard({
 }: GoalCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [progressInput, setProgressInput] = useState(goal.current.toString());
+    const [isUpdating, setIsUpdating] = useState(false);
+    const { toast } = useToast();
 
     const getGoalTypeColor = (type: string) => {
         switch (type) {
@@ -78,10 +82,26 @@ export default function GoalCard({
         return <PlayIcon className="w-5 h-5" />;
     };
 
-    const handleProgressUpdate = () => {
+    const handleProgressUpdate = async () => {
         const newProgress = parseInt(progressInput);
-        if (!isNaN(newProgress) && newProgress >= 0) {
-            onUpdateProgress(goal.id, newProgress);
+        if (isNaN(newProgress) || newProgress < 0) {
+            toast.error('Invalid progress value', 'Please enter a valid number');
+            return;
+        }
+
+        if (newProgress > goal.target) {
+            toast.warning('Progress exceeds target', 'Progress cannot be higher than the target');
+            return;
+        }
+
+        try {
+            setIsUpdating(true);
+            await onUpdateProgress(goal.id, newProgress);
+            toast.success('Progress updated', 'Your goal progress has been updated successfully');
+        } catch (error) {
+            toast.error('Update failed', 'Failed to update progress. Please try again.');
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -188,9 +208,17 @@ export default function GoalCard({
                             />
                             <button
                                 onClick={handleProgressUpdate}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                                disabled={isUpdating}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm flex items-center gap-2"
                             >
-                                Update
+                                {isUpdating ? (
+                                    <>
+                                        <LoadingSpinner size="sm" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    'Update'
+                                )}
                             </button>
                         </div>
                     </div>

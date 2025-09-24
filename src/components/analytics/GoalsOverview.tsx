@@ -1,7 +1,36 @@
 "use client";
 
-import { Goal, Milestone } from '@prisma/client';
 import { useGoals } from '@/hooks/useData';
+
+// Define types locally since Prisma client might not be generated yet
+interface Goal {
+    id: string;
+    title: string;
+    description: string | null;
+    type: string;
+    target: number;
+    current: number;
+    unit: string;
+    startDate: Date;
+    endDate: Date | null;
+    isCompleted: boolean;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+}
+
+interface Milestone {
+    id: string;
+    title: string;
+    description: string | null;
+    target: number;
+    current: number;
+    isCompleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    goalId: string;
+}
 import { FlagIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -15,7 +44,7 @@ interface GoalWithProgress extends Goal {
 
 export default function GoalsOverview() {
     // Use enhanced hook with real-time updates for active goals
-    const { goals, isLoading: loading } = useGoals('active', 'all');
+    const { goals = [], isLoading: loading } = useGoals('active', 'all');
 
     const getGoalTypeColor = (type: string) => {
         switch (type) {
@@ -42,10 +71,11 @@ export default function GoalsOverview() {
     };
 
     const getStats = () => {
-        const total = goals.length;
-        const completed = goals.filter(g => g.isCompleted).length;
-        const overdue = goals.filter(g => g.isOverdue).length;
-        const avgProgress = total > 0 ? goals.reduce((sum, g) => sum + g.progress, 0) / total : 0;
+        const goalsArray = Array.isArray(goals) ? goals : [];
+        const total = goalsArray.length;
+        const completed = goalsArray.filter((g: any) => g.isCompleted).length;
+        const overdue = goalsArray.filter((g: any) => g.isOverdue).length;
+        const avgProgress = total > 0 ? goalsArray.reduce((sum: number, g: any) => sum + (g.progress || 0), 0) / total : 0;
 
         return { total, completed, overdue, avgProgress };
     };
@@ -101,7 +131,7 @@ export default function GoalsOverview() {
             </div>
 
             {/* Goals List */}
-            {goals.length === 0 ? (
+            {stats.total === 0 ? (
                 <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center">
                     <FlagIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Goals</h3>
@@ -118,7 +148,7 @@ export default function GoalsOverview() {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {goals.slice(0, 5).map((goal) => (
+                    {(Array.isArray(goals) ? goals : []).slice(0, 5).map((goal: any) => (
                         <div
                             key={goal.id}
                             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
@@ -191,13 +221,13 @@ export default function GoalsOverview() {
                         </div>
                     ))}
 
-                    {goals.length > 5 && (
+                    {stats.total > 5 && (
                         <div className="text-center">
                             <Link
                                 href="/goals"
                                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                             >
-                                View {goals.length - 5} more goals →
+                                View {stats.total - 5} more goals →
                             </Link>
                         </div>
                     )}

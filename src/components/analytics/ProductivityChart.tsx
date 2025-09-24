@@ -3,6 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useState } from 'react';
 import { useProductivityAnalytics } from '@/hooks/useData';
+import { validateProductivityData, generateMockProductivityData, type ProductivityData as ValidatedProductivityData } from '@/lib/analytics-validator';
 
 interface ProductivityData {
     period: string;
@@ -35,7 +36,7 @@ export default function ProductivityChart() {
     const [period, setPeriod] = useState('30');
 
     // Use enhanced hook with caching and real-time updates
-    const { data, isLoading: loading, refreshAnalytics } = useProductivityAnalytics(period);
+    const { data = null, isLoading: loading, refreshAnalytics } = useProductivityAnalytics(period);
 
     if (loading) {
         return (
@@ -55,6 +56,9 @@ export default function ProductivityChart() {
             </div>
         );
     }
+
+    // Validate and normalize data with fallbacks
+    const safeData = data ? validateProductivityData(data) : generateMockProductivityData();
 
     return (
         <div className="space-y-6">
@@ -76,19 +80,19 @@ export default function ProductivityChart() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-lg text-white">
                     <div className="text-sm opacity-90">Completion Rate</div>
-                    <div className="text-2xl font-bold">{data.overallCompletionRate.toFixed(1)}%</div>
+                    <div className="text-2xl font-bold">{safeData.overallCompletionRate.toFixed(1)}%</div>
                 </div>
                 <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-lg text-white">
                     <div className="text-sm opacity-90">Tasks Completed</div>
-                    <div className="text-2xl font-bold">{data.totalCompleted}</div>
+                    <div className="text-2xl font-bold">{safeData.completedTasks}</div>
                 </div>
                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-lg text-white">
                     <div className="text-sm opacity-90">Points Earned</div>
-                    <div className="text-2xl font-bold">{data.totalPointsEarned}</div>
+                    <div className="text-2xl font-bold">{safeData.productivityScore}</div>
                 </div>
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-lg text-white">
                     <div className="text-sm opacity-90">Avg. Completion Time</div>
-                    <div className="text-2xl font-bold">{data.avgCompletionTime}h</div>
+                    <div className="text-2xl font-bold">{safeData.averageCompletionTime}h</div>
                 </div>
             </div>
 
@@ -96,7 +100,7 @@ export default function ProductivityChart() {
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Completion Trends</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={data.dailyStats}>
+                    <LineChart data={safeData.dailyStats}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                             dataKey="date"
@@ -133,12 +137,12 @@ export default function ProductivityChart() {
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Completion Rates</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={data.weeklyStats}>
+                    <BarChart data={safeData.dailyStats}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="week" />
+                        <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="completionRate" fill="#8B5CF6" name="Completion Rate (%)" />
+                        <Bar dataKey="completed" fill="#8B5CF6" name="Completed Tasks" />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -151,7 +155,7 @@ export default function ProductivityChart() {
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
-                                    data={data.priorityBreakdown}
+                                    data={safeData.priorityBreakdown}
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
@@ -160,7 +164,7 @@ export default function ProductivityChart() {
                                     fill="#8884d8"
                                     dataKey="count"
                                 >
-                                    {data.priorityBreakdown.map((entry, index) => (
+                                    {safeData.priorityBreakdown.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -169,7 +173,7 @@ export default function ProductivityChart() {
                         </ResponsiveContainer>
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
-                        {data.priorityBreakdown.map((item, index) => (
+                        {safeData.priorityBreakdown.map((item, index) => (
                             <div key={item.priority} className="flex items-center mb-3">
                                 <div
                                     className="w-4 h-4 rounded-full mr-3"

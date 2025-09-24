@@ -5,10 +5,40 @@ import ProductivityChart from "@/components/analytics/ProductivityChart";
 import PatternAnalysis from "@/components/analytics/PatternAnalysis";
 import GoalsOverview from "@/components/analytics/GoalsOverview";
 import ExportButton from "@/components/analytics/ExportButton";
+import InsightsPanel from "@/components/analytics/InsightsPanel";
 
 export default function AnalyticsPage() {
-    const [activeTab, setActiveTab] = useState<'productivity' | 'patterns' | 'goals'>('productivity');
+    const [activeTab, setActiveTab] = useState<'productivity' | 'patterns' | 'goals' | 'insights'>('productivity');
     const [period, setPeriod] = useState('30');
+
+    // Mock insights data - in a real app, this would come from an API
+    const insights = [
+        {
+            id: '1',
+            type: 'success' as const,
+            title: 'Great Progress!',
+            description: 'You\'ve completed 80% of your tasks this week. Keep up the excellent work!',
+            priority: 'medium' as const,
+        },
+        {
+            id: '2',
+            type: 'tip' as const,
+            title: 'Peak Productivity Time',
+            description: 'You\'re most productive between 9-11 AM. Try scheduling your most important tasks during this time.',
+            priority: 'high' as const,
+            action: {
+                label: 'Schedule Focus Time',
+                onClick: () => console.log('Schedule focus time'),
+            },
+        },
+        {
+            id: '3',
+            type: 'warning' as const,
+            title: 'Goal Behind Schedule',
+            description: 'Your "Complete Project" goal is 20% behind schedule. Consider adjusting your timeline or increasing effort.',
+            priority: 'high' as const,
+        },
+    ];
 
     return (
         <div className="space-y-6">
@@ -54,6 +84,15 @@ export default function AnalyticsPage() {
                         >
                             Goals Overview
                         </button>
+                        <button
+                            onClick={() => setActiveTab('insights')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'insights'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            AI Insights
+                        </button>
                     </nav>
                 </div>
 
@@ -62,6 +101,7 @@ export default function AnalyticsPage() {
                     {activeTab === 'productivity' && <ProductivityChart />}
                     {activeTab === 'patterns' && <PatternAnalysis />}
                     {activeTab === 'goals' && <GoalsOverview />}
+                    {activeTab === 'insights' && <InsightsPanel insights={insights} />}
                 </div>
             </div>
         </div>
