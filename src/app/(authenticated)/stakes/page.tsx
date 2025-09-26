@@ -6,6 +6,8 @@ import { WalletIcon, PlusIcon, TrophyIcon, ChartBarIcon } from "@heroicons/react
 import CreateStakeModal from "@/components/stakes/CreateStakeModal";
 import StakeCard from "@/components/stakes/StakeCard";
 import WalletBalance from "@/components/stakes/WalletBalance";
+import StakeAnalytics from "@/components/stakes/StakeAnalytics";
+import StakeNotifications from "@/components/stakes/StakeNotifications";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Stake {
@@ -47,7 +49,7 @@ export default function StakesPage() {
     const [wallet, setWallet] = useState<WalletData | null>(null);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'rewards'>('my-stakes');
+    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'rewards' | 'analytics' | 'notifications'>('my-stakes');
 
     // Fetch stakes and wallet data
     const fetchData = async () => {
@@ -90,14 +92,9 @@ export default function StakesPage() {
     };
 
     const getFilteredStakes = () => {
-        console.log('All stakes:', stakes);
-        console.log('Active tab:', activeTab);
-
         switch (activeTab) {
             case 'my-stakes':
-                const myStakes = stakes.filter(stake => stake.isOwner);
-                console.log('My stakes:', myStakes);
-                return myStakes;
+                return stakes.filter(stake => stake.isOwner);
             case 'social-stakes':
                 return stakes.filter(stake => stake.stakeType === 'SOCIAL_STAKE' && !stake.isOwner);
             case 'rewards':
@@ -249,12 +246,34 @@ export default function StakesPage() {
                         >
                             Rewards
                         </button>
+                        <button
+                            onClick={() => setActiveTab('analytics')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'analytics'
+                                ? 'border-purple-500 text-purple-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Analytics
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('notifications')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'notifications'
+                                ? 'border-purple-500 text-purple-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Notifications
+                        </button>
                     </nav>
                 </div>
 
                 {/* Tab Content */}
                 <div className="p-6">
-                    {filteredStakes.length === 0 ? (
+                    {activeTab === 'analytics' ? (
+                        <StakeAnalytics userId={session?.user?.id || ''} />
+                    ) : activeTab === 'notifications' ? (
+                        <StakeNotifications userId={session?.user?.id || ''} />
+                    ) : filteredStakes.length === 0 ? (
                         <div className="text-center py-12">
                             <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
