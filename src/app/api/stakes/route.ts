@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
                 progress: Math.round(progress),
                 participantCount: stake.participants.length,
                 totalParticipants: stake.participants.length + 1, // +1 for the creator
+                isOwner: stake.userId === user.id, // Add isOwner field
             };
         });
 
