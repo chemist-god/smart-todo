@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { WalletIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, TrophyIcon, StarIcon } from "@heroicons/react/24/outline";
+import { WalletIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, TrophyIcon, StarIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { useToast } from "@/components/ui/Toast";
 
 interface WalletBalanceProps {
     balance: number;
@@ -13,6 +14,7 @@ interface WalletBalanceProps {
     longestStreak: number;
     rank: number;
     monthlyEarnings: number;
+    onBalanceUpdate?: () => void;
 }
 
 export default function WalletBalance({
@@ -24,9 +26,12 @@ export default function WalletBalance({
     currentStreak,
     longestStreak,
     rank,
-    monthlyEarnings
+    monthlyEarnings,
+    onBalanceUpdate
 }: WalletBalanceProps) {
     const [showDetails, setShowDetails] = useState(false);
+    const [isAddingFunds, setIsAddingFunds] = useState(false);
+    const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
         return `Gh${amount.toFixed(2)}`;
@@ -42,6 +47,35 @@ export default function WalletBalance({
         if (rank <= 10) return "Top 10";
         if (rank <= 50) return "Top 50";
         return "Rising";
+    };
+
+    const handleAddTestFunds = async () => {
+        if (process.env.NODE_ENV === 'production') {
+            addToast({ type: 'error', title: 'Error', message: 'Test deposits not available in production' });
+            return;
+        }
+
+        try {
+            setIsAddingFunds(true);
+            const response = await fetch('/api/wallet/test-deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: 100 })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                addToast({ type: 'success', title: 'Success', message: data.message });
+                onBalanceUpdate?.();
+            } else {
+                const error = await response.json();
+                addToast({ type: 'error', title: 'Error', message: error.error || 'Failed to add test funds' });
+            }
+        } catch (error) {
+            addToast({ type: 'error', title: 'Error', message: 'An error occurred while adding test funds' });
+        } finally {
+            setIsAddingFunds(false);
+        }
     };
 
     return (
@@ -68,20 +102,38 @@ export default function WalletBalance({
                     </div>
                 </div>
 
-                <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="mt-4 text-green-100 hover:text-white text-sm font-medium flex items-center gap-1"
-                >
-                    {showDetails ? 'Hide Details' : 'Show Details'}
-                    <svg
-                        className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                <div className="flex items-center justify-between mt-4">
+                    <button
+                        onClick={() => setShowDetails(!showDetails)}
+                        className="text-green-100 hover:text-white text-sm font-medium flex items-center gap-1"
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
+                        {showDetails ? 'Hide Details' : 'Show Details'}
+                        <svg
+                            className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    {/* Test Deposit Button - Only show in development */}
+                    {process.env.NODE_ENV !== 'production' && (
+                        <button
+                            onClick={handleAddTestFunds}
+                            disabled={isAddingFunds}
+                            className="inline-flex items-center px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            <PlusIcon className="w-3 h-3 mr-1" />
+                            {isAddingFunds ? 'Adding...' : 'Add Test Funds'}
+                        </button>
+                    )}
+                </div>
+
+                {process.env.NODE_ENV !== 'production' && (
+                    <p className="text-green-100 text-xs mt-2">Development only - adds Gh100 for testing</p>
+                )}
             </div>
 
             {/* Detailed Stats */}
