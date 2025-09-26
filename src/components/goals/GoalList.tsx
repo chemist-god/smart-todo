@@ -71,18 +71,20 @@ export default function GoalList() {
     };
 
     const getGoalTypeOptions = () => {
-        const types = [...new Set(goals.map(goal => goal.type))];
-        return types.map(type => ({
+        const goalsArray = Array.isArray(goals) ? goals : [];
+        const types = [...new Set(goalsArray.map((goal: any) => goal.type))];
+        return types.map((type: any) => ({
             value: type,
-            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: any) => l.toUpperCase())
         }));
     };
 
     const getStats = () => {
-        const total = goals.length;
-        const active = goals.filter(g => g.isActive && !g.isCompleted).length;
-        const completed = goals.filter(g => g.isCompleted).length;
-        const overdue = goals.filter(g => g.isOverdue).length;
+        const goalsArray = Array.isArray(goals) ? goals : [];
+        const total = goalsArray.length;
+        const active = goalsArray.filter((g: any) => g.isActive && !g.isCompleted).length;
+        const completed = goalsArray.filter((g: any) => g.isCompleted).length;
+        const overdue = goalsArray.filter((g: any) => g.isOverdue).length;
 
         return { total, active, completed, overdue };
     };
@@ -180,7 +182,7 @@ export default function GoalList() {
             </div>
 
             {/* Goals List */}
-            {goals.length === 0 ? (
+            {(Array.isArray(goals) ? goals : []).length === 0 ? (
                 <div className="bg-white p-12 rounded-xl border border-gray-200 shadow-sm text-center">
                     <div className="text-gray-400 mb-4">
                         <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,7 +205,7 @@ export default function GoalList() {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {goals.map((goal) => (
+                    {(Array.isArray(goals) ? goals : []).map((goal: any) => (
                         <GoalCard
                             key={goal.id}
                             goal={goal}
