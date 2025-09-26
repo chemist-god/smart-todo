@@ -90,9 +90,14 @@ export default function StakesPage() {
     };
 
     const getFilteredStakes = () => {
+        console.log('All stakes:', stakes);
+        console.log('Active tab:', activeTab);
+
         switch (activeTab) {
             case 'my-stakes':
-                return stakes.filter(stake => stake.isOwner);
+                const myStakes = stakes.filter(stake => stake.isOwner);
+                console.log('My stakes:', myStakes);
+                return myStakes;
             case 'social-stakes':
                 return stakes.filter(stake => stake.stakeType === 'SOCIAL_STAKE' && !stake.isOwner);
             case 'rewards':
@@ -158,6 +163,7 @@ export default function StakesPage() {
                     longestStreak={wallet.longestStreak}
                     rank={wallet.rank}
                     monthlyEarnings={wallet.monthlyEarnings}
+                    onBalanceUpdate={fetchData}
                 />
             )}
 

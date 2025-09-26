@@ -48,16 +48,16 @@ export async function GET(
                         image: true
                     }
                 },
-        participants: {
-            select: {
-                id: true,
-                participantId: true,
-                participantName: true,
-                amount: true,
-                isSupporter: true,
-                joinedAt: true
-            }
-        },
+                participants: {
+                    select: {
+                        id: true,
+                        participantId: true,
+                        participantName: true,
+                        amount: true,
+                        isSupporter: true,
+                        joinedAt: true
+                    }
+                },
                 rewards: true,
                 penalties: true
             }
@@ -76,10 +76,10 @@ export async function GET(
 
         // Check if user can join this stake
         const participants = stake.participants || [];
-        const canJoin = stake.stakeType === 'SOCIAL_STAKE' && 
-                       stake.status === 'ACTIVE' && 
-                       stake.userId !== user.id &&
-                       !participants.some((p: any) => p.participantId === user.id);
+        const canJoin = stake.stakeType === 'SOCIAL_STAKE' &&
+            stake.status === 'ACTIVE' &&
+            stake.userId !== user.id &&
+            !participants.some((p: any) => p.participantId === user.id);
 
         return NextResponse.json({
             ...stake,

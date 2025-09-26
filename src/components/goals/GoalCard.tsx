@@ -42,7 +42,7 @@ export default function GoalCard({
     const [isExpanded, setIsExpanded] = useState(false);
     const [progressInput, setProgressInput] = useState(goal.current.toString());
     const [isUpdating, setIsUpdating] = useState(false);
-    const { toast } = useToast();
+    const { addToast } = useToast();
 
     const getGoalTypeColor = (type: string) => {
         switch (type) {
@@ -85,21 +85,21 @@ export default function GoalCard({
     const handleProgressUpdate = async () => {
         const newProgress = parseInt(progressInput);
         if (isNaN(newProgress) || newProgress < 0) {
-            toast.error('Invalid progress value', 'Please enter a valid number');
+            addToast({ type: 'error', title: 'Invalid progress value', message: 'Please enter a valid number' });
             return;
         }
 
         if (newProgress > goal.target) {
-            toast.warning('Progress exceeds target', 'Progress cannot be higher than the target');
+            addToast({ type: 'warning', title: 'Progress exceeds target', message: 'Progress cannot be higher than the target' });
             return;
         }
 
         try {
             setIsUpdating(true);
             await onUpdateProgress(goal.id, newProgress);
-            toast.success('Progress updated', 'Your goal progress has been updated successfully');
+            addToast({ type: 'success', title: 'Progress updated', message: 'Your goal progress has been updated successfully' });
         } catch (error) {
-            toast.error('Update failed', 'Failed to update progress. Please try again.');
+            addToast({ type: 'error', title: 'Update failed', message: 'Failed to update progress. Please try again.' });
         } finally {
             setIsUpdating(false);
         }
