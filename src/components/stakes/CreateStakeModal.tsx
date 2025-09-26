@@ -15,7 +15,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        stakeType: "SELF_STAKE" as const,
+        stakeType: "SELF_STAKE" as "SELF_STAKE" | "SOCIAL_STAKE" | "CHALLENGE_STAKE" | "TEAM_STAKE" | "CHARITY_STAKE",
         amount: 10,
         deadline: "",
         taskId: "",
@@ -150,8 +150,8 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <label className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${formData.stakeType === 'SELF_STAKE'
-                                        ? 'border-purple-500 bg-purple-50'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-purple-500 bg-purple-50'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}>
                                     <input
                                         type="radio"
@@ -168,8 +168,8 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                                 </label>
 
                                 <label className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${formData.stakeType === 'SOCIAL_STAKE'
-                                        ? 'border-purple-500 bg-purple-50'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-purple-500 bg-purple-50'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}>
                                     <input
                                         type="radio"
