@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import JoinStakeModal from "./JoinStakeModal";
 
 interface Stake {
     id: string;
@@ -42,6 +43,7 @@ interface StakeCardProps {
 export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [showCompleteForm, setShowCompleteForm] = useState(false);
+    const [showJoinModal, setShowJoinModal] = useState(false);
     const [proof, setProof] = useState("");
     const { addToast } = useToast();
 
@@ -133,32 +135,8 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
         }
     };
 
-    const handleJoinStake = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch(`/api/stakes/${stake.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    amount: 10, // Default join amount
-                    isSupporter: true
-                }),
-            });
-
-            if (response.ok) {
-                addToast({ type: 'success', title: 'Success', message: "Successfully joined the stake!" });
-                onUpdate();
-            } else {
-                const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to join stake" });
-            }
-        } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while joining the stake" });
-        } finally {
-            setIsLoading(false);
-        }
+    const handleJoinStake = () => {
+        setShowJoinModal(true);
     };
 
     const handleCancelStake = async () => {
@@ -321,10 +299,8 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                 {stake.status === 'ACTIVE' && !stake.isOwner && stake.canJoin && (
                     <button
                         onClick={handleJoinStake}
-                        disabled={isLoading}
-                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
-                        {isLoading && <LoadingSpinner size="sm" />}
                         Join Stake
                     </button>
                 )}
@@ -353,6 +329,16 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                     </div>
                 )}
             </div>
+
+            <JoinStakeModal
+                stake={stake}
+                isOpen={showJoinModal}
+                onClose={() => setShowJoinModal(false)}
+                onSuccess={() => {
+                    onUpdate();
+                    setShowJoinModal(false);
+                }}
+            />
         </div>
     );
 }
