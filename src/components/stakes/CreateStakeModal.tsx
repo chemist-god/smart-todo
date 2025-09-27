@@ -116,6 +116,9 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
             taskId: "",
             proofRequired: true,
             allowFriends: false,
+            category: "personal",
+            difficulty: "MEDIUM",
+            tags: [],
         });
         setErrors({});
     };
