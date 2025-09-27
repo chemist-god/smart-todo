@@ -51,7 +51,24 @@ export class PenaltyService {
             // Refund participants
             for (const participant of stake.participants) {
                 const refundAmount = Number(participant.amount);
-                await WalletService.addToBalance(participant.participantId, refundAmount);
+
+                // Get participant's wallet and add refund amount
+                const participantWallet = await WalletService.getOrCreateWallet(participant.participantId);
+                const newBalance = Number(participantWallet.balance) + refundAmount;
+
+                await WalletService.updateWallet(participantWallet.id, {
+                    balance: newBalance
+                });
+
+                // Create refund transaction
+                await WalletService.createTransaction({
+                    walletId: participantWallet.id,
+                    userId: participant.participantId,
+                    type: 'STAKE_REFUND',
+                    amount: refundAmount,
+                    description: 'Refund for failed stake',
+                    referenceId: stake.id
+                });
 
                 refunds.push({
                     userId: participant.participantId,
