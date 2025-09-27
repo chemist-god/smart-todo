@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { MessageTemplateService, MessageTemplate } from "@/lib/message-templates";
+import UniversalShareModal from "./UniversalShareModal";
 
 interface EnhancedSocialShareProps {
     stakeId: string;
@@ -36,6 +37,7 @@ export default function EnhancedSocialShare({
     onShareSent
 }: EnhancedSocialShareProps) {
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showUniversalModal, setShowUniversalModal] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
     const [customMessage, setCustomMessage] = useState("");
     const [email, setEmail] = useState("");
@@ -200,19 +202,19 @@ export default function EnhancedSocialShare({
 
                 <div className="grid grid-cols-2 gap-2">
                     <button
-                        onClick={() => setShowShareModal(true)}
+                        onClick={() => setShowUniversalModal(true)}
                         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 flex items-center justify-center"
                     >
-                        <ChatBubbleLeftRightIcon className="h-4 w-4 mr-2" />
-                        Custom Share
+                        <SparklesIcon className="h-4 w-4 mr-2" />
+                        Universal Share
                     </button>
 
                     <button
-                        onClick={() => copyToClipboard(currentMessage + '\n\n' + inviteLink)}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                        onClick={() => setShowShareModal(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                     >
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                        Copy Message
+                        <ChatBubbleLeftRightIcon className="h-4 w-4 mr-2" />
+                        Email Share
                     </button>
                 </div>
 
@@ -255,8 +257,8 @@ export default function EnhancedSocialShare({
                                                 key={template.id}
                                                 onClick={() => setSelectedTemplate(template)}
                                                 className={`p-3 rounded-lg border text-left transition-colors ${selectedTemplate?.id === template.id
-                                                        ? 'border-purple-500 bg-purple-50'
-                                                        : 'border-gray-200 hover:border-gray-300'
+                                                    ? 'border-purple-500 bg-purple-50'
+                                                    : 'border-gray-200 hover:border-gray-300'
                                                     }`}
                                             >
                                                 <div className="flex items-start">
@@ -344,6 +346,25 @@ export default function EnhancedSocialShare({
                     </div>
                 </div>
             )}
+
+            {/* Universal Share Modal */}
+            <UniversalShareModal
+                isOpen={showUniversalModal}
+                onClose={() => setShowUniversalModal(false)}
+                shareData={{
+                    stakeId,
+                    title: stakeTitle,
+                    description: stakeDescription || '',
+                    amount: stakeAmount,
+                    deadline,
+                    category,
+                    difficulty,
+                    inviterName: 'You', // This would come from user context
+                    inviterImage: undefined,
+                    templateId: selectedTemplate?.id,
+                    customMessage: customMessage || undefined
+                }}
+            />
         </>
     );
 }
