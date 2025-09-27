@@ -16,6 +16,9 @@ const createStakeSchema = z.object({
     taskId: z.string().optional(),
     proofRequired: z.boolean().default(true),
     allowFriends: z.boolean().default(false),
+    category: z.string().optional(),
+    difficulty: z.string().optional(),
+    tags: z.array(z.string()).optional(),
 });
 
 // Zod schema for stake updates
@@ -185,6 +188,13 @@ export async function POST(request: NextRequest) {
                 deadline,
                 taskId: validatedData.taskId,
                 userId: user.id,
+                category: validatedData.category || 'personal',
+                difficulty: validatedData.difficulty || 'MEDIUM',
+                tags: validatedData.tags || [],
+                popularity: 0,
+                viewCount: 0,
+                joinCount: 0,
+                shareCount: 0,
             },
             include: {
                 participants: true,
