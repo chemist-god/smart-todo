@@ -34,17 +34,19 @@ export async function GET(request: NextRequest) {
             ];
         }
 
-        // Add category filter (we'll add category field to schema later)
+        // Add category filter (only if category field exists)
         if (category !== 'all') {
-            where.category = category;
+            // For now, we'll filter in memory since category field might not exist yet
+            // where.category = category;
         }
 
-        // Add difficulty filter
+        // Add difficulty filter (only if difficulty field exists)
         if (difficulty !== 'all') {
-            where.difficulty = difficulty;
+            // For now, we'll filter in memory since difficulty field might not exist yet
+            // where.difficulty = difficulty;
         }
 
-        // Build orderBy clause
+        // Build orderBy clause - use safe fields that definitely exist
         let orderBy: any = { createdAt: 'desc' };
 
         switch (sortBy) {
@@ -55,14 +57,17 @@ export async function GET(request: NextRequest) {
                 orderBy = { totalAmount: 'desc' };
                 break;
             case 'participants':
-                orderBy = { participantCount: 'desc' };
+                // We'll calculate this in memory since participantCount doesn't exist in DB
+                orderBy = { createdAt: 'desc' };
                 break;
             case 'success':
-                orderBy = { successRate: 'desc' };
+                // We'll calculate this in memory since successRate doesn't exist in DB
+                orderBy = { createdAt: 'desc' };
                 break;
             case 'popularity':
             default:
-                orderBy = { popularity: 'desc' };
+                // Use createdAt for now, we'll calculate popularity in memory
+                orderBy = { createdAt: 'desc' };
                 break;
         }
 
@@ -91,7 +96,7 @@ export async function GET(request: NextRequest) {
 
         // Calculate additional fields for each stake
         const now = new Date();
-        const stakesWithCalculations = stakes.map(stake => {
+        let stakesWithCalculations = stakes.map(stake => {
             const timeRemaining = stake.deadline.getTime() - now.getTime();
             const isOverdue = timeRemaining < 0;
             const progress = timeRemaining > 0 ?
@@ -100,6 +105,12 @@ export async function GET(request: NextRequest) {
             const participantCount = stake.participants.length;
             const totalParticipants = participantCount + 1; // +1 for creator
             const canJoin = !isOverdue && stake.status === 'ACTIVE';
+
+            // Calculate popularity based on engagement
+            const popularity = participantCount * 10 + Math.floor(Math.random() * 100);
+
+            // Calculate success rate (mock for now)
+            const successRate = Math.floor(Math.random() * 40) + 60;
 
             return {
                 id: stake.id,
@@ -127,10 +138,43 @@ export async function GET(request: NextRequest) {
                 category: 'personal', // Default category (we'll enhance this)
                 difficulty: 'MEDIUM', // Default difficulty (we'll enhance this)
                 tags: [], // Default empty tags (we'll enhance this)
-                popularity: participantCount * 10 + Math.random() * 100, // Mock popularity
-                successRate: Math.floor(Math.random() * 40) + 60 // Mock success rate 60-100%
+                popularity,
+                successRate
             };
         });
+
+        // Apply in-memory filtering
+        if (category !== 'all') {
+            stakesWithCalculations = stakesWithCalculations.filter(stake =>
+                stake.category.toLowerCase() === category.toLowerCase()
+            );
+        }
+
+        if (difficulty !== 'all') {
+            stakesWithCalculations = stakesWithCalculations.filter(stake =>
+                stake.difficulty.toLowerCase() === difficulty.toLowerCase()
+            );
+        }
+
+        // Apply in-memory sorting
+        switch (sortBy) {
+            case 'deadline':
+                stakesWithCalculations.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+                break;
+            case 'amount':
+                stakesWithCalculations.sort((a, b) => b.totalAmount - a.totalAmount);
+                break;
+            case 'participants':
+                stakesWithCalculations.sort((a, b) => b.participantCount - a.participantCount);
+                break;
+            case 'success':
+                stakesWithCalculations.sort((a, b) => b.successRate - a.successRate);
+                break;
+            case 'popularity':
+            default:
+                stakesWithCalculations.sort((a, b) => b.popularity - a.popularity);
+                break;
+        }
 
         return NextResponse.json({
             stakes: stakesWithCalculations,
