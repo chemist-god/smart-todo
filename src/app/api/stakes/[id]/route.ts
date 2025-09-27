@@ -5,6 +5,7 @@ import { z } from "zod";
 import { handleApiError, ValidationError, NotFoundError } from "@/lib/error-handler";
 import { WalletService } from "@/lib/wallet-service";
 import { RewardCalculator } from "@/lib/reward-calculator";
+import { RewardService } from "@/lib/reward-service";
 
 // Zod schema for stake completion
 const completeStakeSchema = z.object({
@@ -149,25 +150,7 @@ export async function POST(
             throw new ValidationError(validation.errors.join(', '));
         }
 
-        // Get user's wallet and streak data
-        const wallet = await WalletService.getOrCreateWallet(user.id);
-        const userStreak = {
-            currentStreak: wallet.currentStreak,
-            longestStreak: wallet.longestStreak,
-            completionRate: Number(wallet.completionRate)
-        };
-
-        // Calculate reward
-        const rewardCalculation = RewardCalculator.calculateTotalReward(
-            stakeData,
-            userStreak,
-            {
-                includeTimeBonus: true,
-                includeAchievementBonus: true
-            }
-        );
-
-        // Update stake status
+        // Update stake status first
         const completedAt = new Date(validatedData.completionTime || new Date());
         const updatedStake = await prisma.stake.update({
             where: { id },
@@ -175,36 +158,19 @@ export async function POST(
                 status: 'COMPLETED',
                 completionProof: validatedData.proof,
                 completedAt,
-                rewardAmount: rewardCalculation.totalReward,
                 updatedAt: new Date()
             }
         });
 
-        // Process reward through wallet service
-        const updatedWallet = await WalletService.processStakeCompletion(
-            user.id,
-            Number(stake.userStake),
-            rewardCalculation.totalReward,
-            stake.id
-        );
+        // Process rewards using the reward service
+        const rewardResult = await RewardService.processStakeCompletion(stake.id);
 
-        // Create reward record
-        await prisma.reward.create({
-            data: {
-                stakeId: stake.id,
-                userId: user.id,
-                amount: rewardCalculation.totalReward,
-                rewardType: rewardCalculation.bonusType as any,
-                description: rewardCalculation.description
-            }
-        });
+        if (!rewardResult.success) {
+            throw new Error(rewardResult.error || 'Failed to process rewards');
+        }
 
-        // Update user stats
-        await Promise.all([
-            WalletService.updateCompletionRate(user.id),
-            WalletService.updateStreak(user.id),
-            WalletService.updateRank(user.id)
-        ]);
+        // Get updated wallet
+        const updatedWallet = await WalletService.getOrCreateWallet(user.id);
 
         return NextResponse.json({
             success: true,
@@ -218,11 +184,8 @@ export async function POST(
                 penaltyPool: Number(updatedStake.penaltyPool),
             },
             reward: {
-                amount: rewardCalculation.totalReward,
-                type: rewardCalculation.bonusType,
-                description: rewardCalculation.description,
-                baseReward: rewardCalculation.baseReward,
-                bonusAmount: rewardCalculation.bonusAmount
+                amount: rewardResult.totalReward,
+                rewards: rewardResult.rewards
             },
             wallet: {
                 balance: Number(updatedWallet.balance),
