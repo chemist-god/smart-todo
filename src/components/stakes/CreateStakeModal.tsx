@@ -21,6 +21,9 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         taskId: "",
         proofRequired: true,
         allowFriends: false,
+        category: "personal",
+        difficulty: "MEDIUM",
+        tags: [] as string[],
     });
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -184,6 +187,44 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                                         <div className="text-sm text-gray-600">Let friends join and bet on my success</div>
                                     </div>
                                 </label>
+                            </div>
+                        </div>
+
+                        {/* Category and Difficulty */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Category
+                                </label>
+                                <select
+                                    value={formData.category}
+                                    onChange={(e) => handleInputChange('category', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                    <option value="personal">Personal Development</option>
+                                    <option value="fitness">Fitness & Health</option>
+                                    <option value="work">Work & Career</option>
+                                    <option value="learning">Learning & Skills</option>
+                                    <option value="creative">Creative Projects</option>
+                                    <option value="social">Social & Relationships</option>
+                                    <option value="financial">Financial Goals</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Difficulty
+                                </label>
+                                <select
+                                    value={formData.difficulty}
+                                    onChange={(e) => handleInputChange('difficulty', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                    <option value="EASY">Easy</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HARD">Hard</option>
+                                    <option value="EXTREME">Extreme</option>
+                                </select>
                             </div>
                         </div>
 
