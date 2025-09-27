@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { handleApiError, ValidationError } from "@/lib/error-handler";
 import { z } from "zod";
+import crypto from "crypto";
 
 const inviteSchema = z.object({
     stakeId: z.string().min(1, "Stake ID is required"),
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
             throw new ValidationError("Cannot invite yourself");
         }
 
+        // Generate security code
+        const securityCode = crypto.randomBytes(6).toString('hex').toUpperCase();
+
         // Create invitation record
         const invitation = await prisma.stakeInvitation.create({
             data: {
@@ -48,6 +52,7 @@ export async function POST(request: NextRequest) {
                 inviteeEmail: validatedData.email,
                 message: validatedData.message || `Join my stake: "${stake.title}" for Gh${Number(stake.userStake).toFixed(2)}`,
                 status: 'PENDING',
+                securityCode,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
             }
         });
