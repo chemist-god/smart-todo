@@ -37,6 +37,7 @@ model User {
   rewards       Reward[]
   penalties     Penalty[]
   transactions  WalletTransaction[]
+  invitations   StakeInvitation[] @relation("StakeInvitations")
 }
 
 model Account {
@@ -281,6 +282,7 @@ model Stake {
   participants    StakeParticipant[]
   rewards         Reward[]
   penalties       Penalty[]
+  invitations     StakeInvitation[]
   
   @@index([userId])
   @@index([status])
@@ -409,4 +411,33 @@ enum RewardType {
   FRIEND_REWARD
   STREAK_BONUS
   ACHIEVEMENT_BONUS
+  COMPLETION
+  SUPPORT
+  REFUND
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model StakeInvitation {
+  id          String           @id @default(cuid())
+  stakeId     String
+  inviterId   String
+  inviteeEmail String
+  message     String?
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  
+  stake       Stake @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  inviter     User  @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  
+  @@index([inviteeEmail])
+  @@index([stakeId])
+  @@index([status])
 }
