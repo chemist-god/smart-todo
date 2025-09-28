@@ -10,6 +10,7 @@ import StakeAnalytics from "@/components/stakes/StakeAnalytics";
 import StakeNotifications from "@/components/stakes/StakeNotifications";
 import StakeDiscoveryFeed from "@/components/stakes/StakeDiscoveryFeed";
 import StakeLeaderboard from "@/components/stakes/StakeLeaderboard";
+import SocialStakesFeed from "@/components/stakes/SocialStakesFeed";
 import InvitationTest from "@/components/stakes/InvitationTest";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
@@ -305,6 +306,8 @@ export default function StakesPage() {
                         <StakeNotifications userId={session?.user?.id || ''} />
                     ) : activeTab === 'discover' ? (
                         <StakeDiscoveryFeed userId={session?.user?.id || ''} />
+                    ) : activeTab === 'social-stakes' ? (
+                        <SocialStakesFeed userId={session?.user?.id || ''} />
                     ) : activeTab === 'leaderboard' ? (
                         <StakeLeaderboard userId={session?.user?.id || ''} />
                     ) : activeTab === 'test' ? (
