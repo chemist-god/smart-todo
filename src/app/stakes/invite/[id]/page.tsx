@@ -1,4 +1,5 @@
 import StakeInvitationSystem from "@/components/stakes/StakeInvitationSystem";
+import { ToastProvider } from "@/components/ui/Toast";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -8,9 +9,11 @@ export default async function StakeInvitePage({ params }: PageProps) {
     const { id } = await params;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <StakeInvitationSystem invitationId={id} />
-        </div>
+        <ToastProvider>
+            <div className="min-h-screen bg-gray-50">
+                <StakeInvitationSystem invitationId={id} />
+            </div>
+        </ToastProvider>
     );
 }
 
