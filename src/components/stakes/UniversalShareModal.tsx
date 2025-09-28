@@ -9,12 +9,14 @@ import {
     ClipboardDocumentIcon,
     CheckIcon,
     XMarkIcon,
-    SparklesIcon
+    SparklesIcon,
+    ArrowTopRightOnSquareIcon
 } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { SocialShareService, StakeShareData } from "@/lib/social-share-service";
 import { MessageTemplateService } from "@/lib/message-templates";
+import QRCode from "qrcode";
 
 interface UniversalShareModalProps {
     isOpen: boolean;
@@ -29,11 +31,15 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
     const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
     const [activeTab, setActiveTab] = useState<'platforms' | 'templates' | 'advanced'>('platforms');
     const [loading, setLoading] = useState(false);
+    const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+    const [templates, setTemplates] = useState<any[]>([]);
     const { addToast } = useToast();
 
     useEffect(() => {
         if (isOpen) {
             generateShareLinks();
+            loadTemplates();
+            generateQRCode();
         }
     }, [isOpen, shareData]);
 
@@ -50,6 +56,36 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
             console.error('Error generating share links:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadTemplates = async () => {
+        try {
+            const templateList = MessageTemplateService.getTemplatesByCategory(shareData.category);
+            setTemplates(templateList);
+            if (templateList.length > 0) {
+                setSelectedTemplate(templateList[0]);
+            }
+        } catch (error) {
+            console.error('Error loading templates:', error);
+        }
+    };
+
+    const generateQRCode = async () => {
+        try {
+            const inviteUrl = `${window.location.origin}/stakes/invite/${shareData.stakeId}`;
+            const qrCodeDataUrl = await QRCode.toDataURL(inviteUrl, {
+                width: 256,
+                margin: 2,
+                color: {
+                    dark: '#1f2937',
+                    light: '#ffffff'
+                },
+                errorCorrectionLevel: 'M'
+            });
+            setQrCodeDataUrl(qrCodeDataUrl);
+        } catch (error) {
+            console.error('Error generating QR code:', error);
         }
     };
 
