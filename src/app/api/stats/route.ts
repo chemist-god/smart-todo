@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma, withRetry } from "@/lib/prisma";
 
 // GET /api/stats - Get user statistics and progress
 export async function GET(request: NextRequest) {
@@ -10,30 +10,36 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Get or create user stats
-        let userStats = await prisma.userStats.findUnique({
-            where: { userId: user.id },
+        // Get or create user stats with retry
+        let userStats = await withRetry(async () => {
+            return await prisma.userStats.findUnique({
+                where: { userId: user.id },
+            });
         });
 
         if (!userStats) {
-            userStats = await prisma.userStats.create({
-                data: {
-                    userId: user.id,
-                    totalPoints: 0,
-                    level: 1,
-                    currentStreak: 0,
-                    longestStreak: 0,
-                    todosCompleted: 0,
-                    notesCreated: 0,
-                    achievementsUnlocked: 0,
-                    lastActiveDate: new Date(),
-                },
+            userStats = await withRetry(async () => {
+                return await prisma.userStats.create({
+                    data: {
+                        userId: user.id,
+                        totalPoints: 0,
+                        level: 1,
+                        currentStreak: 0,
+                        longestStreak: 0,
+                        todosCompleted: 0,
+                        notesCreated: 0,
+                        achievementsUnlocked: 0,
+                        lastActiveDate: new Date(),
+                    },
+                });
             });
         }
 
-        // Get todo statistics
-        const todos = await prisma.todo.findMany({
-            where: { userId: user.id },
+        // Get todo statistics with retry
+        const todos = await withRetry(async () => {
+            return await prisma.todo.findMany({
+                where: { userId: user.id },
+            });
         });
 
         const totalTodos = todos.length;
@@ -56,18 +62,22 @@ export async function GET(request: NextRequest) {
             return todoDate.toDateString() === today.toDateString();
         }).length;
 
-        // Get notes count and category breakdown
-        const notesCount = await prisma.note.count({
-            where: { userId: user.id },
+        // Get notes count and category breakdown with retry
+        const notesCount = await withRetry(async () => {
+            return await prisma.note.count({
+                where: { userId: user.id },
+            });
         });
 
-        // Get category counts
-        const categoryCounts = await prisma.note.groupBy({
-            by: ['type'],
-            where: { userId: user.id },
-            _count: {
-                type: true
-            }
+        // Get category counts with retry
+        const categoryCounts = await withRetry(async () => {
+            return await prisma.note.groupBy({
+                by: ['type'],
+                where: { userId: user.id },
+                _count: {
+                    type: true
+                }
+            });
         });
 
         // Convert to the expected format
@@ -86,9 +96,11 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        // Get achievements count
-        const achievementsUnlocked = await prisma.userAchievement.count({
-            where: { userId: user.id },
+        // Get achievements count with retry
+        const achievementsUnlocked = await withRetry(async () => {
+            return await prisma.userAchievement.count({
+                where: { userId: user.id },
+            });
         });
 
         // Calculate level and XP
@@ -132,16 +144,18 @@ export async function GET(request: NextRequest) {
             userStats.currentStreak !== currentStreak ||
             userStats.longestStreak !== longestStreak) {
 
-            await prisma.userStats.update({
-                where: { userId: user.id },
-                data: {
-                    todosCompleted,
-                    notesCreated: notesCount,
-                    achievementsUnlocked,
-                    currentStreak,
-                    longestStreak,
-                    lastActiveDate: new Date(),
-                },
+            await withRetry(async () => {
+                return await prisma.userStats.update({
+                    where: { userId: user.id },
+                    data: {
+                        todosCompleted,
+                        notesCreated: notesCount,
+                        achievementsUnlocked,
+                        currentStreak,
+                        longestStreak,
+                        lastActiveDate: new Date(),
+                    },
+                });
             });
         }
 
@@ -162,6 +176,41 @@ export async function GET(request: NextRequest) {
         });
     } catch (error) {
         console.error("Error fetching user stats:", error);
+
+        // Provide fallback data when database is unavailable
+        if (error instanceof Error &&
+            (error.message.includes('connection') ||
+                error.message.includes('timeout') ||
+                error.message.includes('pool') ||
+                error.message.includes('P2024') ||
+                error.message.includes('P1001'))) {
+
+            console.warn("Database unavailable, returning fallback data");
+            return NextResponse.json({
+                totalPoints: 0,
+                level: 1,
+                xpToNextLevel: 100,
+                currentStreak: 0,
+                longestStreak: 0,
+                todosCompleted: 0,
+                notesCreated: 0,
+                categoryCount: {
+                    GENERAL: 0,
+                    BIBLE_STUDY: 0,
+                    CONFERENCE: 0,
+                    SONG: 0,
+                    QUOTE: 0,
+                    REFLECTION: 0
+                },
+                achievementsUnlocked: 0,
+                totalTodos: 0,
+                pendingTodos: 0,
+                overdueTodos: 0,
+                todayTodos: 0,
+                _fallback: true // Indicate this is fallback data
+            });
+        }
+
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
