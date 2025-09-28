@@ -153,7 +153,24 @@ export class RewardService {
             // Refund participants if any
             const participantRefunds = [];
             for (const participant of stake.participants) {
-                await WalletService.addToBalance(participant.participantId, Number(participant.amount));
+                // Get participant's wallet and add refund amount
+                const participantWallet = await WalletService.getOrCreateWallet(participant.participantId);
+                const newBalance = Number(participantWallet.balance) + Number(participant.amount);
+
+                await WalletService.updateWallet(participantWallet.id, {
+                    balance: newBalance
+                });
+
+                // Create refund transaction
+                await WalletService.createTransaction({
+                    walletId: participantWallet.id,
+                    userId: participant.participantId,
+                    type: 'STAKE_REFUND',
+                    amount: Number(participant.amount),
+                    description: 'Refund for failed stake',
+                    referenceId: stake.id
+                });
+
                 participantRefunds.push({
                     userId: participant.participantId,
                     amount: Number(participant.amount),
@@ -199,7 +216,12 @@ export class RewardService {
         };
 
         // Add to user's wallet
-        await WalletService.addToBalance(stake.userId, rewardCalculation.totalReward);
+        await WalletService.processStakeCompletion(
+            stake.userId,
+            Number(stake.userStake),
+            rewardCalculation.totalReward,
+            stake.id
+        );
 
         // Create reward record
         await prisma.reward.create({
@@ -221,7 +243,12 @@ export class RewardService {
 
             for (const participant of stake.participants) {
                 if (participant.isSupporter) {
-                    await WalletService.addToBalance(participant.participantId, supporterReward);
+                    await WalletService.processStakeCompletion(
+                        participant.participantId,
+                        0, // No stake amount for supporters
+                        supporterReward,
+                        stake.id
+                    );
 
                     await prisma.reward.create({
                         data: {

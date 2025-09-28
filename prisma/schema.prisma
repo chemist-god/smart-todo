@@ -255,6 +255,17 @@ model Stake {
   stakeType       StakeType
   status          StakeStatus @default(ACTIVE)
   
+  // Categorization & Difficulty
+  category        String?     // e.g., "fitness", "work", "learning", "personal"
+  difficulty      String?     // e.g., "easy", "medium", "hard", "extreme"
+  tags            String[]    // Array of tags for better categorization
+  
+  // Popularity & Engagement
+  popularity      Int         @default(0) // Calculated based on views, joins, shares
+  viewCount       Int         @default(0)
+  joinCount       Int         @default(0)
+  shareCount      Int         @default(0)
+  
   // Financial Details
   totalAmount     Decimal     @db.Decimal(10, 2)
   userStake       Decimal     @db.Decimal(10, 2)
@@ -288,6 +299,9 @@ model Stake {
   @@index([status])
   @@index([stakeType])
   @@index([deadline])
+  @@index([category])
+  @@index([difficulty])
+  @@index([popularity])
 }
 
 model StakeParticipant {
@@ -424,20 +438,24 @@ enum InvitationStatus {
 }
 
 model StakeInvitation {
-  id          String           @id @default(cuid())
-  stakeId     String
-  inviterId   String
-  inviteeEmail String
-  message     String?
-  status      InvitationStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  expiresAt   DateTime
-  acceptedAt  DateTime?
+  id            String           @id @default(cuid())
+  stakeId       String
+  inviterId     String
+  inviteeEmail  String
+  message       String?
+  status        InvitationStatus @default(PENDING)
+  securityCode  String           @unique
+  createdAt     DateTime         @default(now())
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  lastViewedAt  DateTime?
+  viewCount     Int              @default(0)
   
-  stake       Stake @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  inviter     User  @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  stake         Stake @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  inviter       User  @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
   
   @@index([inviteeEmail])
   @@index([stakeId])
   @@index([status])
+  @@index([securityCode])
 }

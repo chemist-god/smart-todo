@@ -8,6 +8,8 @@ import StakeCard from "@/components/stakes/StakeCard";
 import WalletBalance from "@/components/stakes/WalletBalance";
 import StakeAnalytics from "@/components/stakes/StakeAnalytics";
 import StakeNotifications from "@/components/stakes/StakeNotifications";
+import StakeDiscoveryFeed from "@/components/stakes/StakeDiscoveryFeed";
+import StakeLeaderboard from "@/components/stakes/StakeLeaderboard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Stake {
@@ -49,7 +51,7 @@ export default function StakesPage() {
     const [wallet, setWallet] = useState<WalletData | null>(null);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'rewards' | 'analytics' | 'notifications'>('my-stakes');
+    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'discover' | 'leaderboard' | 'rewards' | 'analytics' | 'notifications'>('my-stakes');
 
     // Fetch stakes and wallet data
     const fetchData = async () => {
@@ -238,6 +240,24 @@ export default function StakesPage() {
                             Social Stakes
                         </button>
                         <button
+                            onClick={() => setActiveTab('discover')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'discover'
+                                ? 'border-purple-500 text-purple-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Discover
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('leaderboard')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'leaderboard'
+                                ? 'border-purple-500 text-purple-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Leaderboard
+                        </button>
+                        <button
                             onClick={() => setActiveTab('rewards')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'rewards'
                                 ? 'border-purple-500 text-purple-600'
@@ -273,6 +293,10 @@ export default function StakesPage() {
                         <StakeAnalytics userId={session?.user?.id || ''} />
                     ) : activeTab === 'notifications' ? (
                         <StakeNotifications userId={session?.user?.id || ''} />
+                    ) : activeTab === 'discover' ? (
+                        <StakeDiscoveryFeed userId={session?.user?.id || ''} />
+                    ) : activeTab === 'leaderboard' ? (
+                        <StakeLeaderboard userId={session?.user?.id || ''} />
                     ) : filteredStakes.length === 0 ? (
                         <div className="text-center py-12">
                             <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
