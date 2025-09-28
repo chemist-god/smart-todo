@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { XMarkIcon, PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, PlusIcon, MinusIcon, LinkIcon } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import TodoSelection from "./TodoSelection";
 
 interface CreateStakeModalProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         difficulty: "MEDIUM",
         tags: [] as string[],
     });
+    const [selectedTodo, setSelectedTodo] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const { addToast } = useToast();
@@ -34,6 +36,22 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
+
+    const handleTodoSelect = (todo: any) => {
+        setSelectedTodo(todo);
+        if (todo) {
+            // Pre-fill form with todo data
+            setFormData(prev => ({
+                ...prev,
+                title: todo.title,
+                description: todo.description || "",
+                taskId: todo.id,
+                category: "personal", // Default category since todos don't have category
+                // Set deadline based on todo due date if available
+                deadline: todo.dueDate ? new Date(todo.dueDate).toISOString().split('T')[0] : prev.deadline,
+            }));
         }
     };
 
@@ -120,6 +138,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
             difficulty: "MEDIUM",
             tags: [],
         });
+        setSelectedTodo(null);
         setErrors({});
     };
 
@@ -191,6 +210,14 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                                     </div>
                                 </label>
                             </div>
+                        </div>
+
+                        {/* Todo Selection */}
+                        <div className="border-t border-gray-200 pt-6">
+                            <TodoSelection
+                                onTodoSelect={handleTodoSelect}
+                                selectedTodo={selectedTodo}
+                            />
                         </div>
 
                         {/* Category and Difficulty */}
