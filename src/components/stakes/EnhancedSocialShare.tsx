@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { MessageTemplateService, MessageTemplate } from "@/lib/message-templates";
-import UniversalShareModal from "./UniversalShareModal";
+import EnhancedUniversalShareModal from "./EnhancedUniversalShareModal";
 
 interface EnhancedSocialShareProps {
     stakeId: string;
@@ -348,7 +348,7 @@ export default function EnhancedSocialShare({
             )}
 
             {/* Universal Share Modal */}
-            <UniversalShareModal
+            <EnhancedUniversalShareModal
                 isOpen={showUniversalModal}
                 onClose={() => setShowUniversalModal(false)}
                 shareData={{

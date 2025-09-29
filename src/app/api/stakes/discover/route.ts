@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, withRetry } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { handleApiError } from "@/lib/error-handler";
 
@@ -71,27 +71,29 @@ export async function GET(request: NextRequest) {
                 break;
         }
 
-        // Get stakes with related data
-        const stakes = await prisma.stake.findMany({
-            where,
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        image: true
+        // Get stakes with related data with retry
+        const stakes = await withRetry(async () => {
+            return await prisma.stake.findMany({
+                where,
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true
+                        }
+                    },
+                    participants: {
+                        select: {
+                            id: true,
+                            amount: true,
+                            isSupporter: true
+                        }
                     }
                 },
-                participants: {
-                    select: {
-                        id: true,
-                        amount: true,
-                        isSupporter: true
-                    }
-                }
-            },
-            orderBy,
-            take: 50 // Limit results
+                orderBy,
+                take: 50 // Limit results
+            });
         });
 
         // Calculate additional fields for each stake
@@ -182,6 +184,24 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
+        console.error("Error fetching discover stakes:", error);
+
+        // Provide fallback data when database is unavailable
+        if (error instanceof Error &&
+            (error.message.includes('connection') ||
+                error.message.includes('timeout') ||
+                error.message.includes('pool') ||
+                error.message.includes('P2024') ||
+                error.message.includes('P1001'))) {
+
+            console.warn("Database unavailable, returning empty discover feed");
+            return NextResponse.json({
+                stakes: [],
+                total: 0,
+                _fallback: true // Indicate this is fallback data
+            });
+        }
+
         const { error: errorMessage, statusCode } = handleApiError(error);
         return NextResponse.json(
             { error: errorMessage },

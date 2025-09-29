@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import JoinStakeModal from "./JoinStakeModal";
+import EnhancedSocialShare from "./EnhancedSocialShare";
 
 interface Stake {
     id: string;
@@ -303,6 +304,28 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                     >
                         Join Stake
                     </button>
+                )}
+
+                {/* Universal Share Button for Social Stakes */}
+                {stake.stakeType === 'SOCIAL_STAKE' && stake.status === 'ACTIVE' && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                        <EnhancedSocialShare
+                            stakeId={stake.id}
+                            stakeTitle={stake.title}
+                            stakeAmount={stake.totalAmount}
+                            stakeDescription={stake.description}
+                            deadline={stake.deadline}
+                            category="personal" // Default category
+                            difficulty="MEDIUM" // Default difficulty
+                            onShareSent={() => {
+                                addToast({
+                                    type: 'success',
+                                    title: 'Invitation Sent!',
+                                    message: 'Your stake invitation has been shared successfully!'
+                                });
+                            }}
+                        />
+                    </div>
                 )}
 
                 {stake.status === 'COMPLETED' && (

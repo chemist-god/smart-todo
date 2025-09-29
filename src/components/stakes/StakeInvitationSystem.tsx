@@ -31,10 +31,9 @@ interface StakeInvitation {
 
 interface StakeInvitationSystemProps {
     invitationId: string;
-    onJoinSuccess: () => void;
 }
 
-export default function StakeInvitationSystem({ invitationId, onJoinSuccess }: StakeInvitationSystemProps) {
+export default function StakeInvitationSystem({ invitationId }: StakeInvitationSystemProps) {
     const [invitation, setInvitation] = useState<StakeInvitation | null>(null);
     const [loading, setLoading] = useState(true);
     const [joining, setJoining] = useState(false);
@@ -115,7 +114,10 @@ export default function StakeInvitationSystem({ invitationId, onJoinSuccess }: S
                     title: 'Joined Successfully!',
                     message: `You've joined ${invitation?.inviterName}'s stake with Gh${joinAmount}`
                 });
-                onJoinSuccess();
+                // Redirect to stakes page after successful join
+                setTimeout(() => {
+                    window.location.href = '/stakes?joined=true';
+                }, 2000);
             } else {
                 const error = await response.json();
                 addToast({ type: 'error', title: 'Error', message: error.error || 'Failed to join stake' });

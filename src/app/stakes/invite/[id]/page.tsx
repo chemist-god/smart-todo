@@ -9,13 +9,7 @@ export default async function StakeInvitePage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <StakeInvitationSystem
-                invitationId={id}
-                onJoinSuccess={() => {
-                    // Redirect to success page or dashboard
-                    window.location.href = '/stakes?joined=true';
-                }}
-            />
+            <StakeInvitationSystem invitationId={id} />
         </div>
     );
 }

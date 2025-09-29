@@ -10,6 +10,7 @@ import StakeAnalytics from "@/components/stakes/StakeAnalytics";
 import StakeNotifications from "@/components/stakes/StakeNotifications";
 import StakeDiscoveryFeed from "@/components/stakes/StakeDiscoveryFeed";
 import StakeLeaderboard from "@/components/stakes/StakeLeaderboard";
+import InvitationTest from "@/components/stakes/InvitationTest";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Stake {
@@ -51,7 +52,7 @@ export default function StakesPage() {
     const [wallet, setWallet] = useState<WalletData | null>(null);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'discover' | 'leaderboard' | 'rewards' | 'analytics' | 'notifications'>('my-stakes');
+    const [activeTab, setActiveTab] = useState<'my-stakes' | 'social-stakes' | 'discover' | 'leaderboard' | 'rewards' | 'analytics' | 'notifications' | 'test'>('my-stakes');
 
     // Fetch stakes and wallet data
     const fetchData = async () => {
@@ -258,6 +259,15 @@ export default function StakesPage() {
                             Leaderboard
                         </button>
                         <button
+                            onClick={() => setActiveTab('test')}
+                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'test'
+                                ? 'border-purple-500 text-purple-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            Test Invitations
+                        </button>
+                        <button
                             onClick={() => setActiveTab('rewards')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'rewards'
                                 ? 'border-purple-500 text-purple-600'
@@ -297,6 +307,8 @@ export default function StakesPage() {
                         <StakeDiscoveryFeed userId={session?.user?.id || ''} />
                     ) : activeTab === 'leaderboard' ? (
                         <StakeLeaderboard userId={session?.user?.id || ''} />
+                    ) : activeTab === 'test' ? (
+                        <InvitationTest />
                     ) : filteredStakes.length === 0 ? (
                         <div className="text-center py-12">
                             <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
