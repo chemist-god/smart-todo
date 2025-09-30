@@ -34,10 +34,10 @@ export class WalletService {
             wallet = await prisma.userWallet.create({
                 data: {
                     userId,
-                    balance: 0,
-                    totalEarned: 0,
-                    totalLost: 0,
-                    totalStaked: 0,
+                    balance: new Decimal(0),
+                    totalEarned: new Decimal(0),
+                    totalLost: new Decimal(0),
+                    totalStaked: new Decimal(0),
                     completionRate: 0,
                     currentStreak: 0,
                     longestStreak: 0,
@@ -53,12 +53,39 @@ export class WalletService {
      * Update wallet with new values
      */
     static async updateWallet(walletId: string, updates: WalletUpdate) {
+        // Convert numbers to proper Decimal values for Prisma
+        const processedUpdates: any = {
+            updatedAt: new Date()
+        };
+
+        if (updates.balance !== undefined) {
+            processedUpdates.balance = new Decimal(updates.balance);
+        }
+        if (updates.totalEarned !== undefined) {
+            processedUpdates.totalEarned = new Decimal(updates.totalEarned);
+        }
+        if (updates.totalLost !== undefined) {
+            processedUpdates.totalLost = new Decimal(updates.totalLost);
+        }
+        if (updates.totalStaked !== undefined) {
+            processedUpdates.totalStaked = new Decimal(updates.totalStaked);
+        }
+        if (updates.completionRate !== undefined) {
+            processedUpdates.completionRate = updates.completionRate;
+        }
+        if (updates.currentStreak !== undefined) {
+            processedUpdates.currentStreak = updates.currentStreak;
+        }
+        if (updates.longestStreak !== undefined) {
+            processedUpdates.longestStreak = updates.longestStreak;
+        }
+        if (updates.rank !== undefined) {
+            processedUpdates.rank = updates.rank;
+        }
+
         return await prisma.userWallet.update({
             where: { id: walletId },
-            data: {
-                ...updates,
-                updatedAt: new Date()
-            }
+            data: processedUpdates
         });
     }
 
@@ -71,7 +98,7 @@ export class WalletService {
                 walletId: data.walletId,
                 userId: data.userId,
                 type: data.type,
-                amount: data.amount,
+                amount: new Decimal(data.amount),
                 description: data.description,
                 referenceId: data.referenceId
             }

@@ -100,13 +100,59 @@ model Todo {
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
+  // Enhanced Scheduling & Timer Fields
+  scheduledStartTime DateTime?     // When the task should start
+  scheduledEndTime   DateTime?     // When the task should end
+  estimatedDuration  Int?          // Estimated duration in minutes
+  actualDuration     Int?          // Actual time spent in minutes
+  timeZone          String?        // User's timezone (e.g., "America/New_York")
+  
+  // Timer & Focus Features
+  timerStatus       TimerStatus    @default(STOPPED)
+  timerStartTime    DateTime?      // When timer was last started
+  totalTimeSpent    Int            @default(0) // Total time spent in minutes
+  focusMode         Boolean        @default(false) // Focus mode enabled
+  
+  // Recurring & Reminders
+  isRecurring       Boolean        @default(false)
+  recurrencePattern RecurrencePattern?
+  reminderSettings  Json?          // Flexible reminder configuration
+  
+  // Pomodoro Integration
+  pomodoroSessions  Int            @default(0) // Number of pomodoro sessions
+  breakDuration     Int?           // Break duration in minutes
+  
   // Relations
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timerSessions TimerSession[]
 
   @@index([userId])
   @@index([completed])
   @@index([dueDate])
+  @@index([scheduledStartTime])
+  @@index([scheduledEndTime])
+  @@index([timerStatus])
+  @@index([isRecurring])
+}
+
+// Timer Session Tracking
+model TimerSession {
+  id          String    @id @default(cuid())
+  todoId      String
+  todo        Todo      @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?      // Duration in minutes
+  sessionType TimerSessionType @default(FOCUS)
+  notes       String?   // Optional session notes
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([todoId])
+  @@index([startTime])
+  @@index([sessionType])
 }
 
 model Note {
@@ -176,6 +222,28 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum TimerStatus {
+  STOPPED
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
+enum TimerSessionType {
+  FOCUS
+  BREAK
+  POMODORO
+  DEEP_WORK
+  REVIEW
+}
+
+enum RecurrencePattern {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
 }
 
 enum NoteType {

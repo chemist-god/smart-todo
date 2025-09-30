@@ -165,30 +165,38 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Discover Stakes</h2>
-                    <p className="text-gray-600">Find and join stakes from the community</p>
-                </div>
-                <div className="mt-4 sm:mt-0">
-                    <span className="text-sm text-gray-500">
-                        {stakes.length} stakes available
-                    </span>
+            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-xl p-6 text-white">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold mb-2">🔍 Discover & Explore</h2>
+                        <p className="text-emerald-100">Browse all stake types across the platform</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-100">
+                        <MagnifyingGlassIcon className="w-6 h-6" />
+                        <span className="text-sm font-medium">{stakes.length} Stakes Available</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="bg-white rounded-lg shadow p-6">
+            {/* Advanced Discovery Filters */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">🔍 Advanced Discovery</h3>
+                    <div className="text-sm text-gray-500">
+                        {stakes.length} stakes across all categories
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative">
                         <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search stakes..."
+                            placeholder="Search all stakes, creators, or descriptions..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
 
@@ -196,7 +204,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                     <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                         {categories.map(category => (
                             <option key={category.value} value={category.value}>
@@ -209,7 +217,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                     <select
                         value={selectedDifficulty}
                         onChange={(e) => setSelectedDifficulty(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                         {difficulties.map(difficulty => (
                             <option key={difficulty.value} value={difficulty.value}>
@@ -222,7 +230,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                         {sortOptions.map(option => (
                             <option key={option.value} value={option.value}>
@@ -233,12 +241,37 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                 </div>
             </div>
 
-            {/* Stakes Grid */}
+            {/* Discovery Results */}
             {stakes.length === 0 ? (
-                <div className="text-center py-12">
-                    <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No stakes found</h3>
-                    <p className="text-gray-500">Try adjusting your filters or check back later</p>
+                <div className="text-center py-12 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <MagnifyingGlassIcon className="w-8 h-8 text-emerald-600" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">🔍 No Stakes Found</h3>
+                    <p className="text-gray-500 mb-6">
+                        {searchTerm || selectedCategory !== 'all' || selectedDifficulty !== 'all'
+                            ? 'Try adjusting your discovery filters to find more stakes'
+                            : 'No stakes available across the platform at the moment'
+                        }
+                    </p>
+                    {!searchTerm && selectedCategory === 'all' && selectedDifficulty === 'all' && (
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => window.location.href = '/stakes?tab=my-stakes'}
+                                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mr-3"
+                            >
+                                <SparklesIcon className="w-4 h-4 mr-2" />
+                                Create First Stake
+                            </button>
+                            <button
+                                onClick={() => setSortBy('newest')}
+                                className="inline-flex items-center px-4 py-2 bg-white text-emerald-600 border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors"
+                            >
+                                <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
+                                Browse All
+                            </button>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
