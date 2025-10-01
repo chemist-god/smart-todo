@@ -317,12 +317,10 @@ export default function StakesPage() {
                             <WalletIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 {activeTab === 'my-stakes' && 'No Active Stakes'}
-                                {activeTab === 'social-stakes' && 'No Social Stakes Available'}
                                 {activeTab === 'rewards' && 'No Completed Stakes'}
                             </h3>
                             <p className="text-gray-500 mb-4">
                                 {activeTab === 'my-stakes' && 'Create your first stake to start earning rewards!'}
-                                {activeTab === 'social-stakes' && 'No social stakes are currently available to join.'}
                                 {activeTab === 'rewards' && 'Complete some stakes to see your rewards here.'}
                             </p>
                             {activeTab === 'my-stakes' && (
