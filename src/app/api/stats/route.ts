@@ -18,21 +18,111 @@ export async function GET(request: NextRequest) {
         });
 
         if (!userStats) {
-            userStats = await withRetry(async () => {
-                return await prisma.userStats.create({
-                    data: {
-                        userId: user.id,
-                        totalPoints: 0,
-                        level: 1,
-                        currentStreak: 0,
-                        longestStreak: 0,
-                        todosCompleted: 0,
-                        notesCreated: 0,
-                        achievementsUnlocked: 0,
-                        lastActiveDate: new Date(),
-                    },
+            // First ensure the user exists in the database
+            let existingUser = await withRetry(async () => {
+                return await prisma.user.findUnique({
+                    where: { id: user.id },
                 });
             });
+
+            if (!existingUser) {
+                // Try to find user by email as fallback
+                if (user.email) {
+                    existingUser = await withRetry(async () => {
+                        return await prisma.user.findUnique({
+                            where: { email: user.email || undefined },
+                        });
+                    });
+                }
+
+                if (!existingUser) {
+                    // Create the user if they don't exist
+                    try {
+                        existingUser = await withRetry(async () => {
+                            return await prisma.user.create({
+                                data: {
+                                    id: user.id,
+                                    name: user.name,
+                                    email: user.email,
+                                    image: user.image,
+                                    emailVerified: new Date(),
+                                },
+                            });
+                        });
+                    } catch (error) {
+                        console.error("Error creating user:", error);
+                        // If user creation fails, return fallback data
+                        return NextResponse.json({
+                            totalPoints: 0,
+                            level: 1,
+                            xpToNextLevel: 100,
+                            currentStreak: 0,
+                            longestStreak: 0,
+                            todosCompleted: 0,
+                            notesCreated: 0,
+                            categoryCount: {
+                                GENERAL: 0,
+                                BIBLE_STUDY: 0,
+                                CONFERENCE: 0,
+                                SONG: 0,
+                                QUOTE: 0,
+                                REFLECTION: 0
+                            },
+                            achievementsUnlocked: 0,
+                            totalTodos: 0,
+                            pendingTodos: 0,
+                            overdueTodos: 0,
+                            todayTodos: 0,
+                            _fallback: true
+                        });
+                    }
+                }
+            }
+
+            // Now create user stats
+            try {
+                userStats = await withRetry(async () => {
+                    return await prisma.userStats.create({
+                        data: {
+                            userId: existingUser.id,
+                            totalPoints: 0,
+                            level: 1,
+                            currentStreak: 0,
+                            longestStreak: 0,
+                            todosCompleted: 0,
+                            notesCreated: 0,
+                            achievementsUnlocked: 0,
+                            lastActiveDate: new Date(),
+                        },
+                    });
+                });
+            } catch (error) {
+                console.error("Error creating user stats:", error);
+                // If stats creation fails, return fallback data
+                return NextResponse.json({
+                    totalPoints: 0,
+                    level: 1,
+                    xpToNextLevel: 100,
+                    currentStreak: 0,
+                    longestStreak: 0,
+                    todosCompleted: 0,
+                    notesCreated: 0,
+                    categoryCount: {
+                        GENERAL: 0,
+                        BIBLE_STUDY: 0,
+                        CONFERENCE: 0,
+                        SONG: 0,
+                        QUOTE: 0,
+                        REFLECTION: 0
+                    },
+                    achievementsUnlocked: 0,
+                    totalTodos: 0,
+                    pendingTodos: 0,
+                    overdueTodos: 0,
+                    todayTodos: 0,
+                    _fallback: true
+                });
+            }
         }
 
         // Get todo statistics with retry

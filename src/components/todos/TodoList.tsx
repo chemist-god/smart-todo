@@ -14,6 +14,20 @@ interface Todo {
     points: number;
     createdAt: string;
     completedAt?: string;
+    // Enhanced timer fields
+    scheduledStartTime?: string;
+    scheduledEndTime?: string;
+    estimatedDuration?: number;
+    actualDuration?: number;
+    timeZone?: string;
+    timerStatus?: "STOPPED" | "RUNNING" | "PAUSED" | "COMPLETED";
+    timerStartTime?: string;
+    totalTimeSpent?: number;
+    focusMode?: boolean;
+    isRecurring?: boolean;
+    recurrencePattern?: "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM";
+    pomodoroSessions?: number;
+    breakDuration?: number;
 }
 
 interface TodoListProps {

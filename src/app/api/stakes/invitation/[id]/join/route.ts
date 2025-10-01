@@ -141,12 +141,11 @@ export async function POST(
             // Create wallet transaction record
             await tx.walletTransaction.create({
                 data: {
+                    walletId: user.wallet.id,
                     userId: user.id,
-                    stakeId: invitation.stakeId,
                     amount: validatedData.amount,
                     type: 'STAKE_PARTICIPATION',
-                    description: `Joined stake: ${invitation.stake.title}`,
-                    balanceAfter: newBalance
+                    description: `Joined stake: ${invitation.stake.title}`
                 }
             });
 

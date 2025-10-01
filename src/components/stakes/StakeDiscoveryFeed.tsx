@@ -260,7 +260,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                                 onClick={() => window.location.href = '/stakes?tab=my-stakes'}
                                 className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mr-3"
                             >
-                                <SparklesIcon className="w-4 h-4 mr-2" />
+                                <StarIcon className="w-4 h-4 mr-2" />
                                 Create First Stake
                             </button>
                             <button

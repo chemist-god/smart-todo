@@ -101,14 +101,16 @@ export async function POST(request: NextRequest) {
                 priority: data.priority || "MEDIUM",
                 points: pointsMap[data.priority as keyof typeof pointsMap] || 10,
                 userId: session.user.id,
-                // Enhanced scheduling fields
-                scheduledStartTime: data.scheduledStartTime ? new Date(`${data.dueDate}T${data.scheduledStartTime}`) : null,
-                scheduledEndTime: data.scheduledEndTime ? new Date(`${data.dueDate}T${data.scheduledEndTime}`) : null,
-                estimatedDuration: data.estimatedDuration ? parseInt(data.estimatedDuration) : null,
-                timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-                isRecurring: data.isRecurring || false,
-                recurrencePattern: data.recurrencePattern || null,
-                reminderSettings: data.reminderSettings || null,
+                // Enhanced scheduling fields - temporarily commented out until Prisma client is regenerated
+                // scheduledStartTime: data.scheduledStartTime && data.dueDate ? 
+                //     new Date(`${data.dueDate}T${data.scheduledStartTime}`) : null,
+                // scheduledEndTime: data.scheduledEndTime && data.dueDate ? 
+                //     new Date(`${data.dueDate}T${data.scheduledEndTime}`) : null,
+                // estimatedDuration: data.estimatedDuration ? parseInt(data.estimatedDuration) : null,
+                // timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                // isRecurring: data.isRecurring || false,
+                // recurrencePattern: data.recurrencePattern || null,
+                // reminderSettings: data.reminderSettings || null,
             },
             include: {
                 user: {

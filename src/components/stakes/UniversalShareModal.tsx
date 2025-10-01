@@ -161,7 +161,7 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
 
     if (!isOpen) return null;
 
-    const templates = MessageTemplateService.getTemplatesByCategory(shareData.category);
+    const messageTemplates = MessageTemplateService.getTemplatesByCategory(shareData.category);
     const qrCodeData = SocialShareService.generateQRCodeData(shareData);
     const embedCode = SocialShareService.generateEmbedCode(shareData);
 
@@ -274,7 +274,7 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
 
                             {/* Template Selection */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                                {templates.map((template) => (
+                                {messageTemplates.map((template) => (
                                     <button
                                         key={template.id}
                                         onClick={() => handleTemplateSelect(template)}
