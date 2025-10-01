@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,33 +8,27 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Auth.js relations
-  accounts      Account[]
-  sessions      Session[]
+  id             String              @id @default(cuid())
+  name           String?
+  email          String?             @unique
+  emailVerified  DateTime?
+  image          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  accounts       Account[]
   authenticators Authenticator[]
-
-  // App relations
-  todos         Todo[]
-  notes         Note[]
-  achievements  UserAchievement[]
-  stats         UserStats?
-  goals         Goal[]
-  
-  // SmartStake relations
-  wallet        UserWallet?
-  stakes        Stake[]
-  rewards       Reward[]
-  penalties     Penalty[]
-  transactions  WalletTransaction[]
-  invitations   StakeInvitation[] @relation("StakeInvitations")
+  goals          Goal[]
+  notes          Note[]
+  penalties      Penalty[]
+  rewards        Reward[]
+  sessions       Session[]
+  stakes         Stake[]
+  invitations    StakeInvitation[]   @relation("StakeInvitations")
+  todos          Todo[]
+  achievements   UserAchievement[]
+  stats          UserStats?
+  wallet         UserWallet?
+  transactions   WalletTransaction[]
 }
 
 model Account {
@@ -46,15 +37,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -76,56 +66,45 @@ model VerificationToken {
 }
 
 model Authenticator {
-  id                 String  @id @default(cuid())
-  credentialID       String  @unique @db.Text
-  userId             String
-  publicKey          String  @db.Text
-  counter            BigInt
-  transports         String?
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String  @id @default(cuid())
+  credentialID String  @unique
+  userId       String
+  publicKey    String
+  counter      BigInt
+  transports   String?
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([credentialID, userId])
 }
 
-// App Models
 model Todo {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  completed   Boolean   @default(false)
-  dueDate     DateTime?
-  priority    Priority  @default(MEDIUM)
-  points      Int       @default(10)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  completedAt DateTime?
-
-  // Enhanced Scheduling & Timer Fields
-  scheduledStartTime DateTime?     // When the task should start
-  scheduledEndTime   DateTime?     // When the task should end
-  estimatedDuration  Int?          // Estimated duration in minutes
-  actualDuration     Int?          // Actual time spent in minutes
-  timeZone          String?        // User's timezone (e.g., "America/New_York")
-  
-  // Timer & Focus Features
-  timerStatus       TimerStatus    @default(STOPPED)
-  timerStartTime    DateTime?      // When timer was last started
-  totalTimeSpent    Int            @default(0) // Total time spent in minutes
-  focusMode         Boolean        @default(false) // Focus mode enabled
-  
-  // Recurring & Reminders
-  isRecurring       Boolean        @default(false)
-  recurrencePattern RecurrencePattern?
-  reminderSettings  Json?          // Flexible reminder configuration
-  
-  // Pomodoro Integration
-  pomodoroSessions  Int            @default(0) // Number of pomodoro sessions
-  breakDuration     Int?           // Break duration in minutes
-  
-  // Relations
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timerSessions TimerSession[]
+  id                 String             @id @default(cuid())
+  title              String
+  description        String?
+  completed          Boolean            @default(false)
+  dueDate            DateTime?
+  priority           Priority           @default(MEDIUM)
+  points             Int                @default(10)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  completedAt        DateTime?
+  userId             String
+  actualDuration     Int?
+  breakDuration      Int?
+  estimatedDuration  Int?
+  focusMode          Boolean            @default(false)
+  isRecurring        Boolean            @default(false)
+  pomodoroSessions   Int                @default(0)
+  recurrencePattern  RecurrencePattern?
+  reminderSettings   Json?
+  scheduledEndTime   DateTime?
+  scheduledStartTime DateTime?
+  timeZone           String?
+  timerStartTime     DateTime?
+  timerStatus        TimerStatus        @default(STOPPED)
+  totalTimeSpent     Int                @default(0)
+  timerSessions      TimerSession[]
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([completed])
@@ -136,20 +115,17 @@ model Todo {
   @@index([isRecurring])
 }
 
-// Timer Session Tracking
 model TimerSession {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   todoId      String
-  todo        Todo      @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  
   startTime   DateTime
   endTime     DateTime?
-  duration    Int?      // Duration in minutes
+  duration    Int?
   sessionType TimerSessionType @default(FOCUS)
-  notes       String?   // Optional session notes
-  
-  createdAt   DateTime  @default(now())
-  
+  notes       String?
+  createdAt   DateTime         @default(now())
+  todo        Todo             @relation(fields: [todoId], references: [id], onDelete: Cascade)
+
   @@index([todoId])
   @@index([startTime])
   @@index([sessionType])
@@ -158,12 +134,10 @@ model TimerSession {
 model Note {
   id        String   @id @default(cuid())
   title     String
-  content   String   @db.Text
+  content   String
   type      NoteType @default(GENERAL)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -172,52 +146,228 @@ model Note {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  points      Int
-  type        AchievementType
-  requirement Int      @default(1)
-  createdAt   DateTime @default(now())
-
-  // Relations
+  id               String            @id @default(cuid())
+  name             String            @unique
+  description      String
+  points           Int
+  type             AchievementType
+  requirement      Int               @default(1)
+  createdAt        DateTime          @default(now())
   userAchievements UserAchievement[]
 }
 
 model UserAchievement {
-  id           String      @id @default(cuid())
-  unlockedAt   DateTime    @default(now())
-  progress     Int         @default(0)
-
-  // Relations
-  userId       String
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  unlockedAt    DateTime    @default(now())
+  progress      Int         @default(0)
+  userId        String
   achievementId String
-  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
   @@index([userId])
 }
 
 model UserStats {
-  id                String   @id @default(cuid())
-  totalPoints       Int      @default(0)
-  level             Int      @default(1)
-  currentStreak     Int      @default(0)
-  longestStreak     Int      @default(0)
-  todosCompleted    Int      @default(0)
-  notesCreated      Int      @default(0)
-  achievementsUnlocked Int   @default(0)
-  lastActiveDate    DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relations
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(cuid())
+  totalPoints          Int      @default(0)
+  level                Int      @default(1)
+  currentStreak        Int      @default(0)
+  longestStreak        Int      @default(0)
+  todosCompleted       Int      @default(0)
+  notesCreated         Int      @default(0)
+  achievementsUnlocked Int      @default(0)
+  lastActiveDate       DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Enums
+model Goal {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        GoalType
+  target      Int
+  current     Int         @default(0)
+  unit        String
+  startDate   DateTime
+  endDate     DateTime?
+  isCompleted Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones  Milestone[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([type])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  target      Int
+  current     Int      @default(0)
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  goalId      String
+  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+}
+
+model Stake {
+  id              String             @id @default(cuid())
+  title           String
+  description     String?
+  stakeType       StakeType
+  status          StakeStatus        @default(ACTIVE)
+  category        String?
+  difficulty      String?
+  tags            String[]
+  popularity      Int                @default(0)
+  viewCount       Int                @default(0)
+  joinCount       Int                @default(0)
+  shareCount      Int                @default(0)
+  totalAmount     Decimal            @db.Decimal(10, 2)
+  userStake       Decimal            @db.Decimal(10, 2)
+  friendStakes    Decimal            @default(0) @db.Decimal(10, 2)
+  penaltyAmount   Decimal            @default(0) @db.Decimal(10, 2)
+  taskId          String?
+  deadline        DateTime
+  completionProof String?
+  rewardAmount    Decimal            @default(0) @db.Decimal(10, 2)
+  penaltyPool     Decimal            @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  completedAt     DateTime?
+  userId          String
+  penalties       Penalty[]
+  rewards         Reward[]
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitations     StakeInvitation[]
+  participants    StakeParticipant[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([stakeType])
+  @@index([deadline])
+  @@index([category])
+  @@index([difficulty])
+  @@index([popularity])
+}
+
+model StakeParticipant {
+  id              String   @id @default(cuid())
+  stakeId         String
+  participantId   String
+  participantName String
+  amount          Decimal  @db.Decimal(10, 2)
+  isSupporter     Boolean  @default(true)
+  joinedAt        DateTime @default(now())
+  stake           Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+
+  @@index([stakeId])
+  @@index([participantId])
+}
+
+model Reward {
+  id          String     @id @default(cuid())
+  stakeId     String
+  userId      String
+  amount      Decimal    @db.Decimal(10, 2)
+  rewardType  RewardType
+  description String?
+  awardedAt   DateTime   @default(now())
+  stake       Stake      @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stakeId])
+}
+
+model Penalty {
+  id        String   @id @default(cuid())
+  stakeId   String
+  userId    String
+  amount    Decimal  @db.Decimal(10, 2)
+  reason    String
+  appliedAt DateTime @default(now())
+  stake     Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stakeId])
+}
+
+model UserWallet {
+  id             String              @id @default(cuid())
+  userId         String              @unique
+  balance        Decimal             @default(0) @db.Decimal(10, 2)
+  totalEarned    Decimal             @default(0) @db.Decimal(10, 2)
+  totalLost      Decimal             @default(0) @db.Decimal(10, 2)
+  totalStaked    Decimal             @default(0) @db.Decimal(10, 2)
+  completionRate Decimal             @default(0) @db.Decimal(5, 2)
+  currentStreak  Int                 @default(0)
+  longestStreak  Int                 @default(0)
+  rank           Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   WalletTransaction[]
+
+  @@index([userId])
+  @@index([rank])
+  @@index([completionRate])
+}
+
+model WalletTransaction {
+  id          String     @id @default(cuid())
+  walletId    String
+  userId      String
+  type        String
+  amount      Decimal    @db.Decimal(10, 2)
+  description String
+  referenceId String?
+  createdAt   DateTime   @default(now())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model StakeInvitation {
+  id           String           @id @default(cuid())
+  stakeId      String
+  inviterId    String
+  inviteeEmail String
+  message      String?
+  status       InvitationStatus @default(PENDING)
+  securityCode String           @unique
+  createdAt    DateTime         @default(now())
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  lastViewedAt DateTime?
+  viewCount    Int              @default(0)
+  inviter      User             @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  stake        Stake            @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+
+  @@index([inviteeEmail])
+  @@index([stakeId])
+  @@index([status])
+  @@index([securityCode])
+}
+
 enum Priority {
   LOW
   MEDIUM
@@ -263,49 +413,6 @@ enum AchievementType {
   SPECIAL
 }
 
-// Goal tracking models
-model Goal {
-  id          String      @id @default(cuid())
-  title       String
-  description String?
-  type        GoalType
-  target      Int         // Target value (e.g., number of tasks, points, etc.)
-  current     Int         @default(0) // Current progress
-  unit        String      // Unit of measurement (e.g., "tasks", "points", "days")
-  startDate   DateTime
-  endDate     DateTime?
-  isCompleted Boolean     @default(false)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  milestones  Milestone[]
-
-  @@index([userId])
-  @@index([isActive])
-  @@index([type])
-}
-
-model Milestone {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  target      Int
-  current     Int      @default(0)
-  isCompleted Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  goalId      String
-  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
-
-  @@index([goalId])
-}
-
 enum GoalType {
   TASKS_COMPLETED
   POINTS_EARNED
@@ -315,160 +422,6 @@ enum GoalType {
   CUSTOM
 }
 
-// SmartStake Models
-model Stake {
-  id              String      @id @default(cuid())
-  title           String
-  description     String?
-  stakeType       StakeType
-  status          StakeStatus @default(ACTIVE)
-  
-  // Categorization & Difficulty
-  category        String?     // e.g., "fitness", "work", "learning", "personal"
-  difficulty      String?     // e.g., "easy", "medium", "hard", "extreme"
-  tags            String[]    // Array of tags for better categorization
-  
-  // Popularity & Engagement
-  popularity      Int         @default(0) // Calculated based on views, joins, shares
-  viewCount       Int         @default(0)
-  joinCount       Int         @default(0)
-  shareCount      Int         @default(0)
-  
-  // Financial Details
-  totalAmount     Decimal     @db.Decimal(10, 2)
-  userStake       Decimal     @db.Decimal(10, 2)
-  friendStakes    Decimal     @default(0) @db.Decimal(10, 2)
-  penaltyAmount   Decimal     @default(0) @db.Decimal(10, 2)
-  
-  // Task Details
-  taskId          String?
-  deadline        DateTime
-  completionProof String?     @db.Text
-  
-  // Rewards & Penalties
-  rewardAmount    Decimal     @default(0) @db.Decimal(10, 2)
-  penaltyPool     Decimal     @default(0) @db.Decimal(10, 2)
-  
-  // Timestamps
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  completedAt     DateTime?
-  
-  // Relations
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  participants    StakeParticipant[]
-  rewards         Reward[]
-  penalties       Penalty[]
-  invitations     StakeInvitation[]
-  
-  @@index([userId])
-  @@index([status])
-  @@index([stakeType])
-  @@index([deadline])
-  @@index([category])
-  @@index([difficulty])
-  @@index([popularity])
-}
-
-model StakeParticipant {
-  id              String      @id @default(cuid())
-  stakeId         String
-  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  
-  participantId   String
-  participantName String
-  amount          Decimal     @db.Decimal(10, 2)
-  isSupporter     Boolean     @default(true)
-  
-  joinedAt        DateTime    @default(now())
-  
-  @@index([stakeId])
-  @@index([participantId])
-}
-
-model Reward {
-  id              String      @id @default(cuid())
-  stakeId         String
-  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal     @db.Decimal(10, 2)
-  rewardType      RewardType
-  description     String?
-  
-  awardedAt       DateTime    @default(now())
-  
-  @@index([userId])
-  @@index([stakeId])
-}
-
-model Penalty {
-  id              String      @id @default(cuid())
-  stakeId         String
-  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal     @db.Decimal(10, 2)
-  reason          String
-  
-  appliedAt       DateTime    @default(now())
-  
-  @@index([userId])
-  @@index([stakeId])
-}
-
-model UserWallet {
-  id              String      @id @default(cuid())
-  userId          String      @unique
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  balance         Decimal     @default(0) @db.Decimal(10, 2)
-  totalEarned     Decimal     @default(0) @db.Decimal(10, 2)
-  totalLost       Decimal     @default(0) @db.Decimal(10, 2)
-  totalStaked     Decimal     @default(0) @db.Decimal(10, 2)
-  
-  // Advanced Metrics
-  completionRate  Decimal     @default(0) @db.Decimal(5, 2)
-  currentStreak   Int         @default(0)
-  longestStreak   Int         @default(0)
-  rank            Int         @default(0)
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  // Relations
-  transactions    WalletTransaction[]
-  
-  @@index([userId])
-  @@index([rank])
-  @@index([completionRate])
-}
-
-model WalletTransaction {
-  id              String      @id @default(cuid())
-  walletId        String
-  wallet          UserWallet  @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type            String
-  amount          Decimal     @db.Decimal(10, 2)
-  description     String
-  referenceId     String?
-  
-  createdAt       DateTime    @default(now())
-  
-  @@index([walletId])
-  @@index([userId])
-  @@index([type])
-  @@index([createdAt])
-}
-
-// SmartStake Enums
 enum StakeType {
   SELF_STAKE
   SOCIAL_STAKE
@@ -503,27 +456,4 @@ enum InvitationStatus {
   ACCEPTED
   DECLINED
   EXPIRED
-}
-
-model StakeInvitation {
-  id            String           @id @default(cuid())
-  stakeId       String
-  inviterId     String
-  inviteeEmail  String
-  message       String?
-  status        InvitationStatus @default(PENDING)
-  securityCode  String           @unique
-  createdAt     DateTime         @default(now())
-  expiresAt     DateTime
-  acceptedAt    DateTime?
-  lastViewedAt  DateTime?
-  viewCount     Int              @default(0)
-  
-  stake         Stake @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  inviter       User  @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
-  
-  @@index([inviteeEmail])
-  @@index([stakeId])
-  @@index([status])
-  @@index([securityCode])
 }
