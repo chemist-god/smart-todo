@@ -22,6 +22,31 @@ export const {
     strategy: "jwt",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Ensure user exists in database
+      if (user?.email) {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                id: user.id!,
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                emailVerified: new Date(),
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error creating user:", error);
+        }
+      }
+      return true;
+    },
     async session({ session, token }) {
       if (session?.user) {
         // augment id for the client session user
