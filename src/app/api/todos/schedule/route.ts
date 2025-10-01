@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
                         timeZone: timeZone || baseTodo.timeZone,
                         isRecurring: true,
                         recurrencePattern: recurrencePattern,
-                        reminderSettings: baseTodo.reminderSettings,
+                        reminderSettings: baseTodo.reminderSettings || undefined,
                     },
                 });
                 createdTodos.push(newTodo);
