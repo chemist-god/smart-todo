@@ -8,7 +8,7 @@ import {
     CurrencyDollarIcon,
     CheckCircleIcon,
     UserGroupIcon,
-    TrendingUpIcon
+    ArrowTrendingUpIcon
 } from "@heroicons/react/24/outline";
 
 interface LeaderboardUser {
@@ -198,8 +198,8 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                             <button
                                 onClick={() => setActiveTab('earners')}
                                 className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'earners'
-                                        ? 'bg-white text-purple-600 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-purple-600 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                             >
                                 Earners
@@ -207,8 +207,8 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                             <button
                                 onClick={() => setActiveTab('performers')}
                                 className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'performers'
-                                        ? 'bg-white text-purple-600 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-purple-600 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                             >
                                 Performers
@@ -216,8 +216,8 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                             <button
                                 onClick={() => setActiveTab('streaks')}
                                 className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'streaks'
-                                        ? 'bg-white text-purple-600 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-purple-600 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                             >
                                 Streaks
@@ -232,8 +232,8 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                             <div
                                 key={user.id}
                                 className={`flex items-center justify-between p-4 rounded-lg transition-colors ${user.isCurrentUser
-                                        ? 'bg-purple-50 border-2 border-purple-200'
-                                        : 'bg-gray-50 hover:bg-gray-100'
+                                    ? 'bg-purple-50 border-2 border-purple-200'
+                                    : 'bg-gray-50 hover:bg-gray-100'
                                     }`}
                             >
                                 <div className="flex items-center space-x-4">
