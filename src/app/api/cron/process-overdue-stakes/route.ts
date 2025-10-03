@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PenaltyService } from "@/lib/penalty-service";
+import { EnhancedPenaltyService } from "@/lib/enhanced-penalty-service";
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,14 +11,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Process overdue stakes
-        const result = await PenaltyService.processOverdueStakes();
+        // Process overdue stakes with enhanced features
+        const result = await EnhancedPenaltyService.processOverdueStakes();
 
         return NextResponse.json({
             success: true,
-            message: `Processed ${result.processed} overdue stakes`,
+            message: `Processed ${result.processed} overdue stakes, applied grace period to ${result.gracePeriodApplied} stakes`,
             processed: result.processed,
-            failures: result.failures
+            gracePeriodApplied: result.gracePeriodApplied,
+            failures: result.failures,
+            partialCompletions: result.partialCompletions
         });
 
     } catch (error) {
@@ -33,13 +35,15 @@ export async function POST(request: NextRequest) {
 // Allow GET for manual testing
 export async function GET() {
     try {
-        const result = await PenaltyService.processOverdueStakes();
+        const result = await EnhancedPenaltyService.processOverdueStakes();
 
         return NextResponse.json({
             success: true,
-            message: `Processed ${result.processed} overdue stakes`,
+            message: `Processed ${result.processed} overdue stakes, applied grace period to ${result.gracePeriodApplied} stakes`,
             processed: result.processed,
-            failures: result.failures
+            gracePeriodApplied: result.gracePeriodApplied,
+            failures: result.failures,
+            partialCompletions: result.partialCompletions
         });
     } catch (error) {
         console.error('Error processing overdue stakes:', error);
