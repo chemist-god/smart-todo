@@ -38,6 +38,21 @@ model User {
   penalties     Penalty[]
   transactions  WalletTransaction[]
   invitations   StakeInvitation[] @relation("StakeInvitations")
+  goals          Goal[]
+  notes          Note[]
+  penalties      Penalty[]
+  rewards        Reward[]
+  sessions       Session[]
+  stakes         Stake[]
+  invitations    StakeInvitation[]   @relation("StakeInvitations")
+  todos          Todo[]
+  achievements   UserAchievement[]
+  stats          UserStats?
+  wallet         UserWallet?
+  transactions   WalletTransaction[]
+  appeals        StakeAppeal[]
+  extensions     StakeExtension[]
+  recoveryStakes RecoveryStake[]
 }
 
 model Account {
@@ -284,6 +299,16 @@ model Stake {
   // Timestamps
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  gracePeriodEnd  DateTime?          // Grace period end time
+  completionProof String?
+  rewardAmount    Decimal            @default(0) @db.Decimal(10, 2)
+  penaltyPool     Decimal            @default(0) @db.Decimal(10, 2)
+  completionPercentage Decimal       @default(0) @db.Decimal(5, 2) // For partial completion
+  isExtended      Boolean            @default(false) // If deadline was extended
+  extensionCount  Int                @default(0) // Number of times extended
+  extensionFee    Decimal            @default(0) @db.Decimal(10, 2) // Fee paid for extensions
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   completedAt     DateTime?
   
   // Relations
@@ -293,12 +318,20 @@ model Stake {
   participants    StakeParticipant[]
   rewards         Reward[]
   penalties       Penalty[]
+  rewards         Reward[]
+  appeals         StakeAppeal[]
+  extensions      StakeExtension[]
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   invitations     StakeInvitation[]
   
+  participants    StakeParticipant[]
+  recoveryStakes  RecoveryStake[]    @relation("RecoveryStake")
+
   @@index([userId])
   @@index([status])
   @@index([stakeType])
   @@index([deadline])
+  @@index([gracePeriodEnd])
   @@index([category])
   @@index([difficulty])
   @@index([popularity])
@@ -351,6 +384,65 @@ model Penalty {
   
   @@index([userId])
   @@index([stakeId])
+}
+
+model StakeAppeal {
+  id          String        @id @default(cuid())
+  stakeId     String
+  userId      String
+  reason      String
+  evidence    String?       // URL or description of evidence
+  status      AppealStatus  @default(PENDING)
+  adminNotes  String?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  stake       Stake         @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stakeId])
+  @@index([userId])
+  @@index([status])
+}
+
+model StakeExtension {
+  id          String   @id @default(cuid())
+  stakeId     String
+  userId      String
+  oldDeadline DateTime
+  newDeadline DateTime
+  extensionFee Decimal @db.Decimal(10, 2)
+  reason      String?
+  createdAt   DateTime @default(now())
+  stake       Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stakeId])
+  @@index([userId])
+}
+
+model RecoveryStake {
+  id              String             @id @default(cuid())
+  originalStakeId String
+  userId          String
+  title           String
+  description     String?
+  stakeType       StakeType
+  status          StakeStatus        @default(ACTIVE)
+  totalAmount     Decimal            @db.Decimal(10, 2)
+  userStake       Decimal            @db.Decimal(10, 2)
+  deadline        DateTime
+  recoveryTarget  Decimal            @db.Decimal(10, 2) // Amount to recover
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  completedAt     DateTime?
+  originalStake   Stake              @relation("RecoveryStake", fields: [originalStakeId], references: [id])
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([originalStakeId])
+  @@index([status])
 }
 
 model UserWallet {
@@ -416,6 +508,8 @@ enum StakeStatus {
   CANCELLED
   EXPIRED
   DISPUTED
+  GRACE_PERIOD
+  PARTIALLY_COMPLETED
 }
 
 enum RewardType {
@@ -435,6 +529,13 @@ enum InvitationStatus {
   ACCEPTED
   DECLINED
   EXPIRED
+}
+
+enum AppealStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
 }
 
 model StakeInvitation {
