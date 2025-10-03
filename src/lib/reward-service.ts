@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { RewardCalculator, StakeData, UserStreakData } from "@/lib/reward-calculator";
 import { WalletService } from "@/lib/wallet-service";
+import { RewardType } from "@prisma/client";
 
 export interface RewardDistributionResult {
     success: boolean;
@@ -63,26 +64,29 @@ export class RewardService {
                     break;
                 case 'SOCIAL_STAKE':
                     rewardCalculation = RewardCalculator.calculateSocialStakeReward(
-                        stakeData,
-                        userStreak
+                        Number(stake.totalAmount),
+                        Number(stake.userStake)
                     );
                     break;
                 case 'CHALLENGE_STAKE':
-                    rewardCalculation = RewardCalculator.calculateChallengeStakeReward(
-                        stakeData,
+                    // Challenge stakes use self stake calculation (personal achievement)
+                    rewardCalculation = RewardCalculator.calculateSelfStakeReward(
+                        Number(stake.userStake),
                         userStreak
                     );
                     break;
                 case 'TEAM_STAKE':
-                    rewardCalculation = RewardCalculator.calculateTeamStakeReward(
-                        stakeData,
-                        userStreak
+                    // Team stakes use social stake calculation (shared rewards)
+                    rewardCalculation = RewardCalculator.calculateSocialStakeReward(
+                        Number(stake.totalAmount),
+                        Number(stake.userStake)
                     );
                     break;
                 case 'CHARITY_STAKE':
-                    rewardCalculation = RewardCalculator.calculateCharityStakeReward(
-                        stakeData,
-                        userStreak
+                    // Charity stakes use social stake calculation (winner takes all)
+                    rewardCalculation = RewardCalculator.calculateSocialStakeReward(
+                        Number(stake.totalAmount),
+                        Number(stake.userStake)
                     );
                     break;
                 default:

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
             // Calculate badges
             const badges = [];
-            if (user.wallet?.currentStreak >= 10) badges.push('STREAK_MASTER');
+            if (user.wallet?.currentStreak && user.wallet.currentStreak >= 10) badges.push('STREAK_MASTER');
             if (totalEarned >= 1000) badges.push('HIGH_EARNER');
             if (successRate >= 90) badges.push('PERFECTIONIST');
             if (user.stakes.filter(s => s.stakeType === 'SOCIAL_STAKE').length >= 5) badges.push('SOCIAL_BUTTERFLY');

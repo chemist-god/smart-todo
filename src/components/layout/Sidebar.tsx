@@ -16,12 +16,14 @@ import {
     CalendarIcon,
     ChartBarIcon,
     FlagIcon,
-    CurrencyDollarIcon
+    CurrencyDollarIcon,
+    ClockIcon
 } from "@heroicons/react/24/outline";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
     { name: "Todos", href: "/todos", icon: CheckCircleIcon },
+    { name: "Timer Demo", href: "/timer-demo", icon: ClockIcon },
     { name: "Notes", href: "/notes", icon: DocumentTextIcon },
     { name: "Goals", href: "/goals", icon: FlagIcon },
     { name: "Stakes", href: "/stakes", icon: CurrencyDollarIcon },

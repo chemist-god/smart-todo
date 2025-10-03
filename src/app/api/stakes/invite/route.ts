@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
                 where: {
                     OR: [
                         { inviterId: user.id },
-                        { inviteeEmail: user.email }
+                        { inviteeEmail: user.email || '' }
                     ]
                 },
                 include: {

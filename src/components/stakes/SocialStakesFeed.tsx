@@ -12,11 +12,13 @@ import {
     StarIcon,
     ArrowTrendingUpIcon,
     HandThumbUpIcon,
-    SparklesIcon
+    SparklesIcon,
+    PlusIcon
 } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import StakeCard from "./StakeCard";
+import JoinStakeModal from "./JoinStakeModal";
 
 interface SocialStake {
     id: string;
@@ -64,6 +66,8 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
     const [category, setCategory] = useState('all');
     const [difficulty, setDifficulty] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStake, setSelectedStake] = useState<SocialStake | null>(null);
+    const [showJoinModal, setShowJoinModal] = useState(false);
     const { addToast } = useToast();
 
     useEffect(() => {
@@ -106,6 +110,73 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
 
     const handleStakeUpdate = () => {
         fetchSocialStakes();
+    };
+
+    // Interactive engagement handlers
+    const handleViewStake = async (stakeId: string) => {
+        try {
+            // Increment view count
+            await fetch(`/api/stakes/${stakeId}/view`, { method: 'POST' });
+            addToast({
+                type: 'success',
+                title: 'Viewed!',
+                message: 'Stake view recorded'
+            });
+            fetchSocialStakes(); // Refresh to update counts
+        } catch (error) {
+            console.error('Error viewing stake:', error);
+        }
+    };
+
+    const handleLikeStake = async (stakeId: string) => {
+        try {
+            // Toggle like status
+            await fetch(`/api/stakes/${stakeId}/like`, { method: 'POST' });
+            addToast({
+                type: 'success',
+                title: 'Liked!',
+                message: 'You liked this stake'
+            });
+            fetchSocialStakes(); // Refresh to update counts
+        } catch (error) {
+            console.error('Error liking stake:', error);
+        }
+    };
+
+    const handleShareStake = async (stakeId: string) => {
+        try {
+            // Increment share count and open share modal
+            await fetch(`/api/stakes/${stakeId}/share`, { method: 'POST' });
+
+            // Copy share link to clipboard
+            const shareUrl = `${window.location.origin}/stakes/invite/${stakeId}`;
+            await navigator.clipboard.writeText(shareUrl);
+
+            addToast({
+                type: 'success',
+                title: 'Shared!',
+                message: 'Share link copied to clipboard'
+            });
+            fetchSocialStakes(); // Refresh to update counts
+        } catch (error) {
+            console.error('Error sharing stake:', error);
+        }
+    };
+
+    const handleJoinStake = (stake: any) => {
+        setSelectedStake(stake);
+        setShowJoinModal(true);
+    };
+
+    const handleJoinSuccess = () => {
+        setShowJoinModal(false);
+        setSelectedStake(null);
+        fetchSocialStakes();
+        addToast({
+            type: 'success',
+            title: 'Joined Successfully!',
+            message: 'You are now supporting this stake'
+        });
     };
 
     const getFilterIcon = (filterType: string) => {
@@ -317,106 +388,124 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                     )}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {stakes.map((stake) => (
-                        <div key={stake.id} className="relative">
-                            {/* Enhanced Stake Card */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                                {/* Header with Creator Info */}
-                                <div className="p-4 border-b border-gray-100">
+                        <div key={stake.id} className="group">
+                            {/* Sleek Social Stake Card */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-pink-200 transition-all duration-300 overflow-hidden h-full flex flex-col">
+                                {/* Compact Header */}
+                                <div className="p-4 pb-3">
                                     <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                                                 {stake.creator.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900">{stake.creator.name}</h4>
-                                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                                    <span className="flex items-center gap-1">
-                                                        <StarIcon className="w-3 h-3" />
-                                                        Rank #{stake.creator.rank}
-                                                    </span>
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-semibold text-gray-900 text-sm truncate">{stake.creator.name}</h4>
+                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                    <StarIcon className="w-3 h-3" />
+                                                    <span>#{stake.creator.rank || 'New'}</span>
                                                     <span>•</span>
-                                                    <span>{stake.creator.successRate}% success rate</span>
+                                                    <span>{stake.creator.successRate || 0}%</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-2xl">{getCategoryIcon(stake.category)}</div>
-                                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(stake.difficulty)}`}>
+                                        <div className="flex flex-col items-end">
+                                            <div className="text-lg">{getCategoryIcon(stake.category)}</div>
+                                            <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(stake.difficulty)}`}>
                                                 {stake.difficulty}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Stake Content */}
-                                <div className="p-4">
-                                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{stake.title}</h3>
-                                    {stake.description && (
-                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{stake.description}</p>
-                                    )}
+                                {/* Compact Content */}
+                                <div className="px-4 pb-3 flex-1">
+                                    <h3 className="font-semibold text-gray-900 mb-2 text-sm line-clamp-2 leading-tight">{stake.title}</h3>
 
-                                    {/* Stats */}
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                    {/* Key Stats */}
+                                    <div className="flex items-center justify-between mb-3">
                                         <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-900">Gh{stake.totalAmount}</div>
-                                            <div className="text-xs text-gray-500">Total Pool</div>
+                                            <div className="text-lg font-bold text-gray-900">Gh{Number(stake.totalAmount).toFixed(0)}</div>
+                                            <div className="text-xs text-gray-500">Pool</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-900">{stake.participantCount}</div>
-                                            <div className="text-xs text-gray-500">Participants</div>
+                                            <div className="text-lg font-bold text-gray-900">{stake.participantCount || 0}</div>
+                                            <div className="text-xs text-gray-500">Joined</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-lg font-bold text-gray-900">{Math.ceil(stake.timeRemaining / (1000 * 60 * 60))}h</div>
+                                            <div className="text-xs text-gray-500">Left</div>
                                         </div>
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div className="mb-4">
-                                        <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                            <span>Time Remaining</span>
-                                            <span>{Math.ceil(stake.timeRemaining / (1000 * 60 * 60))}h</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div className="mb-3">
+                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
                                             <div
-                                                className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${Math.max(0, Math.min(100, stake.progress))}%` }}
+                                                className="bg-gradient-to-r from-pink-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                                                style={{ width: `${Math.max(0, Math.min(100, stake.progress || 0))}%` }}
                                             />
-                                        </div>
-                                    </div>
-
-                                    {/* Engagement Stats */}
-                                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-1">
-                                                <EyeIcon className="w-4 h-4" />
-                                                {stake.viewCount}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <HeartIcon className="w-4 h-4" />
-                                                {stake.joinCount}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <ShareIcon className="w-4 h-4" />
-                                                {stake.shareCount}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-purple-600">
-                                            <FireIcon className="w-4 h-4" />
-                                            {stake.popularity}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="p-4 bg-gray-50 border-t border-gray-100">
-                                    <StakeCard
-                                        stake={stake}
-                                        onUpdate={handleStakeUpdate}
-                                    />
+                                {/* Interactive Engagement Bar */}
+                                <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => handleViewStake(stake.id)}
+                                                className="flex items-center gap-1 text-gray-500 hover:text-pink-600 transition-colors group"
+                                            >
+                                                <EyeIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                <span className="text-xs font-medium">{stake.viewCount || 0}</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleLikeStake(stake.id)}
+                                                className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors group"
+                                            >
+                                                <HeartIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                <span className="text-xs font-medium">{stake.joinCount || 0}</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleShareStake(stake.id)}
+                                                className="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors group"
+                                            >
+                                                <ShareIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                <span className="text-xs font-medium">{stake.shareCount || 0}</span>
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-pink-600">
+                                            <FireIcon className="w-4 h-4" />
+                                            <span className="text-xs font-bold">{stake.popularity || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Button */}
+                                <div className="p-4 pt-0">
+                                    <button
+                                        onClick={() => handleJoinStake(stake)}
+                                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm hover:from-pink-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                                    >
+                                        Join & Support
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Join Stake Modal */}
+            {selectedStake && (
+                <JoinStakeModal
+                    isOpen={showJoinModal}
+                    onClose={() => setShowJoinModal(false)}
+                    stake={selectedStake}
+                    onSuccess={handleJoinSuccess}
+                />
             )}
         </div>
     );
