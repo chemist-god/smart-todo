@@ -59,16 +59,16 @@ export class WalletService {
         };
 
         if (updates.balance !== undefined) {
-            processedUpdates.balance = new Decimal(updates.balance);
+            processedUpdates.balance = new Decimal(Number(updates.balance));
         }
         if (updates.totalEarned !== undefined) {
-            processedUpdates.totalEarned = new Decimal(updates.totalEarned);
+            processedUpdates.totalEarned = new Decimal(Number(updates.totalEarned));
         }
         if (updates.totalLost !== undefined) {
-            processedUpdates.totalLost = new Decimal(updates.totalLost);
+            processedUpdates.totalLost = new Decimal(Number(updates.totalLost));
         }
         if (updates.totalStaked !== undefined) {
-            processedUpdates.totalStaked = new Decimal(updates.totalStaked);
+            processedUpdates.totalStaked = new Decimal(Number(updates.totalStaked));
         }
         if (updates.completionRate !== undefined) {
             processedUpdates.completionRate = updates.completionRate;
@@ -144,8 +144,8 @@ export class WalletService {
     static async processStakeCompletion(userId: string, stakeAmount: number, rewardAmount: number, stakeId: string) {
         const wallet = await this.getOrCreateWallet(userId);
 
-        const newBalance = Number(wallet.balance) + rewardAmount;
-        const newTotalEarned = Number(wallet.totalEarned) + rewardAmount;
+        const newBalance = Number(wallet.balance) + Number(rewardAmount);
+        const newTotalEarned = Number(wallet.totalEarned) + Number(rewardAmount);
 
         const updatedWallet = await this.updateWallet(wallet.id, {
             balance: newBalance,
