@@ -223,7 +223,7 @@ export class RewardService {
         await WalletService.processStakeCompletion(
             stake.userId,
             Number(stake.userStake),
-            rewardCalculation.totalReward,
+            Number(rewardCalculation.totalReward),
             stake.id
         );
 
@@ -232,7 +232,7 @@ export class RewardService {
             data: {
                 stakeId: stake.id,
                 userId: stake.userId,
-                amount: rewardCalculation.totalReward,
+                amount: Number(rewardCalculation.totalReward),
                 rewardType: 'COMPLETION',
                 description: rewardCalculation.description,
                 awardedAt: new Date()
@@ -243,7 +243,7 @@ export class RewardService {
 
         // Distribute supporter rewards for social stakes
         if (stake.stakeType === 'SOCIAL_STAKE' && stake.participants.length > 0) {
-            const supporterReward = rewardCalculation.totalReward * 0.1; // 10% to supporters
+            const supporterReward = Number(rewardCalculation.totalReward) * 0.1; // 10% to supporters
 
             for (const participant of stake.participants) {
                 if (participant.isSupporter) {

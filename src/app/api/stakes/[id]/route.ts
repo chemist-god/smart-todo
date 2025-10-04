@@ -137,6 +137,7 @@ export async function POST(
         }
 
         // Validate stake completion
+        // Validate stake completion before updating
         const stakeData = {
             ...stake,
             totalAmount: Number(stake.totalAmount),
@@ -150,7 +151,7 @@ export async function POST(
             throw new ValidationError(validation.errors.join(', '));
         }
 
-        // Update stake status first
+        // Update stake status after validation
         const completedAt = new Date(validatedData.completionTime || new Date());
         const updatedStake = await prisma.stake.update({
             where: { id },
