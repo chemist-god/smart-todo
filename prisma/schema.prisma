@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,15 +11,33 @@ datasource db {
 }
 
 model User {
-  id             String              @id @default(cuid())
-  name           String?
-  email          String?             @unique
-  emailVerified  DateTime?
-  image          String?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  accounts       Account[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Auth.js relations
+  accounts      Account[]
+  sessions      Session[]
   authenticators Authenticator[]
+
+  // App relations
+  todos         Todo[]
+  notes         Note[]
+  achievements  UserAchievement[]
+  stats         UserStats?
+  goals         Goal[]
+  
+  // SmartStake relations
+  wallet        UserWallet?
+  stakes        Stake[]
+  rewards       Reward[]
+  penalties     Penalty[]
+  transactions  WalletTransaction[]
+  invitations   StakeInvitation[] @relation("StakeInvitations")
   goals          Goal[]
   notes          Note[]
   penalties      Penalty[]
@@ -29,6 +50,13 @@ model User {
   stats          UserStats?
   wallet         UserWallet?
   transactions   WalletTransaction[]
+  appeals        StakeAppeal[]
+  extensions     StakeExtension[]
+  recoveryStakes RecoveryStake[]
+  escrowTransactions EscrowTransaction[]
+  paymentMethods PaymentMethod[]
+  paymentIntents PaymentIntent[]
+  stripeCustomerId String?
 }
 
 model Account {
@@ -37,14 +65,15 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -66,78 +95,48 @@ model VerificationToken {
 }
 
 model Authenticator {
-  id           String  @id @default(cuid())
-  credentialID String  @unique
-  userId       String
-  publicKey    String
-  counter      BigInt
-  transports   String?
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String  @id @default(cuid())
+  credentialID       String  @unique @db.Text
+  userId             String
+  publicKey          String  @db.Text
+  counter            BigInt
+  transports         String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([credentialID, userId])
 }
 
+// App Models
 model Todo {
-  id                 String             @id @default(cuid())
-  title              String
-  description        String?
-  completed          Boolean            @default(false)
-  dueDate            DateTime?
-  priority           Priority           @default(MEDIUM)
-  points             Int                @default(10)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  completedAt        DateTime?
-  userId             String
-  actualDuration     Int?
-  breakDuration      Int?
-  estimatedDuration  Int?
-  focusMode          Boolean            @default(false)
-  isRecurring        Boolean            @default(false)
-  pomodoroSessions   Int                @default(0)
-  recurrencePattern  RecurrencePattern?
-  reminderSettings   Json?
-  scheduledEndTime   DateTime?
-  scheduledStartTime DateTime?
-  timeZone           String?
-  timerStartTime     DateTime?
-  timerStatus        TimerStatus        @default(STOPPED)
-  totalTimeSpent     Int                @default(0)
-  timerSessions      TimerSession[]
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  dueDate     DateTime?
+  priority    Priority  @default(MEDIUM)
+  points      Int       @default(10)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([completed])
   @@index([dueDate])
-  @@index([scheduledStartTime])
-  @@index([scheduledEndTime])
-  @@index([timerStatus])
-  @@index([isRecurring])
-}
-
-model TimerSession {
-  id          String           @id @default(cuid())
-  todoId      String
-  startTime   DateTime
-  endTime     DateTime?
-  duration    Int?
-  sessionType TimerSessionType @default(FOCUS)
-  notes       String?
-  createdAt   DateTime         @default(now())
-  todo        Todo             @relation(fields: [todoId], references: [id], onDelete: Cascade)
-
-  @@index([todoId])
-  @@index([startTime])
-  @@index([sessionType])
 }
 
 model Note {
   id        String   @id @default(cuid())
   title     String
-  content   String
+  content   String   @db.Text
   type      NoteType @default(GENERAL)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -146,59 +145,92 @@ model Note {
 }
 
 model Achievement {
-  id               String            @id @default(cuid())
-  name             String            @unique
-  description      String
-  points           Int
-  type             AchievementType
-  requirement      Int               @default(1)
-  createdAt        DateTime          @default(now())
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  points      Int
+  type        AchievementType
+  requirement Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  // Relations
   userAchievements UserAchievement[]
 }
 
 model UserAchievement {
-  id            String      @id @default(cuid())
-  unlockedAt    DateTime    @default(now())
-  progress      Int         @default(0)
-  userId        String
+  id           String      @id @default(cuid())
+  unlockedAt   DateTime    @default(now())
+  progress     Int         @default(0)
+
+  // Relations
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievementId String
-  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
   @@index([userId])
 }
 
 model UserStats {
-  id                   String   @id @default(cuid())
-  totalPoints          Int      @default(0)
-  level                Int      @default(1)
-  currentStreak        Int      @default(0)
-  longestStreak        Int      @default(0)
-  todosCompleted       Int      @default(0)
-  notesCreated         Int      @default(0)
-  achievementsUnlocked Int      @default(0)
-  lastActiveDate       DateTime @default(now())
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  userId               String   @unique
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  totalPoints       Int      @default(0)
+  level             Int      @default(1)
+  currentStreak     Int      @default(0)
+  longestStreak     Int      @default(0)
+  todosCompleted    Int      @default(0)
+  notesCreated      Int      @default(0)
+  achievementsUnlocked Int   @default(0)
+  lastActiveDate    DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Enums
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NoteType {
+  GENERAL
+  BIBLE_STUDY
+  CONFERENCE
+  SONG
+  QUOTE
+  REFLECTION
+}
+
+enum AchievementType {
+  TODO
+  NOTE
+  STREAK
+  POINTS
+  SPECIAL
+}
+
+// Goal tracking models
 model Goal {
   id          String      @id @default(cuid())
   title       String
   description String?
   type        GoalType
-  target      Int
-  current     Int         @default(0)
-  unit        String
+  target      Int         // Target value (e.g., number of tasks, points, etc.)
+  current     Int         @default(0) // Current progress
+  unit        String      // Unit of measurement (e.g., "tasks", "points", "days")
   startDate   DateTime
   endDate     DateTime?
   isCompleted Boolean     @default(false)
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  // Relations
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   milestones  Milestone[]
@@ -217,43 +249,87 @@ model Milestone {
   isCompleted Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations
   goalId      String
   goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
 
   @@index([goalId])
 }
 
+enum GoalType {
+  TASKS_COMPLETED
+  POINTS_EARNED
+  STREAK_DAYS
+  NOTES_CREATED
+  ACHIEVEMENTS_UNLOCKED
+  CUSTOM
+}
+
+// SmartStake Models
 model Stake {
-  id              String             @id @default(cuid())
+  id              String      @id @default(cuid())
   title           String
   description     String?
   stakeType       StakeType
-  status          StakeStatus        @default(ACTIVE)
-  category        String?
-  difficulty      String?
-  tags            String[]
-  popularity      Int                @default(0)
-  viewCount       Int                @default(0)
-  joinCount       Int                @default(0)
-  shareCount      Int                @default(0)
-  totalAmount     Decimal            @db.Decimal(10, 2)
-  userStake       Decimal            @db.Decimal(10, 2)
-  friendStakes    Decimal            @default(0) @db.Decimal(10, 2)
-  penaltyAmount   Decimal            @default(0) @db.Decimal(10, 2)
+  status          StakeStatus @default(ACTIVE)
+  
+  // Categorization & Difficulty
+  category        String?     // e.g., "fitness", "work", "learning", "personal"
+  difficulty      String?     // e.g., "easy", "medium", "hard", "extreme"
+  tags            String[]    // Array of tags for better categorization
+  
+  // Popularity & Engagement
+  popularity      Int         @default(0) // Calculated based on views, joins, shares
+  viewCount       Int         @default(0)
+  joinCount       Int         @default(0)
+  shareCount      Int         @default(0)
+  
+  // Financial Details
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  userStake       Decimal     @db.Decimal(10, 2)
+  friendStakes    Decimal     @default(0) @db.Decimal(10, 2)
+  penaltyAmount   Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Task Details
   taskId          String?
   deadline        DateTime
+  completionProof String?     @db.Text
+  
+  // Rewards & Penalties
+  rewardAmount    Decimal     @default(0) @db.Decimal(10, 2)
+  penaltyPool     Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  gracePeriodEnd  DateTime?          // Grace period end time
   completionProof String?
   rewardAmount    Decimal            @default(0) @db.Decimal(10, 2)
   penaltyPool     Decimal            @default(0) @db.Decimal(10, 2)
+  completionPercentage Decimal       @default(0) @db.Decimal(5, 2) // For partial completion
+  isExtended      Boolean            @default(false) // If deadline was extended
+  extensionCount  Int                @default(0) // Number of times extended
+  extensionFee    Decimal            @default(0) @db.Decimal(10, 2) // Fee paid for extensions
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   completedAt     DateTime?
+  
+  // Relations
   userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  participants    StakeParticipant[]
+  rewards         Reward[]
   penalties       Penalty[]
   rewards         Reward[]
+  appeals         StakeAppeal[]
+  extensions      StakeExtension[]
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   invitations     StakeInvitation[]
   participants    StakeParticipant[]
+  recoveryStakes  RecoveryStake[]    @relation("RecoveryStake")
+  escrowTransactions EscrowTransaction[]
 
   @@index([userId])
   @@index([status])
@@ -266,44 +342,50 @@ model Stake {
 }
 
 model StakeParticipant {
-  id              String   @id @default(cuid())
+  id              String      @id @default(cuid())
   stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
   participantId   String
   participantName String
-  amount          Decimal  @db.Decimal(10, 2)
-  isSupporter     Boolean  @default(true)
-  joinedAt        DateTime @default(now())
-  stake           Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-
+  amount          Decimal     @db.Decimal(10, 2)
+  isSupporter     Boolean     @default(true)
+  
+  joinedAt        DateTime    @default(now())
+  
   @@index([stakeId])
   @@index([participantId])
 }
 
 model Reward {
-  id          String     @id @default(cuid())
-  stakeId     String
-  userId      String
-  amount      Decimal    @db.Decimal(10, 2)
-  rewardType  RewardType
-  description String?
-  awardedAt   DateTime   @default(now())
-  stake       Stake      @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id              String      @id @default(cuid())
+  stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal     @db.Decimal(10, 2)
+  rewardType      RewardType
+  description     String?
+  
+  awardedAt       DateTime    @default(now())
+  
   @@index([userId])
   @@index([stakeId])
 }
 
 model Penalty {
-  id        String   @id @default(cuid())
-  stakeId   String
-  userId    String
-  amount    Decimal  @db.Decimal(10, 2)
-  reason    String
-  appliedAt DateTime @default(now())
-  stake     Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id              String      @id @default(cuid())
+  stakeId         String
+  stake           Stake       @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal     @db.Decimal(10, 2)
+  reason          String
+  
+  appliedAt       DateTime    @default(now())
+  
   @@index([userId])
   @@index([stakeId])
 }
@@ -367,121 +449,126 @@ model RecoveryStake {
   @@index([status])
 }
 
-model UserWallet {
-  id             String              @id @default(cuid())
-  userId         String              @unique
-  balance        Decimal             @default(0) @db.Decimal(10, 2)
-  totalEarned    Decimal             @default(0) @db.Decimal(10, 2)
-  totalLost      Decimal             @default(0) @db.Decimal(10, 2)
-  totalStaked    Decimal             @default(0) @db.Decimal(10, 2)
-  completionRate Decimal             @default(0) @db.Decimal(5, 2)
-  currentStreak  Int                 @default(0)
-  longestStreak  Int                 @default(0)
-  rank           Int                 @default(0)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions   WalletTransaction[]
+model EscrowTransaction {
+  id                    String        @id @default(cuid())
+  stakeId               String
+  userId                String
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("USD")
+  status                EscrowStatus  @default(PENDING)
+  paymentMethod         PaymentMethod @default(STRIPE)
+  paymentIntentId       String?
+  escrowAccountId       String?
+  escrowFee             Decimal       @db.Decimal(10, 2)
+  platformFee           Decimal       @db.Decimal(10, 2)
+  totalAmount           Decimal       @db.Decimal(10, 2)
+  releaseType           ReleaseType?
+  releaseAmount         Decimal?      @db.Decimal(10, 2)
+  externalTransactionId String?
+  lockedAt              DateTime?
+  releasedAt            DateTime?
+  refundedAt            DateTime?
+  failureReason         String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  stake                 Stake         @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([stakeId])
+  @@index([userId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([createdAt])
+}
+
+model PaymentMethod {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String   // 'stripe', 'paypal', 'bank', 'crypto'
+  providerId        String   // External payment method ID
+  type              String   // 'card', 'bank_account', 'paypal', 'crypto_wallet'
+  last4             String?  // Last 4 digits for cards
+  brand             String?  // Visa, Mastercard, etc.
+  expiryMonth       Int?
+  expiryYear        Int?
+  isDefault         Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([provider])
+  @@index([isDefault])
+}
+
+model PaymentIntent {
+  id              String   @id @default(cuid())
+  userId          String
+  stakeId         String?
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("USD")
+  status          String   // Stripe status
+  clientSecret    String?
+  paymentMethodId String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stakeId])
+  @@index([status])
+}
+
+model UserWallet {
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  balance         Decimal     @default(0) @db.Decimal(10, 2)
+  totalEarned     Decimal     @default(0) @db.Decimal(10, 2)
+  totalLost       Decimal     @default(0) @db.Decimal(10, 2)
+  totalStaked     Decimal     @default(0) @db.Decimal(10, 2)
+  
+  // Advanced Metrics
+  completionRate  Decimal     @default(0) @db.Decimal(5, 2)
+  currentStreak   Int         @default(0)
+  longestStreak   Int         @default(0)
+  rank            Int         @default(0)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  transactions    WalletTransaction[]
+  
   @@index([userId])
   @@index([rank])
   @@index([completionRate])
 }
 
 model WalletTransaction {
-  id          String     @id @default(cuid())
-  walletId    String
-  userId      String
-  type        String
-  amount      Decimal    @db.Decimal(10, 2)
-  description String
-  referenceId String?
-  createdAt   DateTime   @default(now())
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-
+  id              String      @id @default(cuid())
+  walletId        String
+  wallet          UserWallet  @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  amount          Decimal     @db.Decimal(10, 2)
+  description     String
+  referenceId     String?
+  
+  createdAt       DateTime    @default(now())
+  
   @@index([walletId])
   @@index([userId])
   @@index([type])
   @@index([createdAt])
 }
 
-model StakeInvitation {
-  id           String           @id @default(cuid())
-  stakeId      String
-  inviterId    String
-  inviteeEmail String
-  message      String?
-  status       InvitationStatus @default(PENDING)
-  securityCode String           @unique
-  createdAt    DateTime         @default(now())
-  expiresAt    DateTime
-  acceptedAt   DateTime?
-  lastViewedAt DateTime?
-  viewCount    Int              @default(0)
-  inviter      User             @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
-  stake        Stake            @relation(fields: [stakeId], references: [id], onDelete: Cascade)
-
-  @@index([inviteeEmail])
-  @@index([stakeId])
-  @@index([status])
-  @@index([securityCode])
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum TimerStatus {
-  STOPPED
-  RUNNING
-  PAUSED
-  COMPLETED
-}
-
-enum TimerSessionType {
-  FOCUS
-  BREAK
-  POMODORO
-  DEEP_WORK
-  REVIEW
-}
-
-enum RecurrencePattern {
-  DAILY
-  WEEKLY
-  MONTHLY
-  CUSTOM
-}
-
-enum NoteType {
-  GENERAL
-  BIBLE_STUDY
-  CONFERENCE
-  SONG
-  QUOTE
-  REFLECTION
-}
-
-enum AchievementType {
-  TODO
-  NOTE
-  STREAK
-  POINTS
-  SPECIAL
-}
-
-enum GoalType {
-  TASKS_COMPLETED
-  POINTS_EARNED
-  STREAK_DAYS
-  NOTES_CREATED
-  ACHIEVEMENTS_UNLOCKED
-  CUSTOM
-}
-
+// SmartStake Enums
 enum StakeType {
   SELF_STAKE
   SOCIAL_STAKE
@@ -518,4 +605,55 @@ enum InvitationStatus {
   ACCEPTED
   DECLINED
   EXPIRED
+}
+
+enum AppealStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
+}
+
+enum EscrowStatus {
+  PENDING
+  LOCKED
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+  BANK_TRANSFER
+  CRYPTO
+}
+
+enum ReleaseType {
+  REWARD
+  REFUND
+  PENALTY
+}
+
+model StakeInvitation {
+  id            String           @id @default(cuid())
+  stakeId       String
+  inviterId     String
+  inviteeEmail  String
+  message       String?
+  status        InvitationStatus @default(PENDING)
+  securityCode  String           @unique
+  createdAt     DateTime         @default(now())
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  lastViewedAt  DateTime?
+  viewCount     Int              @default(0)
+  
+  stake         Stake @relation(fields: [stakeId], references: [id], onDelete: Cascade)
+  inviter       User  @relation("StakeInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  
+  @@index([inviteeEmail])
+  @@index([stakeId])
+  @@index([status])
+  @@index([securityCode])
 }
