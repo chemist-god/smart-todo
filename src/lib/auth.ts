@@ -1,7 +1,8 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
-import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -13,40 +14,62 @@ export const {
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        phone: { label: "Phone", type: "tel" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email && !credentials?.phone) {
+          return null;
+        }
+
+        try {
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { email: credentials.email as string },
+                { phone: credentials.phone as string },
+              ],
+            },
+          });
+
+          if (!user) {
+            return null;
+          }
+
+          // If password is provided, verify it
+          if (credentials.password && user.password) {
+            const isValid = await compare(credentials.password as string, user.password);
+            if (!isValid) {
+              return null;
+            }
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
+        }
+      },
     }),
   ],
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: "/auth/signin",
+    signUp: "/auth/signup",
+    verifyRequest: "/auth/verify-request",
+  },
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // Ensure user exists in database
-      if (user?.email) {
-        try {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
-
-          if (!existingUser) {
-            await prisma.user.create({
-              data: {
-                id: user.id!,
-                name: user.name,
-                email: user.email,
-                image: user.image,
-                emailVerified: new Date(),
-              },
-            });
-          }
-        } catch (error) {
-          console.error("Error creating user:", error);
-        }
-      }
-      return true;
-    },
     async session({ session, token }) {
       if (session?.user) {
         // augment id for the client session user
@@ -56,6 +79,12 @@ export const {
         session.user.id = token.sub!;
       }
       return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
     },
   },
 });

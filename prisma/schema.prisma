@@ -6,23 +6,27 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  phone         String?   @unique
   emailVerified DateTime?
+  phoneVerified DateTime?
   image         String?
+  password      String?   // For email/password auth
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Auth.js relations
+  // Auth relations
   accounts      Account[]
   sessions      Session[]
   authenticators Authenticator[]
+  verificationTokens VerificationToken[]
 
   // App relations
   todos         Todo[]
@@ -38,18 +42,6 @@ model User {
   penalties     Penalty[]
   transactions  WalletTransaction[]
   invitations   StakeInvitation[] @relation("StakeInvitations")
-  goals          Goal[]
-  notes          Note[]
-  penalties      Penalty[]
-  rewards        Reward[]
-  sessions       Session[]
-  stakes         Stake[]
-  invitations    StakeInvitation[]   @relation("StakeInvitations")
-  todos          Todo[]
-  achievements   UserAchievement[]
-  stats          UserStats?
-  wallet         UserWallet?
-  transactions   WalletTransaction[]
   appeals        StakeAppeal[]
   extensions     StakeExtension[]
   recoveryStakes RecoveryStake[]
@@ -57,6 +49,9 @@ model User {
   paymentMethods PaymentMethod[]
   paymentIntents PaymentIntent[]
   stripeCustomerId String?
+  
+  // Timer sessions
+  timerSessions   TimerSession[]
 }
 
 model Account {
@@ -65,12 +60,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,18 +82,26 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+  id          String   @id @default(cuid())
+  identifier  String   // email or phone number
+  token       String   @unique
+  type        TokenType @default(EMAIL_VERIFICATION)
+  expires     DateTime
+  createdAt   DateTime @default(now())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([identifier, token])
+  @@index([identifier])
+  @@index([type])
+  @@index([expires])
 }
 
 model Authenticator {
   id                 String  @id @default(cuid())
-  credentialID       String  @unique @db.Text
+  credentialID       String  @unique
   userId             String
-  publicKey          String  @db.Text
+  publicKey          String
   counter            BigInt
   transports         String?
   user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -123,6 +126,25 @@ model Todo {
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Scheduling & Focus/Timer fields
+  scheduledStartTime DateTime?
+  scheduledEndTime   DateTime?
+  estimatedDuration  Int?
+  actualDuration     Int?
+  timeZone           String?
+  timerStatus        TimerStatus @default(STOPPED)
+  timerStartTime     DateTime?
+  totalTimeSpent     Int         @default(0)
+  focusMode          Boolean     @default(false)
+  isRecurring        Boolean     @default(false)
+  recurrencePattern  RecurrencePattern?
+  pomodoroSessions   Int         @default(0)
+  breakDuration      Int?
+  reminderSettings   Json?
+
+  // Timer sessions relation
+  timerSessions      TimerSession[]
+
   @@index([userId])
   @@index([completed])
   @@index([dueDate])
@@ -131,7 +153,7 @@ model Todo {
 model Note {
   id        String   @id @default(cuid())
   title     String
-  content   String   @db.Text
+  content   String
   type      NoteType @default(GENERAL)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -191,10 +213,32 @@ model UserStats {
 }
 
 // Enums
+enum TokenType {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  ACCOUNT_RECOVERY
+}
+
 enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+// Timer/recurrence enums for Todo scheduling
+enum TimerStatus {
+  STOPPED
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
+enum RecurrencePattern {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
 }
 
 enum NoteType {
@@ -277,7 +321,7 @@ model Stake {
   // Categorization & Difficulty
   category        String?     // e.g., "fitness", "work", "learning", "personal"
   difficulty      String?     // e.g., "easy", "medium", "hard", "extreme"
-  tags            String[]    // Array of tags for better categorization
+  tags            String?     // Comma-separated tags for better categorization
   
   // Popularity & Engagement
   popularity      Int         @default(0) // Calculated based on views, joins, shares
@@ -286,33 +330,28 @@ model Stake {
   shareCount      Int         @default(0)
   
   // Financial Details
-  totalAmount     Decimal     @db.Decimal(10, 2)
-  userStake       Decimal     @db.Decimal(10, 2)
-  friendStakes    Decimal     @default(0) @db.Decimal(10, 2)
-  penaltyAmount   Decimal     @default(0) @db.Decimal(10, 2)
+  totalAmount     Float
+  userStake       Float
+  friendStakes    Float     @default(0)
+  penaltyAmount   Float     @default(0)
   
   // Task Details
   taskId          String?
   deadline        DateTime
-  completionProof String?     @db.Text
+  completionProof String?
   
   // Rewards & Penalties
-  rewardAmount    Decimal     @default(0) @db.Decimal(10, 2)
-  penaltyPool     Decimal     @default(0) @db.Decimal(10, 2)
+  rewardAmount    Float     @default(0)
+  penaltyPool     Float     @default(0)
   
   // Timestamps
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   gracePeriodEnd  DateTime?          // Grace period end time
-  completionProof String?
-  rewardAmount    Decimal            @default(0) @db.Decimal(10, 2)
-  penaltyPool     Decimal            @default(0) @db.Decimal(10, 2)
-  completionPercentage Decimal       @default(0) @db.Decimal(5, 2) // For partial completion
+  completionPercentage Float       @default(0) // For partial completion
   isExtended      Boolean            @default(false) // If deadline was extended
   extensionCount  Int                @default(0) // Number of times extended
-  extensionFee    Decimal            @default(0) @db.Decimal(10, 2) // Fee paid for extensions
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  extensionFee    Float            @default(0) // Fee paid for extensions
   completedAt     DateTime?
   
   // Relations
@@ -322,12 +361,9 @@ model Stake {
   participants    StakeParticipant[]
   rewards         Reward[]
   penalties       Penalty[]
-  rewards         Reward[]
   appeals         StakeAppeal[]
   extensions      StakeExtension[]
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   invitations     StakeInvitation[]
-  participants    StakeParticipant[]
   recoveryStakes  RecoveryStake[]    @relation("RecoveryStake")
   escrowTransactions EscrowTransaction[]
 
@@ -348,7 +384,7 @@ model StakeParticipant {
   
   participantId   String
   participantName String
-  amount          Decimal     @db.Decimal(10, 2)
+  amount          Float
   isSupporter     Boolean     @default(true)
   
   joinedAt        DateTime    @default(now())
@@ -364,7 +400,7 @@ model Reward {
   
   userId          String
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal     @db.Decimal(10, 2)
+  amount          Float
   rewardType      RewardType
   description     String?
   
@@ -381,7 +417,7 @@ model Penalty {
   
   userId          String
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal     @db.Decimal(10, 2)
+  amount          Float
   reason          String
   
   appliedAt       DateTime    @default(now())
@@ -416,7 +452,7 @@ model StakeExtension {
   userId      String
   oldDeadline DateTime
   newDeadline DateTime
-  extensionFee Decimal @db.Decimal(10, 2)
+  extensionFee Float
   reason      String?
   createdAt   DateTime @default(now())
   stake       Stake    @relation(fields: [stakeId], references: [id], onDelete: Cascade)
@@ -434,10 +470,10 @@ model RecoveryStake {
   description     String?
   stakeType       StakeType
   status          StakeStatus        @default(ACTIVE)
-  totalAmount     Decimal            @db.Decimal(10, 2)
-  userStake       Decimal            @db.Decimal(10, 2)
+  totalAmount     Float
+  userStake       Float
   deadline        DateTime
-  recoveryTarget  Decimal            @db.Decimal(10, 2) // Amount to recover
+  recoveryTarget  Float            // Amount to recover
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   completedAt     DateTime?
@@ -453,17 +489,17 @@ model EscrowTransaction {
   id                    String        @id @default(cuid())
   stakeId               String
   userId                String
-  amount                Decimal       @db.Decimal(10, 2)
+  amount                Float
   currency              String        @default("USD")
   status                EscrowStatus  @default(PENDING)
-  paymentMethod         PaymentMethod @default(STRIPE)
+  paymentMethod         PaymentMethodType @default(STRIPE)
   paymentIntentId       String?
   escrowAccountId       String?
-  escrowFee             Decimal       @db.Decimal(10, 2)
-  platformFee           Decimal       @db.Decimal(10, 2)
-  totalAmount           Decimal       @db.Decimal(10, 2)
+  escrowFee             Float
+  platformFee           Float
+  totalAmount           Float
   releaseType           ReleaseType?
-  releaseAmount         Decimal?      @db.Decimal(10, 2)
+  releaseAmount         Float?
   externalTransactionId String?
   lockedAt              DateTime?
   releasedAt            DateTime?
@@ -506,7 +542,7 @@ model PaymentIntent {
   id              String   @id @default(cuid())
   userId          String
   stakeId         String?
-  amount          Decimal  @db.Decimal(10, 2)
+  amount          Float
   currency        String   @default("USD")
   status          String   // Stripe status
   clientSecret    String?
@@ -526,13 +562,13 @@ model UserWallet {
   userId          String      @unique
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  balance         Decimal     @default(0) @db.Decimal(10, 2)
-  totalEarned     Decimal     @default(0) @db.Decimal(10, 2)
-  totalLost       Decimal     @default(0) @db.Decimal(10, 2)
-  totalStaked     Decimal     @default(0) @db.Decimal(10, 2)
+  balance         Float     @default(0)
+  totalEarned     Float     @default(0)
+  totalLost       Float     @default(0)
+  totalStaked     Float     @default(0)
   
   // Advanced Metrics
-  completionRate  Decimal     @default(0) @db.Decimal(5, 2)
+  completionRate  Float     @default(0)
   currentStreak   Int         @default(0)
   longestStreak   Int         @default(0)
   rank            Int         @default(0)
@@ -556,7 +592,7 @@ model WalletTransaction {
   userId          String
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   type            String
-  amount          Decimal     @db.Decimal(10, 2)
+  amount          Float
   description     String
   referenceId     String?
   
@@ -566,6 +602,24 @@ model WalletTransaction {
   @@index([userId])
   @@index([type])
   @@index([createdAt])
+}
+
+// Timer sessions captured for each Todo
+model TimerSession {
+  id         String   @id @default(cuid())
+  todoId     String
+  userId     String?
+  startTime  DateTime
+  endTime    DateTime?
+  duration   Int?
+
+  // Relations
+  todo       Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([todoId])
+  @@index([userId])
+  @@index([startTime])
 }
 
 // SmartStake Enums
@@ -622,7 +676,7 @@ enum EscrowStatus {
   FAILED
 }
 
-enum PaymentMethod {
+enum PaymentMethodType {
   STRIPE
   PAYPAL
   BANK_TRANSFER
