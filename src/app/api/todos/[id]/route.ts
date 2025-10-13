@@ -135,7 +135,7 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json(null, { status: 204 });
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting todo:', error);
     return NextResponse.json(
