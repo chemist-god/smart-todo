@@ -64,8 +64,8 @@ export default function SignInPage() {
                                 type="button"
                                 onClick={() => setUsePhone(false)}
                                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-l-md border ${!usePhone
-                                        ? "bg-indigo-600 text-white border-indigo-600"
-                                        : "bg-white text-gray-700 border-gray-300"
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white text-gray-700 border-gray-300"
                                     }`}
                             >
                                 Email
@@ -74,8 +74,8 @@ export default function SignInPage() {
                                 type="button"
                                 onClick={() => setUsePhone(true)}
                                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-r-md border ${usePhone
-                                        ? "bg-indigo-600 text-white border-indigo-600"
-                                        : "bg-white text-gray-700 border-gray-300"
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white text-gray-700 border-gray-300"
                                     }`}
                             >
                                 Phone
