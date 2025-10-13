@@ -28,6 +28,9 @@ const updateStakeSchema = z.object({
     deadline: z.string().min(1, "Deadline is required").optional(),
     proofRequired: z.boolean().optional(),
     allowFriends: z.boolean().optional(),
+    category: z.string().optional(),
+    difficulty: z.string().optional(),
+    tags: z.array(z.string()).optional(),
 });
 
 // GET /api/stakes - Get user's stakes
@@ -190,7 +193,7 @@ export async function POST(request: NextRequest) {
                 userId: user.id,
                 category: validatedData.category || 'personal',
                 difficulty: validatedData.difficulty || 'MEDIUM',
-                tags: validatedData.tags || [],
+                tags: validatedData.tags && validatedData.tags.length > 0 ? validatedData.tags.join(', ') : null,
                 popularity: 0,
                 viewCount: 0,
                 joinCount: 0,
@@ -302,6 +305,7 @@ export async function PUT(request: NextRequest) {
             data: {
                 ...validatedData,
                 deadline: validatedData.deadline ? new Date(validatedData.deadline) : undefined,
+                tags: validatedData.tags && validatedData.tags.length > 0 ? validatedData.tags.join(', ') : null,
                 updatedAt: new Date()
             },
             include: {
