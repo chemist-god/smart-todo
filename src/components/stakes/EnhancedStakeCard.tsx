@@ -18,6 +18,7 @@ import { StakeAppealModal } from "./StakeAppealModal";
 import { StakeExtensionModal } from "./StakeExtensionModal";
 import { RecoveryStakeModal } from "./RecoveryStakeModal";
 import { PartialCompletionModal } from "./PartialCompletionModal";
+import { OverdueStakeActions } from "./OverdueStakeActions";
 
 interface EnhancedStakeCardProps {
     stake: {
@@ -195,60 +196,85 @@ export function EnhancedStakeCard({ stake, onStakeUpdated }: EnhancedStakeCardPr
 
                 {/* Action Buttons */}
                 {stake.isOwner && (
-                    <div className="flex flex-wrap gap-2">
-                        {canRequestExtension() && (
-                            <StakeExtensionModal
-                                stakeId={stake.id}
-                                stakeTitle={stake.title}
-                                currentDeadline={new Date(stake.deadline)}
-                                onExtensionRequested={onStakeUpdated}
-                            >
-                                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
-                                    Extend
-                                </Button>
-                            </StakeExtensionModal>
+                    <>
+                        {/* Overdue Actions */}
+                        {stake.isOverdue && (
+                            <OverdueStakeActions
+                                stake={{
+                                    id: stake.id,
+                                    title: stake.title,
+                                    stakeType: stake.stakeType,
+                                    totalAmount: stake.totalAmount,
+                                    userStake: stake.userStake,
+                                    deadline: stake.deadline,
+                                    isOverdue: stake.isOverdue,
+                                    timeRemaining: stake.timeRemaining,
+                                    isOwner: stake.isOwner,
+                                    extensionCount: stake.extensionCount,
+                                    isExtended: stake.isExtended
+                                }}
+                                onStakeUpdated={onStakeUpdated}
+                            />
                         )}
 
-                        {canSubmitPartialCompletion() && (
-                            <PartialCompletionModal
-                                stakeId={stake.id}
-                                stakeTitle={stake.title}
-                                onPartialCompletionSubmitted={onStakeUpdated}
-                            >
-                                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4" />
-                                    Partial Complete
-                                </Button>
-                            </PartialCompletionModal>
-                        )}
+                        {/* Normal Actions for Non-Overdue Stakes */}
+                        {!stake.isOverdue && (
+                            <div className="flex flex-wrap gap-2">
+                                {canRequestExtension() && (
+                                    <StakeExtensionModal
+                                        stakeId={stake.id}
+                                        stakeTitle={stake.title}
+                                        currentDeadline={new Date(stake.deadline)}
+                                        onExtensionRequested={onStakeUpdated}
+                                    >
+                                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                            <Calendar className="h-4 w-4" />
+                                            Extend
+                                        </Button>
+                                    </StakeExtensionModal>
+                                )}
 
-                        {canSubmitAppeal() && (
-                            <StakeAppealModal
-                                stakeId={stake.id}
-                                stakeTitle={stake.title}
-                                onAppealSubmitted={onStakeUpdated}
-                            >
-                                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4" />
-                                    Appeal
-                                </Button>
-                            </StakeAppealModal>
-                        )}
+                                {canSubmitPartialCompletion() && (
+                                    <PartialCompletionModal
+                                        stakeId={stake.id}
+                                        stakeTitle={stake.title}
+                                        onPartialCompletionSubmitted={onStakeUpdated}
+                                    >
+                                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                            <CheckCircle className="h-4 w-4" />
+                                            Partial Complete
+                                        </Button>
+                                    </PartialCompletionModal>
+                                )}
 
-                        {canCreateRecovery() && (
-                            <RecoveryStakeModal
-                                originalStakeId={stake.id}
-                                originalStakeTitle={stake.title}
-                                onRecoveryStakeCreated={onStakeUpdated}
-                            >
-                                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                                    <RotateCcw className="h-4 w-4" />
-                                    Recovery
-                                </Button>
-                            </RecoveryStakeModal>
+                                {canSubmitAppeal() && (
+                                    <StakeAppealModal
+                                        stakeId={stake.id}
+                                        stakeTitle={stake.title}
+                                        onAppealSubmitted={onStakeUpdated}
+                                    >
+                                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                            <FileText className="h-4 w-4" />
+                                            Appeal
+                                        </Button>
+                                    </StakeAppealModal>
+                                )}
+
+                                {canCreateRecovery() && (
+                                    <RecoveryStakeModal
+                                        originalStakeId={stake.id}
+                                        originalStakeTitle={stake.title}
+                                        onRecoveryStakeCreated={onStakeUpdated}
+                                    >
+                                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                            <RotateCcw className="h-4 w-4" />
+                                            Recovery
+                                        </Button>
+                                    </RecoveryStakeModal>
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 )}
             </CardContent>
         </Card>

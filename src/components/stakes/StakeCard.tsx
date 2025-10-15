@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import JoinStakeModal from "./JoinStakeModal";
 import EnhancedSocialShare from "./EnhancedSocialShare";
+import { OverdueStakeActions } from "./OverdueStakeActions";
 
 interface Stake {
     id: string;
@@ -250,7 +251,28 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
             {/* Actions */}
             <div className="p-4">
-                {stake.status === 'ACTIVE' && stake.isOwner && (
+                {/* Overdue Actions */}
+                {stake.status === 'ACTIVE' && stake.isOverdue && stake.isOwner && (
+                    <OverdueStakeActions
+                        stake={{
+                            id: stake.id,
+                            title: stake.title,
+                            stakeType: stake.stakeType,
+                            totalAmount: stake.totalAmount,
+                            userStake: stake.userStake,
+                            deadline: stake.deadline,
+                            isOverdue: stake.isOverdue,
+                            timeRemaining: stake.timeRemaining,
+                            isOwner: stake.isOwner,
+                            extensionCount: 0, // Add this to your stake interface if needed
+                            isExtended: false // Add this to your stake interface if needed
+                        }}
+                        onStakeUpdated={onUpdate}
+                    />
+                )}
+
+                {/* Normal Active Actions */}
+                {stake.status === 'ACTIVE' && !stake.isOverdue && stake.isOwner && (
                     <div className="space-y-2">
                         {!showCompleteForm ? (
                             <button
