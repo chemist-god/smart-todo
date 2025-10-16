@@ -12,6 +12,8 @@ import {
     Zap,
     Shield
 } from "lucide-react";
+import { StructuredPartialProgressFlow } from "./StructuredPartialProgressFlow";
+import { StructuredAppealFlow } from "./StructuredAppealFlow";
 
 interface OverdueStakeActionsProps {
     stake: {
@@ -120,15 +122,8 @@ export function OverdueStakeActions({ stake, onStakeUpdated }: OverdueStakeActio
     const primaryAction = getPrimaryAction();
 
     const handlePrimaryAction = () => {
-        // For now, we'll show an alert. In a real implementation, 
-        // this would open the appropriate modal
-        if (stake.stakeType === 'SOCIAL_STAKE' && urgencyLevel === "critical") {
-            alert("Extension request functionality would open here");
-        } else if (urgencyLevel === "high" || urgencyLevel === "critical") {
-            alert("Partial completion functionality would open here");
-        } else {
-            alert("Appeal functionality would open here");
-        }
+        // The primary action will be handled by the structured flow components
+        // This function is kept for consistency but the actual actions are in the buttons
     };
 
     return (
@@ -154,15 +149,58 @@ export function OverdueStakeActions({ stake, onStakeUpdated }: OverdueStakeActio
 
                 {/* Primary Action */}
                 <div className="space-y-3">
-                    <Button
-                        onClick={handlePrimaryAction}
-                        className={`w-full ${styles.primaryButton} h-12 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
-                    >
-                        <div className="flex items-center gap-2">
-                            {primaryAction.icon}
-                            {primaryAction.label}
-                        </div>
-                    </Button>
+                    {stake.stakeType === 'SOCIAL_STAKE' && urgencyLevel === "critical" ? (
+                        <StructuredAppealFlow
+                            stakeId={stake.id}
+                            stakeTitle={stake.title}
+                            stakeDeadline={stake.deadline}
+                            totalAmount={stake.totalAmount}
+                            onAppealSubmitted={onStakeUpdated}
+                        >
+                            <Button
+                                className={`w-full ${styles.primaryButton} h-12 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {primaryAction.icon}
+                                    {primaryAction.label}
+                                </div>
+                            </Button>
+                        </StructuredAppealFlow>
+                    ) : urgencyLevel === "high" || urgencyLevel === "critical" ? (
+                        <StructuredPartialProgressFlow
+                            stakeId={stake.id}
+                            stakeTitle={stake.title}
+                            stakeDeadline={stake.deadline}
+                            totalAmount={stake.totalAmount}
+                            onPartialCompletionSubmitted={onStakeUpdated}
+                        >
+                            <Button
+                                className={`w-full ${styles.primaryButton} h-12 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {primaryAction.icon}
+                                    {primaryAction.label}
+                                </div>
+                            </Button>
+                        </StructuredPartialProgressFlow>
+                    ) : (
+                        <StructuredAppealFlow
+                            stakeId={stake.id}
+                            stakeTitle={stake.title}
+                            stakeDeadline={stake.deadline}
+                            totalAmount={stake.totalAmount}
+                            onAppealSubmitted={onStakeUpdated}
+                        >
+                            <Button
+                                className={`w-full ${styles.primaryButton} h-12 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {primaryAction.icon}
+                                    {primaryAction.label}
+                                </div>
+                            </Button>
+                        </StructuredAppealFlow>
+                    )}
 
                     <p className="text-sm text-gray-600 text-center">
                         {primaryAction.description}
@@ -191,36 +229,57 @@ export function OverdueStakeActions({ stake, onStakeUpdated }: OverdueStakeActio
                     {showExtendedActions && (
                         <div className="mt-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
                             {stake.stakeType === 'SOCIAL_STAKE' && (
+                                <StructuredAppealFlow
+                                    stakeId={stake.id}
+                                    stakeTitle={stake.title}
+                                    stakeDeadline={stake.deadline}
+                                    totalAmount={stake.totalAmount}
+                                    onAppealSubmitted={onStakeUpdated}
+                                >
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full justify-start text-gray-700 hover:bg-orange-50 hover:border-orange-200"
+                                    >
+                                        <Clock className="w-4 h-4 mr-2" />
+                                        Request Extension
+                                    </Button>
+                                </StructuredAppealFlow>
+                            )}
+
+                            <StructuredPartialProgressFlow
+                                stakeId={stake.id}
+                                stakeTitle={stake.title}
+                                stakeDeadline={stake.deadline}
+                                totalAmount={stake.totalAmount}
+                                onPartialCompletionSubmitted={onStakeUpdated}
+                            >
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => alert("Extension request functionality")}
-                                    className="w-full justify-start text-gray-700 hover:bg-orange-50 hover:border-orange-200"
+                                    className="w-full justify-start text-gray-700 hover:bg-blue-50 hover:border-blue-200"
                                 >
-                                    <Clock className="w-4 h-4 mr-2" />
-                                    Request Extension
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Submit Partial Progress
                                 </Button>
-                            )}
+                            </StructuredPartialProgressFlow>
 
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => alert("Partial completion functionality")}
-                                className="w-full justify-start text-gray-700 hover:bg-blue-50 hover:border-blue-200"
+                            <StructuredAppealFlow
+                                stakeId={stake.id}
+                                stakeTitle={stake.title}
+                                stakeDeadline={stake.deadline}
+                                totalAmount={stake.totalAmount}
+                                onAppealSubmitted={onStakeUpdated}
                             >
-                                <FileText className="w-4 h-4 mr-2" />
-                                Submit Partial Progress
-                            </Button>
-
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => alert("Appeal functionality")}
-                                className="w-full justify-start text-gray-700 hover:bg-purple-50 hover:border-purple-200"
-                            >
-                                <Shield className="w-4 h-4 mr-2" />
-                                Appeal Penalty
-                            </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start text-gray-700 hover:bg-purple-50 hover:border-purple-200"
+                                >
+                                    <Shield className="w-4 h-4 mr-2" />
+                                    Appeal Penalty
+                                </Button>
+                            </StructuredAppealFlow>
                         </div>
                     )}
                 </div>
