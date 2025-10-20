@@ -166,8 +166,8 @@ export function StructuredPartialProgressFlow({
                                 <StepIcon className="w-4 h-4" />}
                         </div>
                         <span className={`ml-2 text-sm font-medium ${isActive ? 'text-blue-600' :
-                                isCompleted ? 'text-green-600' :
-                                    'text-gray-500'
+                            isCompleted ? 'text-green-600' :
+                                'text-gray-500'
                             }`}>
                             {step.title}
                         </span>
@@ -385,8 +385,8 @@ export function StructuredPartialProgressFlow({
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, evidenceType: type.value as any }))}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${formData.evidenceType === type.value
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
