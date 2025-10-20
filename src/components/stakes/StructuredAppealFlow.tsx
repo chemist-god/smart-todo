@@ -197,8 +197,8 @@ export function StructuredAppealFlow({
                                 <StepIcon className="w-4 h-4" />}
                         </div>
                         <span className={`ml-2 text-sm font-medium ${isActive ? 'text-amber-600' :
-                                isCompleted ? 'text-green-600' :
-                                    'text-gray-500'
+                            isCompleted ? 'text-green-600' :
+                                'text-gray-500'
                             }`}>
                             {step.title}
                         </span>
@@ -298,8 +298,8 @@ export function StructuredAppealFlow({
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
                                     className={`p-4 rounded-lg border text-left transition-all ${formData.category === category.value
-                                            ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-200'
-                                            : 'border-gray-300 bg-white hover:bg-gray-50'
+                                        ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-200'
+                                        : 'border-gray-300 bg-white hover:bg-gray-50'
                                         }`}
                                 >
                                     <div className="flex items-start gap-3">
@@ -354,8 +354,8 @@ export function StructuredAppealFlow({
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, urgency: level.value as any }))}
                                 className={`px-4 py-2 rounded-lg border text-sm font-medium ${formData.urgency === level.value
-                                        ? `border-${level.color}-500 bg-${level.color}-50 text-${level.color}-700`
-                                        : `border-gray-300 bg-white text-gray-700 hover:bg-gray-50`
+                                    ? `border-${level.color}-500 bg-${level.color}-50 text-${level.color}-700`
+                                    : `border-gray-300 bg-white text-gray-700 hover:bg-gray-50`
                                     }`}
                             >
                                 {level.label}
@@ -412,8 +412,8 @@ export function StructuredAppealFlow({
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, evidenceType: type.value as any }))}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${formData.evidenceType === type.value
-                                            ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -473,8 +473,8 @@ export function StructuredAppealFlow({
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, contactPreference: method.value as any }))}
                                 className={`px-4 py-2 rounded-lg border text-sm font-medium ${formData.contactPreference === method.value
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                     }`}
                             >
                                 {method.label}
