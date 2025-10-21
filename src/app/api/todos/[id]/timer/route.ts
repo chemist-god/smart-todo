@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // PATCH /api/todos/[id]/timer - Update timer status and time tracking
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -17,7 +17,7 @@ export async function PATCH(
             );
         }
 
-        const todoId = params.id;
+        const { id: todoId } = await params;
         const data = await request.json();
 
         // Verify todo belongs to user
@@ -62,7 +62,7 @@ export async function PATCH(
 // POST /api/todos/[id]/timer/session - Create a new timer session
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -74,7 +74,7 @@ export async function POST(
             );
         }
 
-        const todoId = params.id;
+        const { id: todoId } = await params;
         const data = await request.json();
 
         // Verify todo belongs to user
@@ -99,8 +99,6 @@ export async function POST(
                 startTime: new Date(data.startTime),
                 endTime: data.endTime ? new Date(data.endTime) : null,
                 duration: data.duration,
-                sessionType: data.sessionType || 'FOCUS',
-                notes: data.notes,
             },
         });
 
@@ -130,7 +128,7 @@ export async function POST(
 // GET /api/todos/[id]/timer/sessions - Get timer sessions for a todo
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -142,7 +140,7 @@ export async function GET(
             );
         }
 
-        const todoId = params.id;
+        const { id: todoId } = await params;
 
         // Verify todo belongs to user
         const todo = await prisma.todo.findFirst({
