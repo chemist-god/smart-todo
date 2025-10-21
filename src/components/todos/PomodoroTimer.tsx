@@ -7,7 +7,7 @@ import {
     StopIcon,
     ArrowPathIcon,
     CheckCircleIcon,
-    CoffeeIcon
+    BeakerIcon
 } from "@heroicons/react/24/outline";
 
 interface PomodoroTimerProps {
