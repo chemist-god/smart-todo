@@ -59,8 +59,6 @@ class NotificationService {
                 tag: options.tag,
                 requireInteraction: options.requireInteraction || false,
                 silent: options.silent || false,
-                vibrate: options.vibrate,
-                actions: options.actions,
             });
 
             // Auto-close after 5 seconds unless requireInteraction is true
