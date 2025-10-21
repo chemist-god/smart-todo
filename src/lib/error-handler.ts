@@ -35,6 +35,43 @@ export class UnauthorizedError extends AppError {
 export function handleApiError(error: unknown) {
     console.error('API Error:', error);
 
+    // Handle Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+        const prismaError = error as any;
+        switch (prismaError.code) {
+            case 'P2002':
+                return {
+                    error: 'A record with this information already exists',
+                    statusCode: 409,
+                    isOperational: true
+                };
+            case 'P2025':
+                return {
+                    error: 'Record not found',
+                    statusCode: 404,
+                    isOperational: true
+                };
+            case 'P2003':
+                return {
+                    error: 'Foreign key constraint failed',
+                    statusCode: 400,
+                    isOperational: true
+                };
+            case 'P2014':
+                return {
+                    error: 'Invalid data provided',
+                    statusCode: 400,
+                    isOperational: true
+                };
+            default:
+                return {
+                    error: 'Database operation failed',
+                    statusCode: 500,
+                    isOperational: true
+                };
+        }
+    }
+
     if (error instanceof AppError) {
         return {
             error: error.message,
@@ -44,8 +81,10 @@ export function handleApiError(error: unknown) {
     }
 
     if (error instanceof Error) {
+        // Don't expose internal error details in production
+        const isDevelopment = process.env.NODE_ENV === 'development';
         return {
-            error: error.message,
+            error: isDevelopment ? error.message : 'An unexpected error occurred',
             statusCode: 500,
             isOperational: false
         };
