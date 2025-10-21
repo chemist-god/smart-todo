@@ -297,7 +297,7 @@ export class RecoveryStakeService {
             orderBy: { createdAt: 'desc' }
         });
 
-        return recoveryStakes.map(stake => ({
+        return recoveryStakes.map((stake: any) => ({
             id: stake.id,
             originalStakeId: stake.originalStakeId,
             originalStakeTitle: stake.originalStake.title,
@@ -336,7 +336,7 @@ export class RecoveryStakeService {
             })
         ]);
 
-        const totalRecoveredAmount = allRecoveryStakes.reduce((sum, stake) =>
+        const totalRecoveredAmount = allRecoveryStakes.reduce((sum: number, stake: any) =>
             sum + Number(stake.recoveryTarget), 0
         );
 
