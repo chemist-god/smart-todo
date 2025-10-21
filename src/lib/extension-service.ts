@@ -161,7 +161,7 @@ export class ExtensionService {
             orderBy: { createdAt: 'asc' }
         });
 
-        return extensions.map(ext => ({
+        return extensions.map((ext: any) => ({
             id: ext.id,
             oldDeadline: ext.oldDeadline,
             newDeadline: ext.newDeadline,
@@ -196,7 +196,7 @@ export class ExtensionService {
             orderBy: { createdAt: 'desc' }
         });
 
-        return extensions.map(ext => ({
+        return extensions.map((ext: any) => ({
             id: ext.id,
             stakeId: ext.stakeId,
             stakeTitle: ext.stake.title,
