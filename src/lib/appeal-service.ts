@@ -211,7 +211,7 @@ export class AppealService {
             orderBy: { createdAt: 'desc' }
         });
 
-        return appeals.map(appeal => ({
+        return appeals.map((appeal: any) => ({
             id: appeal.id,
             stakeId: appeal.stakeId,
             stakeTitle: appeal.stake.title,
@@ -258,7 +258,7 @@ export class AppealService {
             orderBy: { createdAt: 'asc' }
         });
 
-        return appeals.map(appeal => ({
+        return appeals.map((appeal: any) => ({
             id: appeal.id,
             stakeId: appeal.stakeId,
             userId: appeal.userId,
