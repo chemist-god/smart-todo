@@ -42,7 +42,7 @@ export class AppealService {
             }
 
             // Check if appeal already exists
-            const existingAppeal = await (prisma as any).stakeAppeal.findFirst({
+            const existingAppeal = await prisma.stakeAppeal.findFirst({
                 where: {
                     stakeId: appealData.stakeId,
                     userId: appealData.userId,
@@ -57,7 +57,7 @@ export class AppealService {
             }
 
             // Create appeal
-            const appeal = await (prisma as any).stakeAppeal.create({
+            const appeal = await prisma.stakeAppeal.create({
                 data: {
                     stakeId: appealData.stakeId,
                     userId: appealData.userId,
