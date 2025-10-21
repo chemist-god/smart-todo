@@ -70,7 +70,7 @@ export default function DateTimePicker({
         const now = new Date();
         let newDate = localValue.date;
         let newStartTime = localValue.startTime;
-        let newEndTime = localValue.endTime;
+        const newEndTime = localValue.endTime;
 
         switch (quickTime) {
             case "now":

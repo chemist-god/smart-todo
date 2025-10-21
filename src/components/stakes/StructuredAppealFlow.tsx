@@ -296,7 +296,7 @@ export function StructuredAppealFlow({
                                 <button
                                     key={category.value}
                                     type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
+                                    onClick={() => setFormData(prev => ({ ...prev, category: category.value as AppealCategory }))}
                                     className={`p-4 rounded-lg border text-left transition-all ${formData.category === category.value
                                         ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-200'
                                         : 'border-gray-300 bg-white hover:bg-gray-50'

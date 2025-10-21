@@ -30,9 +30,7 @@ export class PaymentService {
     static initialize() {
         // Initialize Stripe
         if (process.env.STRIPE_SECRET_KEY) {
-            this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-                apiVersion: '2023-10-16',
-            });
+            this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
             this.providers.set('stripe', {
                 name: 'stripe',
@@ -117,7 +115,7 @@ export class PaymentService {
             return {
                 success: true,
                 transactionId: paymentIntent.id,
-                clientSecret: paymentIntent.client_secret,
+                clientSecret: paymentIntent.client_secret || undefined,
                 requiresAction: paymentIntent.status === 'requires_action',
                 nextAction: paymentIntent.next_action
             };

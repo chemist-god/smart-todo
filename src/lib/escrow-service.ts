@@ -89,13 +89,13 @@ export class EscrowService {
                 data: {
                     stakeId,
                     userId,
-                    amount: new Decimal(amount),
+                    amount: Number(amount),
                     currency,
                     status: 'PENDING',
                     paymentMethod,
-                    escrowFee: new Decimal(escrowFee),
-                    platformFee: new Decimal(platformFee),
-                    totalAmount: new Decimal(totalAmount)
+                    escrowFee: Number(escrowFee),
+                    platformFee: Number(platformFee),
+                    totalAmount: Number(totalAmount)
                 }
             });
 
@@ -259,7 +259,7 @@ export class EscrowService {
                     status: 'RELEASED',
                     releasedAt: new Date(),
                     releaseType,
-                    releaseAmount: new Decimal(releaseAmount),
+                    releaseAmount: Number(releaseAmount),
                     externalTransactionId: paymentResult.transactionId
                 }
             });

@@ -20,6 +20,9 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+// Module-level reference to provide a non-hook toast API
+let toastApiRef: Pick<ToastContextType, 'addToast'> | undefined;
+
 export function ToastProvider({ children }: { children: ReactNode }) {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -56,6 +59,10 @@ export function useToast() {
     const context = useContext(ToastContext);
     if (context === undefined) {
         throw new Error('useToast must be used within a ToastProvider');
+    }
+    // Keep an imperative reference available for non-hook callers
+    if (!toastApiRef || toastApiRef.addToast !== context.addToast) {
+        toastApiRef = { addToast: context.addToast };
     }
     return context;
 }
@@ -148,22 +155,34 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     );
 }
 
-// Convenience functions
+// Convenience non-hook API that safely calls into the provider
 export const toast = {
     success: (title: string, message?: string, duration?: number) => {
-        const { addToast } = useToast();
-        addToast({ type: 'success', title, message, duration });
+        if (!toastApiRef) {
+            console.warn('ToastProvider is not mounted; cannot show toast');
+            return;
+        }
+        toastApiRef.addToast({ type: 'success', title, message, duration });
     },
     error: (title: string, message?: string, duration?: number) => {
-        const { addToast } = useToast();
-        addToast({ type: 'error', title, message, duration });
+        if (!toastApiRef) {
+            console.warn('ToastProvider is not mounted; cannot show toast');
+            return;
+        }
+        toastApiRef.addToast({ type: 'error', title, message, duration });
     },
     warning: (title: string, message?: string, duration?: number) => {
-        const { addToast } = useToast();
-        addToast({ type: 'warning', title, message, duration });
+        if (!toastApiRef) {
+            console.warn('ToastProvider is not mounted; cannot show toast');
+            return;
+        }
+        toastApiRef.addToast({ type: 'warning', title, message, duration });
     },
     info: (title: string, message?: string, duration?: number) => {
-        const { addToast } = useToast();
-        addToast({ type: 'info', title, message, duration });
+        if (!toastApiRef) {
+            console.warn('ToastProvider is not mounted; cannot show toast');
+            return;
+        }
+        toastApiRef.addToast({ type: 'info', title, message, duration });
     },
 };

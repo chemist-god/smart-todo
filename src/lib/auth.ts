@@ -64,7 +64,6 @@ export const {
   },
   pages: {
     signIn: "/auth/signin",
-    signUp: "/auth/signup",
     verifyRequest: "/auth/verify-request",
   },
   callbacks: {
