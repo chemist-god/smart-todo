@@ -27,15 +27,11 @@ export async function POST(
         const body = await request.json();
         const validatedData = partialCompletionSchema.parse(body);
 
-        const result = await EnhancedPenaltyService.processPartialCompletion({
-            stakeId: id,
-            userId: user.id,
-            completionPercentage: validatedData.completionPercentage,
-            evidence: validatedData.evidence,
-            description: validatedData.description,
-            challenges: validatedData.challenges,
-            nextSteps: validatedData.nextSteps
-        });
+        const result = await EnhancedPenaltyService.processPartialCompletion(
+            id,
+            validatedData.completionPercentage,
+            validatedData.evidence
+        );
 
         if (!result.success) {
             return NextResponse.json(
@@ -47,8 +43,9 @@ export async function POST(
         return NextResponse.json({
             success: true,
             message: "Partial completion submitted successfully",
-            penaltyReduction: result.penaltyReduction,
-            newPenalty: result.newPenalty
+            penaltyAmount: result.penaltyAmount,
+            refunds: result.refunds,
+            partialCompletion: result.partialCompletion
         });
 
     } catch (error) {
