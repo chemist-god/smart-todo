@@ -5,11 +5,13 @@ import { handleApiError } from "@/lib/error-handler";
 import { z } from "zod";
 
 const partialCompletionSchema = z.object({
-    completionPercentage: z.number().min(25).max(99), // 25% minimum, 99% maximum
-    evidence: z.string().optional()
+    completionPercentage: z.number().min(25).max(99),
+    evidence: z.string().optional(),
+    description: z.string().min(10).max(500),
+    challenges: z.string().optional(),
+    nextSteps: z.string().optional()
 });
 
-// POST /api/stakes/[id]/partial-completion - Submit partial completion
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -21,15 +23,19 @@ export async function POST(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id: stakeId } = await params;
+        const { id } = await params;
         const body = await request.json();
-        const { completionPercentage, evidence } = partialCompletionSchema.parse(body);
+        const validatedData = partialCompletionSchema.parse(body);
 
-        const result = await EnhancedPenaltyService.processPartialCompletion(
-            stakeId,
-            completionPercentage,
-            evidence
-        );
+        const result = await EnhancedPenaltyService.processPartialCompletion({
+            stakeId: id,
+            userId: user.id,
+            completionPercentage: validatedData.completionPercentage,
+            evidence: validatedData.evidence,
+            description: validatedData.description,
+            challenges: validatedData.challenges,
+            nextSteps: validatedData.nextSteps
+        });
 
         if (!result.success) {
             return NextResponse.json(
@@ -40,9 +46,9 @@ export async function POST(
 
         return NextResponse.json({
             success: true,
-            penaltyAmount: result.penaltyAmount,
-            partialCompletion: result.partialCompletion,
-            message: "Partial completion processed successfully"
+            message: "Partial completion submitted successfully",
+            penaltyReduction: result.penaltyReduction,
+            newPenalty: result.newPenalty
         });
 
     } catch (error) {
