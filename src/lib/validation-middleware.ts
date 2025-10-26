@@ -12,7 +12,7 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
                 const errorResponse = NextResponse.json(
                     {
                         error: 'Validation failed',
-                        details: error.errors.map(err => ({
+                        details: error.issues.map(err => ({
                             field: err.path.join('.'),
                             message: err.message
                         }))
