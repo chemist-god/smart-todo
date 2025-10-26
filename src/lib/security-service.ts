@@ -140,22 +140,14 @@ export class SecurityService {
     }> {
         const windowStart = new Date(Date.now() - this.CONFIG.rateLimitWindow * 60 * 1000);
 
-        const [userRequests, ipRequests] = await Promise.all([
-            prisma.escrowTransaction.count({
-                where: {
-                    userId,
-                    createdAt: { gte: windowStart }
-                }
-            }),
-            prisma.escrowTransaction.count({
-                where: {
-                    user: { ipAddress },
-                    createdAt: { gte: windowStart }
-                }
-            })
-        ]);
+        const userRequests = await prisma.escrowTransaction.count({
+            where: {
+                userId,
+                createdAt: { gte: windowStart }
+            }
+        });
 
-        const maxRequests = Math.min(userRequests, ipRequests);
+        const maxRequests = userRequests;
         return {
             allowed: maxRequests < this.CONFIG.rateLimitMaxRequests,
             remainingRequests: Math.max(0, this.CONFIG.rateLimitMaxRequests - maxRequests)
@@ -219,14 +211,8 @@ export class SecurityService {
         const indicators: string[] = [];
         let riskScore = 0;
 
-        // 1. Check for multiple accounts from same IP
-        const ipAccounts = await prisma.user.count({
-            where: { ipAddress }
-        });
-        if (ipAccounts > 3) {
-            indicators.push('Multiple accounts from same IP');
-            riskScore += 20;
-        }
+        // 1. IP-based checks removed - User model doesn't have ipAddress field
+        // TODO: Implement IP tracking if needed
 
         // 2. Check for rapid successive transactions
         const recentTransactions = await prisma.escrowTransaction.count({
