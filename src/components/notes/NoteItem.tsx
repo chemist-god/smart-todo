@@ -24,37 +24,44 @@ interface NoteItemProps {
     note: Note;
     onDelete: (noteId: string) => Promise<void>;
     onEdit: (note: Note) => void;
+    onView: (note: Note) => void;
 }
 
-export default function NoteItem({ note, onDelete, onEdit }: NoteItemProps) {
+export default function NoteItem({ note, onDelete, onEdit, onView }: NoteItemProps) {
     const typeConfig = {
         GENERAL: {
-            color: "bg-gray-100 text-gray-800 border-gray-200",
+            color: "bg-muted text-muted-foreground border-border/50",
+            activeColor: "bg-muted/80 text-foreground border-border",
             icon: BookOpenIcon,
             label: "General"
         },
         BIBLE_STUDY: {
-            color: "bg-blue-100 text-blue-800 border-blue-200",
+            color: "bg-info/10 text-info border-info/20",
+            activeColor: "bg-info/15 text-info border-info/30",
             icon: BookOpenIcon,
             label: "Bible Study"
         },
         CONFERENCE: {
-            color: "bg-purple-100 text-purple-800 border-purple-200",
+            color: "bg-primary/10 text-primary border-primary/20",
+            activeColor: "bg-primary/15 text-primary border-primary/30",
             icon: MicrophoneIcon,
             label: "Conference"
         },
         SONG: {
-            color: "bg-green-100 text-green-800 border-green-200",
+            color: "bg-success/10 text-success border-success/20",
+            activeColor: "bg-success/15 text-success border-success/30",
             icon: MusicalNoteIcon,
             label: "Song"
         },
         QUOTE: {
-            color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+            color: "bg-warning/10 text-warning border-warning/20",
+            activeColor: "bg-warning/15 text-warning border-warning/30",
             icon: QuoteIcon,
             label: "Quote"
         },
         REFLECTION: {
-            color: "bg-pink-100 text-pink-800 border-pink-200",
+            color: "bg-info/10 text-info border-info/20",
+            activeColor: "bg-info/15 text-info border-info/30",
             icon: LightBulbIcon,
             label: "Reflection"
         },
@@ -74,17 +81,17 @@ export default function NoteItem({ note, onDelete, onEdit }: NoteItemProps) {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
-            <div className="space-y-3">
+        <div className="bg-card border border-border rounded-lg sm:rounded-xl p-4 sm:p-5 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 sm:hover:-translate-y-1 group cursor-pointer">
+            <div className="space-y-3 sm:space-y-4">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                        <h3 className="text-sm sm:text-base font-semibold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-200">
                             {note.title}
                         </h3>
-                        <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${config.color}`}>
-                                <IconComponent className="w-3 h-3 mr-1" />
+                        <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${config.activeColor}`}>
+                                <IconComponent className="w-3 h-3" />
                                 {config.label}
                             </span>
                         </div>
@@ -92,40 +99,47 @@ export default function NoteItem({ note, onDelete, onEdit }: NoteItemProps) {
                 </div>
 
                 {/* Content Preview */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                <div className="bg-muted/30 rounded-lg p-3 sm:p-4 group-hover:bg-muted/50 transition-colors duration-200">
+                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
                         {note.content}
                     </p>
                 </div>
 
-                {/* Meta Information */}
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Created {format(new Date(note.createdAt), "MMM d, yyyy")}</span>
+                {/* Meta Information and Actions */}
+                <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Created {format(new Date(note.createdAt), "MMM d, yyyy")}</span>
 
                     {/* Actions */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                         <button
-                            onClick={() => {
-                                // TODO: Implement view
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onView(note);
                             }}
-                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            className="p-1.5 text-muted-foreground hover:text-info hover:bg-info/10 rounded transition-all duration-200"
                             title="View note"
                         >
-                            <EyeIcon className="w-4 h-4" />
+                            <EyeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                         <button
-                            onClick={() => onEdit(note)}
-                            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(note);
+                            }}
+                            className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-all duration-200"
                             title="Edit note"
                         >
-                            <PencilIcon className="w-4 h-4" />
+                            <PencilIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                         <button
-                            onClick={handleDelete}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete();
+                            }}
+                            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all duration-200"
                             title="Delete note"
                         >
-                            <TrashIcon className="w-4 h-4" />
+                            <TrashIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                     </div>
                 </div>
