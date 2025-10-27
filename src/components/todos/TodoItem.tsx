@@ -136,9 +136,9 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     return (
         <div className={`bg-card border border-border rounded-xl p-4 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 group ${
             todo.completed
-                ? 'border-green-200/50 bg-green-50/30 dark:border-green-800/30 dark:bg-green-950/20'
+                ? 'border-success/50 bg-success/10'
                 : isOverdue
-                    ? 'border-red-200/50 bg-red-50/30 dark:border-red-800/30 dark:bg-red-950/20'
+                    ? 'border-destructive/50 bg-destructive/10'
                     : 'hover:border-primary/20'
         }`}>
             <div className="flex items-start gap-3">
@@ -181,10 +181,10 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                             {/* Priority Badge */}
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
                                 todo.priority === 'HIGH'
-                                    ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/30'
+                                    ? 'bg-destructive/10 text-destructive border-destructive/20'
                                     : todo.priority === 'MEDIUM'
-                                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-300 dark:border-yellow-800/30'
-                                        : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800/30'
+                                        ? 'bg-warning/10 text-warning border-warning/20'
+                                        : 'bg-success/10 text-success border-success/20'
                             }`}>
                                 <span className="text-xs">
                                     {todo.priority === 'HIGH' ? '🔴' : todo.priority === 'MEDIUM' ? '🟡' : '🟢'}
@@ -200,7 +200,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                             {/* Time Spent Badge */}
                             {currentTimeSpent > 0 && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800/30">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
                                     <ClockIcon className="w-3 h-3" />
                                     {formatDuration(currentTimeSpent)}
                                 </span>
@@ -208,7 +208,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                             {/* Pomodoro Sessions Badge */}
                             {todo.pomodoroSessions && todo.pomodoroSessions > 0 && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/30">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-info/10 text-info border border-info/20">
                                     🍅 {todo.pomodoroSessions}
                                 </span>
                             )}
@@ -218,7 +218,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     {/* Meta Information */}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         {todo.dueDate && (
-                            <div className={`flex items-center gap-1.5 ${isOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>
+                            <div className={`flex items-center gap-1.5 ${isOverdue ? 'text-destructive' : ''}`}>
                                 <ClockIcon className="w-3.5 h-3.5" />
                                 <span className="font-medium">
                                     {isOverdue ? 'Overdue' : 'Due'}: {format(new Date(todo.dueDate), "MMM d, yyyy")}
@@ -246,7 +246,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                             </button>
                             <button
                                 onClick={() => setShowPomodoro(!showPomodoro)}
-                                className="p-2 text-muted-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200 focus-enhanced"
+                                className="p-2 text-muted-foreground hover:text-info hover:bg-info/10 rounded-lg transition-all duration-200 focus-enhanced"
                                 title="Pomodoro"
                             >
                                 🍅
@@ -264,7 +264,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     <button
                         onClick={handleDelete}
                         disabled={isUpdating}
-                        className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced"
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced"
                         title="Delete"
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -320,7 +320,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                 </div>
                                 <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
                                     <span className="text-muted-foreground">Status</span>
-                                    <span className={`font-medium ${todo.completed ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                                    <span className={`font-medium ${todo.completed ? 'text-success' : 'text-warning'}`}>
                                         {todo.completed ? 'Completed' : 'Pending'}
                                     </span>
                                 </div>
@@ -331,15 +331,15 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                     </div>
                                 )}
                                 {currentTimeSpent > 0 && (
-                                    <div className="flex justify-between items-center py-1.5 px-3 bg-green-50 dark:bg-green-950/30 rounded-md">
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-success/10 rounded-md">
                                         <span className="text-muted-foreground">Time Spent</span>
-                                        <span className="font-medium text-green-700 dark:text-green-300">{formatDuration(currentTimeSpent)}</span>
+                                        <span className="font-medium text-success">{formatDuration(currentTimeSpent)}</span>
                                     </div>
                                 )}
                                 {todo.pomodoroSessions && todo.pomodoroSessions > 0 && (
-                                    <div className="flex justify-between items-center py-1.5 px-3 bg-purple-50 dark:bg-purple-950/30 rounded-md">
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-info/10 rounded-md">
                                         <span className="text-muted-foreground">Pomodoro Sessions</span>
-                                        <span className="font-medium text-purple-700 dark:text-purple-300">{todo.pomodoroSessions}</span>
+                                        <span className="font-medium text-info">{todo.pomodoroSessions}</span>
                                     </div>
                                 )}
                                 {todo.scheduledStartTime && (
@@ -361,9 +361,9 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                     </div>
                                 )}
                                 {todo.completedAt && (
-                                    <div className="flex justify-between items-center py-1.5 px-3 bg-green-50 dark:bg-green-950/30 rounded-md">
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-success/10 rounded-md">
                                         <span className="text-muted-foreground">Completed</span>
-                                        <span className="font-medium text-green-700 dark:text-green-300">
+                                        <span className="font-medium text-success">
                                             {format(new Date(todo.completedAt), "MMM d, yyyy 'at' h:mm a")}
                                         </span>
                                     </div>
