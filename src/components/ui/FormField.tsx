@@ -15,13 +15,13 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
     ({ label, error, required, children, className }, ref) => {
         return (
             <div ref={ref} className={cn('space-y-2', className)}>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-foreground">
                     {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
+                    {required && <span className="text-destructive ml-1">*</span>}
                 </label>
                 {children}
                 {error && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 fillRule="evenodd"
@@ -48,8 +48,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         return (
             <input
                 className={cn(
-                    'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                    error && 'border-red-500 focus-visible:ring-red-500',
+                    'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                    error && 'border-destructive focus-visible:ring-destructive',
                     className
                 )}
                 ref={ref}
@@ -70,8 +70,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         return (
             <textarea
                 className={cn(
-                    'flex min-h-[80px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                    error && 'border-red-500 focus-visible:ring-red-500',
+                    'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                    error && 'border-destructive focus-visible:ring-destructive',
                     className
                 )}
                 ref={ref}
