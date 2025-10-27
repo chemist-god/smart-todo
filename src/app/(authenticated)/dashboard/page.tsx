@@ -76,23 +76,19 @@ export default function DashboardPage() {
         color?: string;
         loading?: boolean;
     }) => (
-        <div className={`bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg ${isLoading ? 'animate-pulse' : ''}`}>
-            <div className="p-5">
-                <div className="flex items-center">
-                    <div className={`flex-shrink-0 rounded-md bg-${color}-500 bg-opacity-10 p-3`}>
-                        <Icon className={`h-6 w-6 text-${color}-600`} aria-hidden="true" />
+        <div className={`bg-card border border-border rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 hover:-translate-y-0.5 group ${isLoading ? 'animate-pulse' : ''}`}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                    <div className={`flex-shrink-0 p-3 rounded-xl bg-${color}-50 dark:bg-${color}-950/30 ring-1 ring-${color}-200 dark:ring-${color}-800/30`}>
+                        <Icon className={`h-6 w-6 text-${color}-600 dark:text-${color}-400`} aria-hidden="true" />
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">
-                                {title}
-                            </dt>
-                            <dd className="flex items-baseline">
-                                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                                    {isLoading ? '...' : value}
-                                </div>
-                            </dd>
-                        </dl>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-muted-foreground truncate">
+                            {title}
+                        </p>
+                        <p className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-200">
+                            {isLoading ? '...' : value}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -100,46 +96,66 @@ export default function DashboardPage() {
     );
 
     const ProgressBar = ({ value, max, color = 'blue' }: { value: number; max: number; color?: string }) => (
-        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-            <div
-                className={`h-2.5 rounded-full bg-${color}-500`}
-                style={{ width: `${Math.min(100, (value / max) * 100)}%` }}
-            ></div>
+        <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-medium text-foreground">{Math.min(100, (value / max) * 100).toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                <div
+                    className={`h-3 rounded-full bg-gradient-to-r from-${color}-500 to-${color}-600 transition-all duration-500 ease-out`}
+                    style={{ width: `${Math.min(100, (value / max) * 100)}%` }}
+                />
+            </div>
         </div>
     );
 
     if (loading) {
         return (
-            <div className="animate-pulse space-y-6">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="h-8 bg-muted rounded-lg w-32 animate-pulse"></div>
+                    <div className="h-10 bg-muted rounded-lg w-24 animate-pulse"></div>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>
+                        <div key={i} className="h-24 bg-muted rounded-xl animate-pulse"></div>
                     ))}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 h-96 bg-muted rounded-xl animate-pulse"></div>
+                    <div className="space-y-6">
+                        <div className="h-48 bg-muted rounded-xl animate-pulse"></div>
+                        <div className="h-40 bg-muted rounded-xl animate-pulse"></div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <div className="space-y-8">
+            {/* Enhanced Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                    <p className="text-muted-foreground">Welcome back! Here's your productivity overview.</p>
+                </div>
                 <button
                     onClick={handleRefresh}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     disabled={refreshing}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced shadow-soft hover:shadow-medium"
                 >
-                    <ArrowPathIcon className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+                    <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                     {refreshing ? 'Refreshing...' : 'Refresh'}
                 </button>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Enhanced Stats Grid */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Total Points"
-                    value={stats.totalPoints}
+                    value={stats.totalPoints.toLocaleString()}
                     icon={TrophyIcon}
                     color="yellow"
                     loading={refreshing}
@@ -152,7 +168,7 @@ export default function DashboardPage() {
                     loading={refreshing}
                 />
                 <StatCard
-                    title="Todos Today"
+                    title="Active Todos"
                     value={`${stats.todayTodos} of ${stats.pendingTodos}`}
                     icon={CheckCircleIcon}
                     color="green"
@@ -167,70 +183,111 @@ export default function DashboardPage() {
                 />
             </div>
 
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column - Focus Tasks */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                        <div className="p-6">
+                    <div className="bg-card border border-border rounded-xl shadow-soft overflow-hidden">
+                        <div className="p-6 border-b border-border bg-gradient-to-r from-primary/5 to-primary/10">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                                    <LightBulbIcon className="h-5 w-5 inline-block mr-2 text-yellow-500" />
-                                    Your Focus Tasks
-                                </h2>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    Based on 80/20 rule
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/10">
+                                        <LightBulbIcon className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-foreground">
+                                            Your Focus Tasks
+                                        </h2>
+                                        <p className="text-sm text-muted-foreground">
+                                            Based on 80/20 rule - prioritize what matters most
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                    AI Powered
                                 </span>
                             </div>
-                            <div className="mt-4">
-                                <FocusTasks />
-                            </div>
+                        </div>
+                        <div className="p-6">
+                            <FocusTasks />
                         </div>
                     </div>
                 </div>
 
-                {/* Right Column - Progress */}
+                {/* Right Column - Progress & Stats */}
                 <div className="space-y-6">
-                    {/* Level Progress */}
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                        <div className="p-6">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Level Progress</h3>
-                            <div className="space-y-2">
+                    {/* Enhanced Level Progress */}
+                    <div className="bg-card border border-border rounded-xl shadow-soft p-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-foreground">Level Progress</h3>
+                                <span className="text-2xl">🏆</span>
+                            </div>
+                            <div className="space-y-3">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500 dark:text-gray-400">Level {stats.level}</span>
-                                    <span className="font-medium">{stats.totalPoints} / {stats.xpToNextLevel} XP</span>
+                                    <span className="text-muted-foreground">Level {stats.level}</span>
+                                    <span className="font-medium text-foreground">
+                                        {stats.totalPoints.toLocaleString()} / {(stats.level * 100).toLocaleString()} XP
+                                    </span>
                                 </div>
                                 <ProgressBar
                                     value={stats.totalPoints % 100}
                                     max={100}
                                     color="blue"
                                 />
-                                <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                    {100 - (stats.totalPoints % 100)} XP to next level
+                                <div className="text-center">
+                                    <p className="text-xs text-muted-foreground">
+                                        {100 - (stats.totalPoints % 100)} XP to next level
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Streak */}
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                        <div className="p-6">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Streak</h3>
-                            <div className="flex items-center space-x-4">
-                                <div className="flex-shrink-0">
-                                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
-                                        <FireIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
+                    {/* Enhanced Streak */}
+                    <div className="bg-card border border-border rounded-xl shadow-soft p-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-foreground">Current Streak</h3>
+                                <span className="text-2xl">🔥</span>
+                            </div>
+                            <div className="flex items-center justify-center py-4">
+                                <div className="text-center">
+                                    <div className="flex items-center justify-center mb-2">
+                                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-lg">
+                                            <FireIcon className="h-8 w-8 text-white" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                                        {stats.currentStreak} days
+                                    <p className="text-3xl font-bold text-foreground mb-1">
+                                        {stats.currentStreak}
                                     </p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm text-muted-foreground font-medium">
+                                        days in a row
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         Best: {stats.longestStreak} days
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="bg-card border border-border rounded-xl shadow-soft p-6">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+                        <div className="space-y-3">
+                            <button className="w-full flex items-center gap-3 p-3 text-left text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors duration-200 focus-enhanced">
+                                <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                Create New Todo
+                            </button>
+                            <button className="w-full flex items-center gap-3 p-3 text-left text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors duration-200 focus-enhanced">
+                                <DocumentTextIcon className="h-5 w-5 text-blue-600" />
+                                Add Quick Note
+                            </button>
+                            <button className="w-full flex items-center gap-3 p-3 text-left text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors duration-200 focus-enhanced">
+                                <CalendarIcon className="h-5 w-5 text-purple-600" />
+                                View Calendar
+                            </button>
                         </div>
                     </div>
                 </div>
