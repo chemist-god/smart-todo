@@ -134,59 +134,81 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     };
 
     return (
-        <div className={`bg-white border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${todo.completed ? 'border-green-200 bg-green-50' :
-            isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200'
-            }`}>
-            <div className="flex items-start space-x-3">
-                {/* Checkbox */}
-                <input
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={handleToggleComplete}
-                    disabled={isUpdating}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors disabled:opacity-50"
-                />
+        <div className={`bg-card border border-border rounded-xl p-4 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 group ${
+            todo.completed
+                ? 'border-green-200/50 bg-green-50/30 dark:border-green-800/30 dark:bg-green-950/20'
+                : isOverdue
+                    ? 'border-red-200/50 bg-red-50/30 dark:border-red-800/30 dark:bg-red-950/20'
+                    : 'hover:border-primary/20'
+        }`}>
+            <div className="flex items-start gap-3">
+                {/* Enhanced Checkbox */}
+                <div className="flex-shrink-0 mt-0.5">
+                    <input
+                        type="checkbox"
+                        checked={todo.completed}
+                        onChange={handleToggleComplete}
+                        disabled={isUpdating}
+                        className="h-5 w-5 text-primary bg-background border-2 border-border rounded-md focus:ring-primary/20 focus:ring-2 focus:ring-offset-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary/50"
+                    />
+                </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                            <h3 className={`text-sm font-medium ${todo.completed ? "line-through text-gray-500" : "text-gray-900"
-                                }`}>
+                <div className="flex-1 min-w-0 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                            <h3 className={`text-base font-semibold leading-tight transition-all duration-200 ${
+                                todo.completed
+                                    ? "line-through text-muted-foreground"
+                                    : "text-foreground group-hover:text-primary"
+                            }`}>
                                 {todo.title}
                             </h3>
                             {todo.description && (
-                                <p className={`text-sm mt-1 ${todo.completed ? "text-gray-400" : "text-gray-600"
-                                    }`}>
+                                <p className={`text-sm mt-1.5 leading-relaxed transition-colors duration-200 ${
+                                    todo.completed
+                                        ? "text-muted-foreground/70"
+                                        : "text-muted-foreground"
+                                }`}>
                                     {todo.description}
                                 </p>
                             )}
                         </div>
 
-                        {/* Priority Badge */}
-                        <div className="flex items-center space-x-2 ml-3">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[todo.priority]}`}>
-                                <span className="mr-1">{priorityIcons[todo.priority]}</span>
+                        {/* Badges */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Priority Badge */}
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                                todo.priority === 'HIGH'
+                                    ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/30'
+                                    : todo.priority === 'MEDIUM'
+                                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/50 dark:text-yellow-300 dark:border-yellow-800/30'
+                                        : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800/30'
+                            }`}>
+                                <span className="text-xs">
+                                    {todo.priority === 'HIGH' ? '🔴' : todo.priority === 'MEDIUM' ? '🟡' : '🟢'}
+                                </span>
                                 {priorityLabels[todo.priority]}
                             </span>
 
                             {/* Points Badge */}
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <StarIcon className="w-3 h-3 mr-1" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                <StarIcon className="w-3 h-3" />
                                 {todo.points}
                             </span>
 
                             {/* Time Spent Badge */}
                             {currentTimeSpent > 0 && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <ClockIcon className="w-3 h-3 mr-1" />
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800/30">
+                                    <ClockIcon className="w-3 h-3" />
                                     {formatDuration(currentTimeSpent)}
                                 </span>
                             )}
 
                             {/* Pomodoro Sessions Badge */}
                             {todo.pomodoroSessions && todo.pomodoroSessions > 0 && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/30">
                                     🍅 {todo.pomodoroSessions}
                                 </span>
                             )}
@@ -194,37 +216,37 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     </div>
 
                     {/* Meta Information */}
-                    <div className="flex items-center space-x-4 mt-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         {todo.dueDate && (
-                            <div className={`flex items-center ${isOverdue ? 'text-red-600' : ''}`}>
-                                <ClockIcon className="w-3 h-3 mr-1" />
-                                <span>
+                            <div className={`flex items-center gap-1.5 ${isOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>
+                                <ClockIcon className="w-3.5 h-3.5" />
+                                <span className="font-medium">
                                     {isOverdue ? 'Overdue' : 'Due'}: {format(new Date(todo.dueDate), "MMM d, yyyy")}
                                 </span>
                             </div>
                         )}
-                        <span>Created {format(new Date(todo.createdAt), "MMM d")}</span>
+                        <span className="font-medium">Created {format(new Date(todo.createdAt), "MMM d")}</span>
                         {todo.completedAt && (
-                            <span>Completed {format(new Date(todo.completedAt), "MMM d")}</span>
+                            <span className="font-medium">Completed {format(new Date(todo.completedAt), "MMM d")}</span>
                         )}
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center space-x-1">
+                {/* Enhanced Actions */}
+                <div className="flex items-center gap-1 flex-shrink-0">
                     {/* Timer Controls */}
                     {!todo.completed && (
                         <>
                             <button
                                 onClick={() => setShowTimer(!showTimer)}
-                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200 focus-enhanced"
                                 title="Timer"
                             >
                                 <PlayIcon className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setShowPomodoro(!showPomodoro)}
-                                className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                                className="p-2 text-muted-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200 focus-enhanced"
                                 title="Pomodoro"
                             >
                                 🍅
@@ -234,15 +256,15 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus-enhanced"
                         title="Expand"
                     >
-                        <ChevronDownIcon className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={isUpdating}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                        className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced"
                         title="Delete"
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -250,9 +272,9 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                 </div>
             </div>
 
-            {/* Timer Components */}
+            {/* Enhanced Timer Components */}
             {showTimer && !todo.completed && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-border/50">
                     <TodoTimer
                         todoId={todo.id}
                         initialTimeSpent={currentTimeSpent}
@@ -266,7 +288,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
             )}
 
             {showPomodoro && !todo.completed && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-border/50">
                     <PomodoroTimer
                         todoId={todo.id}
                         onSessionComplete={handleSessionComplete}
@@ -275,42 +297,76 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                 </div>
             )}
 
-            {/* Expanded Content */}
+            {/* Enhanced Expanded Content */}
             {isExpanded && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h4 className="text-xs font-medium text-gray-700 mb-2">Description</h4>
-                            <p className="text-sm text-gray-600">
+                <div className="mt-4 pt-4 border-t border-border/50">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <h4 className="text-sm font-semibold text-foreground mb-3">Description</h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed bg-muted/30 rounded-lg p-3">
                                 {todo.description || "No description provided"}
                             </p>
                         </div>
-                        <div>
-                            <h4 className="text-xs font-medium text-gray-700 mb-2">Details</h4>
-                            <div className="space-y-1 text-sm text-gray-600">
-                                <div>Priority: {priorityLabels[todo.priority]}</div>
-                                <div>Points: {todo.points}</div>
-                                <div>Status: {todo.completed ? 'Completed' : 'Pending'}</div>
+                        <div className="space-y-3">
+                            <h4 className="text-sm font-semibold text-foreground mb-3">Details</h4>
+                            <div className="space-y-2.5 text-sm">
+                                <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                    <span className="text-muted-foreground">Priority</span>
+                                    <span className="font-medium">{priorityLabels[todo.priority]}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                    <span className="text-muted-foreground">Points</span>
+                                    <span className="font-medium">{todo.points}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                    <span className="text-muted-foreground">Status</span>
+                                    <span className={`font-medium ${todo.completed ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                                        {todo.completed ? 'Completed' : 'Pending'}
+                                    </span>
+                                </div>
                                 {todo.estimatedDuration && (
-                                    <div>Estimated: {formatDuration(todo.estimatedDuration)}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                        <span className="text-muted-foreground">Estimated</span>
+                                        <span className="font-medium">{formatDuration(todo.estimatedDuration)}</span>
+                                    </div>
                                 )}
                                 {currentTimeSpent > 0 && (
-                                    <div>Time Spent: {formatDuration(currentTimeSpent)}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-green-50 dark:bg-green-950/30 rounded-md">
+                                        <span className="text-muted-foreground">Time Spent</span>
+                                        <span className="font-medium text-green-700 dark:text-green-300">{formatDuration(currentTimeSpent)}</span>
+                                    </div>
                                 )}
                                 {todo.pomodoroSessions && todo.pomodoroSessions > 0 && (
-                                    <div>Pomodoro Sessions: {todo.pomodoroSessions}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-purple-50 dark:bg-purple-950/30 rounded-md">
+                                        <span className="text-muted-foreground">Pomodoro Sessions</span>
+                                        <span className="font-medium text-purple-700 dark:text-purple-300">{todo.pomodoroSessions}</span>
+                                    </div>
                                 )}
                                 {todo.scheduledStartTime && (
-                                    <div>Start: {format(new Date(todo.scheduledStartTime), "MMM d, h:mm a")}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                        <span className="text-muted-foreground">Start</span>
+                                        <span className="font-medium">{format(new Date(todo.scheduledStartTime), "MMM d, h:mm a")}</span>
+                                    </div>
                                 )}
                                 {todo.scheduledEndTime && (
-                                    <div>End: {format(new Date(todo.scheduledEndTime), "MMM d, h:mm a")}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                        <span className="text-muted-foreground">End</span>
+                                        <span className="font-medium">{format(new Date(todo.scheduledEndTime), "MMM d, h:mm a")}</span>
+                                    </div>
                                 )}
                                 {todo.isRecurring && (
-                                    <div>Recurring: {todo.recurrencePattern}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-muted/30 rounded-md">
+                                        <span className="text-muted-foreground">Recurring</span>
+                                        <span className="font-medium">{todo.recurrencePattern}</span>
+                                    </div>
                                 )}
                                 {todo.completedAt && (
-                                    <div>Completed: {format(new Date(todo.completedAt), "MMM d, yyyy 'at' h:mm a")}</div>
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-green-50 dark:bg-green-950/30 rounded-md">
+                                        <span className="text-muted-foreground">Completed</span>
+                                        <span className="font-medium text-green-700 dark:text-green-300">
+                                            {format(new Date(todo.completedAt), "MMM d, yyyy 'at' h:mm a")}
+                                        </span>
+                                    </div>
                                 )}
                             </div>
                         </div>
