@@ -70,17 +70,17 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'ACTIVE':
-                return 'bg-green-100 text-green-800';
+                return 'bg-success/10 text-success border-success/20';
             case 'COMPLETED':
-                return 'bg-blue-100 text-blue-800';
+                return 'bg-primary/10 text-primary border-primary/20';
             case 'FAILED':
-                return 'bg-red-100 text-red-800';
+                return 'bg-destructive/10 text-destructive border-destructive/20';
             case 'CANCELLED':
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-muted/50 text-muted-foreground border-border/50';
             case 'EXPIRED':
-                return 'bg-yellow-100 text-yellow-800';
+                return 'bg-warning/10 text-warning border-warning/20';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-muted/50 text-muted-foreground border-border/50';
         }
     };
 
@@ -167,11 +167,11 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-card rounded-lg border border-border shadow-soft hover:shadow-medium transition-all duration-200">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-border">
                 <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{stake.title}</h3>
+                    <h3 className="text-lg font-semibold text-foreground line-clamp-2">{stake.title}</h3>
                     <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(stake.status)}`}>
                             {getStatusIcon(stake.status)}
@@ -181,29 +181,29 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                 </div>
 
                 {stake.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{stake.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{stake.description}</p>
                 )}
             </div>
 
             {/* Financial Info */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-border">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p className="text-sm text-gray-600">Total Amount</p>
-                        <p className="text-lg font-semibold text-gray-900">{formatCurrency(stake.totalAmount)}</p>
+                        <p className="text-sm text-muted-foreground">Total Amount</p>
+                        <p className="text-lg font-semibold text-foreground">{formatCurrency(stake.totalAmount)}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-600">Your Stake</p>
-                        <p className="text-lg font-semibold text-gray-900">{formatCurrency(stake.userStake)}</p>
+                        <p className="text-sm text-muted-foreground">Your Stake</p>
+                        <p className="text-lg font-semibold text-foreground">{formatCurrency(stake.userStake)}</p>
                     </div>
                 </div>
 
                 {stake.stakeType === 'SOCIAL_STAKE' && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="mt-3 pt-3 border-t border-border/50">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Participants</span>
+                            <span className="text-sm text-muted-foreground">Participants</span>
                             <div className="flex items-center gap-1">
-                                <UserGroupIcon className="w-4 h-4 text-gray-400" />
+                                <UserGroupIcon className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-sm font-medium">{stake.totalParticipants}</span>
                             </div>
                         </div>
@@ -212,11 +212,11 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
             </div>
 
             {/* Time Info */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Deadline</span>
+                    <span className="text-sm text-muted-foreground">Deadline</span>
                     <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-4 h-4 text-gray-400" />
+                        <CalendarIcon className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
                             {new Date(stake.deadline).toLocaleDateString()}
                         </span>
@@ -225,10 +225,10 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
                 {stake.status === 'ACTIVE' && (
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Time Remaining</span>
+                        <span className="text-sm text-muted-foreground">Time Remaining</span>
                         <div className="flex items-center gap-1">
-                            <ClockIcon className="w-4 h-4 text-gray-400" />
-                            <span className={`text-sm font-medium ${stake.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                            <ClockIcon className="w-4 h-4 text-muted-foreground" />
+                            <span className={`text-sm font-medium ${stake.isOverdue ? 'text-destructive' : 'text-foreground'}`}>
                                 {stake.isOverdue ? 'Overdue' : formatTimeRemaining(stake.timeRemaining)}
                             </span>
                         </div>
@@ -238,9 +238,9 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                 {/* Progress Bar */}
                 {stake.status === 'ACTIVE' && (
                     <div className="mt-3">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-muted rounded-full h-2">
                             <div
-                                className={`h-2 rounded-full transition-all duration-300 ${stake.isOverdue ? 'bg-red-500' : 'bg-blue-500'
+                                className={`h-2 rounded-full transition-all duration-300 ${stake.isOverdue ? 'bg-destructive' : 'bg-primary'
                                     }`}
                                 style={{ width: `${Math.min(100, Math.max(0, stake.progress))}%` }}
                             ></div>
@@ -277,7 +277,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                         {!showCompleteForm ? (
                             <button
                                 onClick={() => setShowCompleteForm(true)}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="w-full bg-success hover:bg-success/90 text-success-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                             >
                                 Complete Stake
                             </button>
@@ -287,21 +287,21 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                                     value={proof}
                                     onChange={(e) => setProof(e.target.value)}
                                     placeholder="Describe how you completed this task..."
-                                    className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none"
+                                    className="w-full p-2 border border-input bg-background rounded-lg text-sm resize-none focus:ring-2 focus:ring-ring focus:border-transparent"
                                     rows={3}
                                 />
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleCompleteStake}
                                         disabled={isLoading}
-                                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                        className="flex-1 bg-success hover:bg-success/90 disabled:bg-muted text-success-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                     >
                                         {isLoading && <LoadingSpinner size="sm" />}
                                         Submit Proof
                                     </button>
                                     <button
                                         onClick={() => setShowCompleteForm(false)}
-                                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                                        className="px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
                                     >
                                         Cancel
                                     </button>
@@ -312,7 +312,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                         <button
                             onClick={handleCancelStake}
                             disabled={isLoading}
-                            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                         >
                             Cancel Stake
                         </button>
@@ -322,7 +322,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                 {stake.status === 'ACTIVE' && !stake.isOwner && stake.canJoin && (
                     <button
                         onClick={handleJoinStake}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        className="w-full bg-info hover:bg-info/90 text-info-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                         Join Stake
                     </button>
@@ -330,7 +330,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
                 {/* Universal Share Button for Social Stakes */}
                 {stake.stakeType === 'SOCIAL_STAKE' && stake.status === 'ACTIVE' && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="mt-3 pt-3 border-t border-border/50">
                         <EnhancedSocialShare
                             stakeId={stake.id}
                             stakeTitle={stake.title}
@@ -352,11 +352,11 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
                 {stake.status === 'COMPLETED' && (
                     <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
+                        <div className="flex items-center justify-center gap-2 text-success mb-2">
                             <CheckCircleIcon className="w-5 h-5" />
                             <span className="font-medium">Completed Successfully!</span>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                             Completed on {new Date(stake.completedAt!).toLocaleDateString()}
                         </p>
                     </div>
@@ -364,11 +364,11 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
                 {stake.status === 'FAILED' && (
                     <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+                        <div className="flex items-center justify-center gap-2 text-destructive mb-2">
                             <XCircleIcon className="w-5 h-5" />
                             <span className="font-medium">Failed</span>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                             Penalty: {formatCurrency(stake.totalAmount)}
                         </p>
                     </div>
