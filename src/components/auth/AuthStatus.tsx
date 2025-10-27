@@ -14,7 +14,7 @@ export default function AuthStatus() {
     return (
       <button
         onClick={() => signIn("google")}
-        className="rounded bg-black text-white px-4 py-2 hover:opacity-90"
+        className="rounded bg-primary text-primary-foreground px-4 py-2 hover:bg-primary/90 transition-colors"
       >
         Sign in with Google
       </button>
@@ -23,12 +23,12 @@ export default function AuthStatus() {
 
   return (
     <div className="flex items-center gap-3">
-      <span>
+      <span className="text-foreground">
         Signed in as {session.user.name ?? session.user.email}
       </span>
       <button
         onClick={() => signOut()}
-        className="rounded border px-3 py-2 hover:bg-gray-50"
+        className="rounded border border-border px-3 py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
       >
         Sign out
       </button>
