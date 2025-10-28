@@ -63,7 +63,7 @@ export default function DateTimePicker({
     // Update parent when local value changes
     useEffect(() => {
         onChange(localValue);
-    }, [localValue, onChange]);
+    }, [localValue]); // Removed onChange from dependencies to prevent infinite loop
 
     // Handle quick time selection
     const handleQuickTime = (quickTime: string) => {
