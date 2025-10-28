@@ -20,6 +20,8 @@ export default function TodosPage() {
         todosCompleted: 0,
     });
     const [loading, setLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [optimisticTodo, setOptimisticTodo] = useState<any>(null);
 
     const fetchStats = async () => {
         try {
@@ -44,9 +46,19 @@ export default function TodosPage() {
         fetchStats();
     }, []);
 
-    const handleTodoCreated = () => {
-        // Refresh stats when a todo is created
+    const handleTodoChange = (newTodo?: any) => {
+        // Refresh stats when a todo is created/updated/deleted
         fetchStats();
+
+        if (newTodo) {
+            // Set optimistic todo for instant UI update
+            setOptimisticTodo(newTodo);
+            // Clear optimistic todo after a delay to avoid conflicts
+            setTimeout(() => setOptimisticTodo(null), 500);
+        } else {
+            // For updates/deletes, just refresh
+            setRefreshTrigger(prev => prev + 1);
+        }
     };
 
     return (
@@ -57,7 +69,7 @@ export default function TodosPage() {
                     <h1 className="text-3xl font-bold text-foreground">Todos</h1>
                     <p className="text-muted-foreground">Manage your tasks and stay organized</p>
                 </div>
-                <CreateTodoButton onTodoCreated={handleTodoCreated} />
+                <CreateTodoButton onTodoCreated={handleTodoChange} />
             </div>
 
             {/* Enhanced Stats Grid */}
@@ -145,7 +157,7 @@ export default function TodosPage() {
                     </div>
                 </div>
                 <div className="p-6">
-                    <TodoList onTodoChange={handleTodoCreated} />
+                    <TodoList onTodoChange={handleTodoChange} refreshTrigger={refreshTrigger} optimisticTodo={optimisticTodo} />
                 </div>
             </div>
         </div>
