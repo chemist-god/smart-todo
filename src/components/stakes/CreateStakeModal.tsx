@@ -150,67 +150,85 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4">
-                <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleClose}></div>
+        <div className="fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm">
+            <div className="flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose}></div>
 
-                <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-900">Create New Stake</h2>
-                        <button
-                            onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <XMarkIcon className="w-6 h-6" />
-                        </button>
+                <div className="relative bg-card/95 backdrop-blur-xl border border-border/50 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+                    {/* Aurora-Themed Header */}
+                    <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-b border-border/50">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
+                        <div className="relative flex items-center justify-between p-4 sm:p-6">
+                            <div className="space-y-1">
+                                <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Create New Stake</h2>
+                                <p className="text-sm text-muted-foreground">Set up accountability for your goals</p>
+                            </div>
+                            <button
+                                onClick={handleClose}
+                                className="group relative p-2 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-105 touch-manipulation"
+                            >
+                                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                                <div className="absolute inset-0 rounded-xl bg-destructive/10 scale-0 group-hover:scale-100 transition-transform duration-200"></div>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {/* Stake Type */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Stake Type
-                            </label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <label className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${formData.stakeType === 'SELF_STAKE'
-                                    ? 'border-purple-500 bg-purple-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    }`}>
-                                    <input
-                                        type="radio"
-                                        name="stakeType"
-                                        value="SELF_STAKE"
-                                        checked={formData.stakeType === 'SELF_STAKE'}
-                                        onChange={(e) => handleInputChange('stakeType', e.target.value)}
-                                        className="sr-only"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-medium text-gray-900">Self Stake</div>
-                                        <div className="text-sm text-gray-600">I bet on myself to complete this task</div>
-                                    </div>
+                    {/* Aurora-Themed Form */}
+                    <div className="overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)]">
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
+                            {/* Stake Type */}
+                            <div className="space-y-3">
+                                <label className="block text-sm sm:text-base font-semibold text-foreground tracking-tight">
+                                    Stake Type
                                 </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <label className={`group relative flex items-center p-4 sm:p-5 border rounded-2xl cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] touch-manipulation ${formData.stakeType === 'SELF_STAKE'
+                                        ? 'border-primary bg-primary/5 shadow-soft'
+                                        : 'border-border/50 hover:border-border bg-card/50 hover:bg-card/80'
+                                        }`}>
+                                        <input
+                                            type="radio"
+                                            name="stakeType"
+                                            value="SELF_STAKE"
+                                            checked={formData.stakeType === 'SELF_STAKE'}
+                                            onChange={(e) => handleInputChange('stakeType', e.target.value)}
+                                            className="sr-only"
+                                        />
+                                        <div className="flex-1 space-y-1">
+                                            <div className="font-semibold text-foreground group-hover:text-primary transition-colors">Self Stake</div>
+                                            <div className="text-sm text-muted-foreground leading-relaxed">I bet on myself to complete this task</div>
+                                        </div>
+                                        {formData.stakeType === 'SELF_STAKE' && (
+                                            <div className="ml-3 p-1 rounded-lg bg-primary/10">
+                                                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                            </div>
+                                        )}
+                                    </label>
 
-                                <label className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${formData.stakeType === 'SOCIAL_STAKE'
-                                    ? 'border-purple-500 bg-purple-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    }`}>
-                                    <input
-                                        type="radio"
-                                        name="stakeType"
-                                        value="SOCIAL_STAKE"
-                                        checked={formData.stakeType === 'SOCIAL_STAKE'}
-                                        onChange={(e) => handleInputChange('stakeType', e.target.value)}
-                                        className="sr-only"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-medium text-gray-900">Social Stake</div>
-                                        <div className="text-sm text-gray-600">Let friends join and bet on my success</div>
-                                    </div>
-                                </label>
+                                    <label className={`group relative flex items-center p-4 sm:p-5 border rounded-2xl cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] touch-manipulation ${formData.stakeType === 'SOCIAL_STAKE'
+                                        ? 'border-primary bg-primary/5 shadow-soft'
+                                        : 'border-border/50 hover:border-border bg-card/50 hover:bg-card/80'
+                                        }`}>
+                                        <input
+                                            type="radio"
+                                            name="stakeType"
+                                            value="SOCIAL_STAKE"
+                                            checked={formData.stakeType === 'SOCIAL_STAKE'}
+                                            onChange={(e) => handleInputChange('stakeType', e.target.value)}
+                                            className="sr-only"
+                                        />
+                                        <div className="flex-1 space-y-1">
+                                            <div className="font-semibold text-foreground group-hover:text-primary transition-colors">Social Stake</div>
+                                            <div className="text-sm text-muted-foreground leading-relaxed">Let friends join and bet on my success</div>
+                                        </div>
+                                        {formData.stakeType === 'SOCIAL_STAKE' && (
+                                            <div className="ml-3 p-1 rounded-lg bg-primary/10">
+                                                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                            </div>
+                                        )}
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
                         {/* Todo Selection */}
                         <div className="border-t border-gray-200 pt-6">
@@ -370,25 +388,28 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                             </label>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-                            >
-                                {isLoading && <LoadingSpinner size="sm" />}
-                                Create Stake
-                            </button>
-                        </div>
-                    </form>
+                            {/* Aurora-Themed Actions */}
+                            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border/30 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={handleClose}
+                                    className="group relative flex-1 px-4 py-3 border border-border bg-card hover:bg-muted text-foreground rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+                                >
+                                    <span>Cancel</span>
+                                    <div className="absolute inset-0 rounded-xl bg-muted/20 scale-0 group-hover:scale-100 transition-transform duration-200"></div>
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="group relative flex-1 bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground disabled:text-muted-foreground px-4 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 touch-manipulation flex items-center justify-center gap-2"
+                                >
+                                    {isLoading && <LoadingSpinner size="sm" />}
+                                    <span>{isLoading ? 'Creating...' : 'Create Stake'}</span>
+                                    <div className="absolute inset-0 rounded-xl bg-primary-foreground/10 scale-0 group-hover:scale-100 group-disabled:scale-0 transition-transform duration-200"></div>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
