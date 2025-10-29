@@ -27,16 +27,20 @@ export async function GET(request: NextRequest) {
             where.completed = true;
         }
 
-        // Build orderBy
+        // Build orderBy - ensure newest todos appear first by default
         let orderBy: Prisma.TodoOrderByWithRelationInput | Prisma.TodoOrderByWithRelationInput[] = {};
         if (sortBy === "due") {
-            orderBy = { dueDate: 'asc' };
+            orderBy = [
+                { dueDate: 'asc' },
+                { createdAt: 'desc' } // Secondary sort by creation date
+            ];
         } else if (sortBy === "priority") {
             orderBy = [
                 { priority: 'desc' },
-                { dueDate: 'asc' },
+                { createdAt: 'desc' } // Secondary sort by creation date
             ];
         } else {
+            // Default: newest first
             orderBy = { createdAt: 'desc' };
         }
 
@@ -79,11 +83,61 @@ export async function POST(request: NextRequest) {
         const data = await request.json();
 
         // Validate required fields
-        if (!data.title) {
+        if (!data.title || typeof data.title !== 'string' || data.title.trim().length === 0) {
             return NextResponse.json(
-                { error: 'Title is required' },
+                { error: 'Title is required and must be a non-empty string' },
                 { status: 400 }
             );
+        }
+
+        // Validate title length
+        if (data.title.length > 255) {
+            return NextResponse.json(
+                { error: 'Title must be less than 255 characters' },
+                { status: 400 }
+            );
+        }
+
+        // Validate priority
+        const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+        if (data.priority && !validPriorities.includes(data.priority)) {
+            return NextResponse.json(
+                { error: 'Priority must be LOW, MEDIUM, or HIGH' },
+                { status: 400 }
+            );
+        }
+
+        // Validate dates if provided
+        if (data.dueDate && isNaN(new Date(data.dueDate).getTime())) {
+            return NextResponse.json(
+                { error: 'Invalid due date format' },
+                { status: 400 }
+            );
+        }
+
+        if (data.scheduledStartTime && isNaN(new Date(data.scheduledStartTime).getTime())) {
+            return NextResponse.json(
+                { error: 'Invalid scheduled start time format' },
+                { status: 400 }
+            );
+        }
+
+        if (data.scheduledEndTime && isNaN(new Date(data.scheduledEndTime).getTime())) {
+            return NextResponse.json(
+                { error: 'Invalid scheduled end time format' },
+                { status: 400 }
+            );
+        }
+
+        // Validate estimated duration
+        if (data.estimatedDuration !== undefined && data.estimatedDuration !== null) {
+            const duration = parseInt(data.estimatedDuration);
+            if (isNaN(duration) || duration < 1 || duration > 480) {
+                return NextResponse.json(
+                    { error: 'Estimated duration must be between 1 and 480 minutes' },
+                    { status: 400 }
+                );
+            }
         }
 
         // Calculate points based on priority
@@ -101,16 +155,16 @@ export async function POST(request: NextRequest) {
                 priority: data.priority || "MEDIUM",
                 points: pointsMap[data.priority as keyof typeof pointsMap] || 10,
                 userId: session.user.id,
-                // Enhanced scheduling fields - temporarily commented out until Prisma client is regenerated
-                // scheduledStartTime: data.scheduledStartTime && data.dueDate ? 
-                //     new Date(`${data.dueDate}T${data.scheduledStartTime}`) : null,
-                // scheduledEndTime: data.scheduledEndTime && data.dueDate ? 
-                //     new Date(`${data.dueDate}T${data.scheduledEndTime}`) : null,
-                // estimatedDuration: data.estimatedDuration ? parseInt(data.estimatedDuration) : null,
-                // timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-                // isRecurring: data.isRecurring || false,
-                // recurrencePattern: data.recurrencePattern || null,
-                // reminderSettings: data.reminderSettings || null,
+                // Enhanced scheduling fields - already combined by frontend
+                scheduledStartTime: data.scheduledStartTime ? new Date(data.scheduledStartTime) : null,
+                scheduledEndTime: data.scheduledEndTime ? new Date(data.scheduledEndTime) : null,
+                estimatedDuration: data.estimatedDuration ? parseInt(data.estimatedDuration) : null,
+                timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                isRecurring: data.isRecurring || false,
+                recurrencePattern: data.recurrencePattern || null,
+                // Timer and focus fields
+                focusMode: data.focusMode || false,
+                breakDuration: data.breakDuration || null,
             },
             include: {
                 user: {

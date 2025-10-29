@@ -55,71 +55,95 @@ export default function NotesPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Notes</h1>
-                    <p className="text-gray-600">Capture your thoughts, ideas, and insights</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Notes</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base">Capture your thoughts, ideas, and insights</p>
                 </div>
                 <CreateNoteButton onNoteCreated={handleNoteCreated} />
             </div>
 
             {/* Stats Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-blue-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Total</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">Total</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.notesCreated}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.notesCreated}
-                    </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-gray-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">General</span>
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-muted/50 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">General</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.categoryCount.GENERAL}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.categoryCount.GENERAL}
-                    </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-blue-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Bible Study</span>
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-info/10 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-info" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">Bible Study</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.categoryCount.BIBLE_STUDY}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.categoryCount.BIBLE_STUDY}
-                    </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-purple-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Conference</span>
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">Conference</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.categoryCount.CONFERENCE}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.categoryCount.CONFERENCE}
-                    </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-green-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Song</span>
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-success/10 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-success" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">Song</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.categoryCount.SONG}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.categoryCount.SONG}
-                    </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                        <DocumentTextIcon className="w-5 h-5 text-yellow-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-600">Quote</span>
+                <div className="bg-card p-3 sm:p-4 rounded-lg sm:rounded-xl border border-border shadow-soft hover:shadow-medium transition-all duration-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-2 bg-warning/10 rounded-lg">
+                            <DocumentTextIcon className="w-4 h-4 text-warning" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs sm:text-sm font-medium text-muted-foreground block">Quote</span>
+                            <p className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {loading ? "..." : stats.categoryCount.QUOTE}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {loading ? "..." : stats.categoryCount.QUOTE}
-                    </p>
                 </div>
             </div>
 

@@ -45,26 +45,26 @@ export default class ErrorBoundary extends Component<Props, State> {
             }
 
             return (
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                    <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                            <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                <div className="min-h-screen flex items-center justify-center bg-muted/20">
+                    <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-6 text-center border border-border">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-destructive/10 mb-4">
+                            <ExclamationTriangleIcon className="h-6 w-6 text-destructive" />
                         </div>
 
-                        <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                        <h2 className="text-lg font-semibold text-foreground mb-2">
                             Something went wrong
                         </h2>
 
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-muted-foreground mb-4">
                             We're sorry, but something unexpected happened. Please try refreshing the page.
                         </p>
 
                         {process.env.NODE_ENV === 'development' && this.state.error && (
                             <details className="mb-4 text-left">
-                                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+                                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
                                     Error Details (Development)
                                 </summary>
-                                <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
+                                <pre className="mt-2 text-xs text-destructive bg-destructive/5 p-2 rounded overflow-auto">
                                     {this.state.error.toString()}
                                     {this.state.errorInfo?.componentStack}
                                 </pre>
@@ -74,7 +74,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                         <div className="flex gap-3 justify-center">
                             <button
                                 onClick={this.handleRetry}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                             >
                                 <ArrowPathIcon className="w-4 h-4" />
                                 Try Again
@@ -82,7 +82,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
                             <button
                                 onClick={() => window.location.reload()}
-                                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                             >
                                 Refresh Page
                             </button>

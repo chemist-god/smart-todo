@@ -73,7 +73,7 @@ function ToastContainer() {
     if (toasts.length === 0) return null;
 
     return (
-        <div className="fixed top-4 right-4 z-50 space-y-2">
+        <div className="fixed bottom-14 right-4 z-50 space-y-2">
             {toasts.map((toast) => (
                 <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
             ))}
@@ -97,33 +97,33 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     const getIcon = () => {
         switch (toast.type) {
             case 'success':
-                return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+                return <CheckCircleIcon className="w-5 h-5 text-success" />;
             case 'error':
-                return <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />;
+                return <ExclamationTriangleIcon className="w-5 h-5 text-destructive" />;
             case 'warning':
-                return <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />;
+                return <ExclamationTriangleIcon className="w-5 h-5 text-warning" />;
             case 'info':
-                return <InformationCircleIcon className="w-5 h-5 text-blue-500" />;
+                return <InformationCircleIcon className="w-5 h-5 text-info" />;
         }
     };
 
     const getBackgroundColor = () => {
         switch (toast.type) {
             case 'success':
-                return 'bg-green-50 border-green-200';
+                return 'bg-success/10 border-success/20';
             case 'error':
-                return 'bg-red-50 border-red-200';
+                return 'bg-destructive/10 border-destructive/20';
             case 'warning':
-                return 'bg-yellow-50 border-yellow-200';
+                return 'bg-warning/10 border-warning/20';
             case 'info':
-                return 'bg-blue-50 border-blue-200';
+                return 'bg-info/10 border-info/20';
         }
     };
 
     return (
         <div
             className={`
-        max-w-sm w-full bg-white rounded-lg shadow-lg border p-4 transition-all duration-300 transform
+        max-w-sm w-full bg-card rounded-lg shadow-lg border p-4 transition-all duration-300 transform
         ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
         ${getBackgroundColor()}
       `}
@@ -133,11 +133,11 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
                     {getIcon()}
                 </div>
                 <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-foreground">
                         {toast.title}
                     </h3>
                     {toast.message && (
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-muted-foreground">
                             {toast.message}
                         </p>
                     )}
@@ -145,7 +145,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
                 <div className="ml-4 flex-shrink-0">
                     <button
                         onClick={handleRemove}
-                        className="inline-flex text-gray-400 hover:text-gray-600 transition-colors"
+                        className="inline-flex text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <XMarkIcon className="w-4 h-4" />
                     </button>

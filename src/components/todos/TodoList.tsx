@@ -32,9 +32,11 @@ interface Todo {
 
 interface TodoListProps {
     onTodoChange?: () => void;
+    refreshTrigger?: number;
+    optimisticTodo?: Todo | null;
 }
 
-export default function TodoList({ onTodoChange }: TodoListProps) {
+export default function TodoList({ onTodoChange, refreshTrigger, optimisticTodo }: TodoListProps) {
     const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
     const [sortBy, setSortBy] = useState<"created" | "due" | "priority">("created");
     const [todos, setTodos] = useState<Todo[]>([]);
@@ -44,6 +46,36 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
     useEffect(() => {
         fetchTodos();
     }, [filter, sortBy]);
+
+    // Handle optimistic todo insertion
+    useEffect(() => {
+        if (optimisticTodo) {
+            // Add the optimistic todo to the top of the list immediately
+            setTodos(prevTodos => {
+                // Remove any existing todo with the same ID to prevent duplicates
+                const filteredTodos = prevTodos.filter(todo => todo.id !== optimisticTodo.id);
+                // Add the new todo at the top
+                return [optimisticTodo, ...filteredTodos];
+            });
+
+            // Refresh in background to ensure consistency
+            setTimeout(() => {
+                fetchTodos();
+            }, 200);
+        }
+    }, [optimisticTodo]);
+
+    // Trigger refresh when refreshTrigger changes
+    useEffect(() => {
+        if (refreshTrigger !== undefined) {
+            // Add a small delay to handle potential race conditions
+            const timer = setTimeout(() => {
+                fetchTodos();
+            }, 100); // 100ms delay to ensure database consistency
+
+            return () => clearTimeout(timer);
+        }
+    }, [refreshTrigger]);
 
     const fetchTodos = async () => {
         try {
@@ -124,11 +156,20 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
 
     if (loading) {
         return (
-            <div className="space-y-4">
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span className="ml-2 text-gray-600">Loading todos...</span>
+            <div className="space-y-6">
+                {/* Enhanced Loading State */}
+                <div className="bg-card border border-border rounded-xl shadow-soft p-8">
+                    <div className="flex items-center justify-center py-12">
+                        <div className="text-center space-y-4">
+                            <div className="relative mx-auto">
+                                <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary/20 border-t-primary"></div>
+                                <div className="absolute inset-0 animate-pulse rounded-full bg-primary/10"></div>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-lg font-semibold text-foreground">Loading your todos</p>
+                                <p className="text-sm text-muted-foreground">Fetching your latest tasks...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -137,66 +178,87 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
 
     if (error) {
         return (
-            <div className="space-y-4">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-800">Error: {error}</p>
-                    <button
-                        onClick={fetchTodos}
-                        className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-                    >
-                        Try again
-                    </button>
+            <div className="space-y-6">
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/30 rounded-xl p-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/50">
+                            <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-red-800 dark:text-red-200 font-medium">Error loading todos</p>
+                            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+                        </div>
+                        <button
+                            onClick={fetchTodos}
+                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors focus-enhanced"
+                        >
+                            Try again
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
-            {/* Filters and Sort */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                        <FunnelIcon className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">Filter:</span>
-                        <div className="flex space-x-1">
+        <div className="space-y-6">
+            {/* Enhanced Filters and Sort */}
+            <div className="bg-card border border-border rounded-xl p-3 sm:p-4 shadow-soft">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-primary/10">
+                                <FunnelIcon className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground">Filter:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 sm:gap-1">
                             <button
                                 onClick={() => setFilter("all")}
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "all"
-                                    ? "bg-blue-100 text-blue-700 font-medium"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
+                                className={`px-2 py-1.5 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
+                                    filter === "all"
+                                        ? "bg-primary text-primary-foreground shadow-soft"
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                                }`}
                             >
-                                All
+                                All ({todos.length})
                             </button>
                             <button
                                 onClick={() => setFilter("active")}
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "active"
-                                    ? "bg-blue-100 text-blue-700 font-medium"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
+                                className={`px-2 py-1.5 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
+                                    filter === "active"
+                                        ? "bg-primary text-primary-foreground shadow-soft"
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                                }`}
                             >
-                                Active
+                                Active ({todos.filter(t => !t.completed).length})
                             </button>
                             <button
                                 onClick={() => setFilter("completed")}
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${filter === "completed"
-                                    ? "bg-blue-100 text-blue-700 font-medium"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
+                                className={`px-2 py-1.5 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
+                                    filter === "completed"
+                                        ? "bg-primary text-primary-foreground shadow-soft"
+                                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                                }`}
                             >
-                                Completed
+                                Completed ({todos.filter(t => t.completed).length})
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                        <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">Sort:</span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="p-1.5 rounded-lg bg-primary/10">
+                                <AdjustmentsHorizontalIcon className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground hidden sm:inline">Sort:</span>
+                        </div>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                            className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            className="px-3 py-1.5 text-sm font-medium bg-background border border-border rounded-lg focus-enhanced hover:bg-muted transition-colors min-w-0"
                         >
                             <option value="created">Created Date</option>
                             <option value="due">Due Date</option>
@@ -206,25 +268,30 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
                 </div>
             </div>
 
-            {/* Todo List */}
-            <div className="space-y-3">
+            {/* Enhanced Todo List */}
+            <div className="space-y-4">
                 {filteredTodos.length === 0 ? (
-                    <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <div className="bg-card border border-border rounded-xl shadow-soft p-8 sm:p-12 text-center">
+                        <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No todos found</h3>
-                        <p className="text-gray-500 mb-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                             {filter === "all"
-                                ? "Create your first todo to get started on your productivity journey!"
-                                : `No ${filter} todos found.`
+                                ? "No todos yet"
+                                : `No ${filter} todos`
+                            }
+                        </h3>
+                        <p className="text-muted-foreground mb-4 sm:mb-6 max-w-sm mx-auto text-sm sm:text-base">
+                            {filter === "all"
+                                ? "Create your first todo to start building productive habits and achieving your goals!"
+                                : `You don't have any ${filter} todos at the moment.`
                             }
                         </p>
                         {filter === "all" && (
-                            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-soft hover:shadow-medium focus-enhanced text-sm sm:text-base">
+                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
                                 Create Your First Todo
@@ -232,14 +299,16 @@ export default function TodoList({ onTodoChange }: TodoListProps) {
                         )}
                     </div>
                 ) : (
-                    filteredTodos.map((todo) => (
-                        <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            onUpdate={handleTodoUpdate}
-                            onDelete={handleTodoDelete}
-                        />
-                    ))
+                    <div className="space-y-3">
+                        {filteredTodos.map((todo) => (
+                            <TodoItem
+                                key={todo.id}
+                                todo={todo}
+                                onUpdate={handleTodoUpdate}
+                                onDelete={handleTodoDelete}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
         </div>

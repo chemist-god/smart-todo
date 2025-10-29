@@ -17,10 +17,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     if (status === "loading") {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 font-medium">Loading your Smart Todo...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10">
+                <div className="text-center space-y-4">
+                    <div className="relative">
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
+                        <div className="absolute inset-0 animate-pulse rounded-full bg-primary/10"></div>
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-lg font-semibold text-foreground">Loading Smart Todo</p>
+                        <p className="text-sm text-muted-foreground">Preparing your productivity workspace...</p>
+                    </div>
                 </div>
             </div>
         );
@@ -28,13 +34,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     if (!session) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-                <div className="max-w-md w-full space-y-8 p-8">
-                    <div className="text-center">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-2">Smart Todo</h1>
-                        <p className="text-gray-600 mb-8">Your Personal Productivity Ecosystem</p>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
+                <div className="max-w-md w-full space-y-8">
+                    <div className="text-center space-y-4">
+                        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/60 rounded-2xl flex items-center justify-center shadow-lg">
+                            <span className="text-2xl">📝</span>
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-foreground">Smart Todo</h1>
+                            <p className="text-muted-foreground mt-2">Your Personal Productivity Ecosystem</p>
+                        </div>
                     </div>
-                    <AuthStatus />
+                    <div className="bg-card border border-border rounded-xl shadow-soft p-6">
+                        <AuthStatus />
+                    </div>
                 </div>
             </div>
         );
@@ -44,11 +57,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <ErrorBoundary>
             <ToastProvider>
                 <SWRProvider>
-                    <div className="flex h-screen bg-gray-50">
+                    <div className="flex h-screen bg-background">
                         <Sidebar />
-                        <main className="flex-1 overflow-auto">
-                            <div className="p-6">
-                                {children}
+                        <main className="flex-1 overflow-auto lg:ml-0">
+                            <div className="container-responsive py-6 lg:py-8">
+                                <div className="max-w-7xl mx-auto">
+                                    {children}
+                                </div>
                             </div>
                         </main>
                         <RealtimeStatus />
