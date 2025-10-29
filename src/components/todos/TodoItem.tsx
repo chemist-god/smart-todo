@@ -134,7 +134,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     };
 
     return (
-        <div className={`bg-card border border-border rounded-xl p-3 sm:p-4 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 group ${
+        <div className={`bg-card border border-border rounded-xl p-3 sm:p-4 lg:p-5 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 group ${
             todo.completed
                 ? 'border-success/50 bg-success/5'
                 : isOverdue
@@ -158,7 +158,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                         <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm sm:text-base font-semibold leading-tight transition-all duration-200 ${
+                            <h3 className={`text-sm sm:text-base lg:text-lg font-semibold leading-tight transition-all duration-200 ${
                                 todo.completed
                                     ? "line-through text-muted-foreground"
                                     : "text-foreground group-hover:text-primary"
@@ -166,7 +166,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                 {todo.title}
                             </h3>
                             {todo.description && (
-                                <p className={`text-xs sm:text-sm mt-1 sm:mt-1.5 leading-relaxed transition-colors duration-200 ${
+                                <p className={`text-xs sm:text-sm lg:text-base mt-1 sm:mt-1.5 leading-relaxed transition-colors duration-200 line-clamp-2 ${
                                     todo.completed
                                         ? "text-muted-foreground/70"
                                         : "text-muted-foreground"
@@ -177,10 +177,10 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                         </div>
 
                         {/* Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-shrink-0">
                             {/* Priority Badge */}
-                            <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-medium ${priorityColors[todo.priority]}`}>
-                                <span className="text-xs">
+                            <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 lg:px-3 lg:py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-all duration-200 ${priorityColors[todo.priority]}`}>
+                                <span className="text-xs sm:text-sm">
                                     {todo.priority === 'HIGH' ? '🔴' : todo.priority === 'MEDIUM' ? '🟡' : '🟢'}
                                 </span>
                                 <span className="hidden sm:inline">{priorityLabels[todo.priority]}</span>
@@ -188,8 +188,8 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                             </span>
 
                             {/* Points Badge */}
-                            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                                <StarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 lg:px-3 lg:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20 transition-all duration-200 hover:bg-primary/20">
+                                <StarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5" />
                                 {todo.points}
                             </span>
 
