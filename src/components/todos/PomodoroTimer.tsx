@@ -16,7 +16,17 @@ import {
 interface PomodoroTimerProps {
     todoId: string;
     onSessionComplete: (sessionData: PomodoroSessionData) => void;
+    onStateChange?: (state: TimerState) => void;
+    persistState?: boolean;
     className?: string;
+}
+
+interface TimerState {
+    isRunning: boolean;
+    isPaused: boolean;
+    timeLeft: number;
+    currentPhase?: string;
+    sessionTime: number;
 }
 
 interface PomodoroSessionData {
@@ -72,6 +82,8 @@ const PHASE_CONFIG = {
 export default function PomodoroTimer({
     todoId,
     onSessionComplete,
+    onStateChange,
+    persistState = false,
     className = ""
 }: PomodoroTimerProps) {
     const [currentPhase, setCurrentPhase] = useState<PomodoroPhase>('FOCUS');
@@ -84,6 +96,26 @@ export default function PomodoroTimer({
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [autoStartBreaks, setAutoStartBreaks] = useState(false);
     const [autoStartPomodoros, setAutoStartPomodoros] = useState(false);
+    const [sessionStartTime, setSessionStartTime] = useState(0);
+
+    // Notify parent of state changes
+    const notifyStateChange = useCallback(() => {
+        if (onStateChange) {
+            const sessionTime = sessionStartTime > 0 ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+            onStateChange({
+                isRunning,
+                isPaused,
+                timeLeft,
+                currentPhase,
+                sessionTime
+            });
+        }
+    }, [onStateChange, isRunning, isPaused, timeLeft, currentPhase, sessionStartTime]);
+
+    // Update state when timer changes
+    useEffect(() => {
+        notifyStateChange();
+    }, [notifyStateChange]);
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -116,6 +148,7 @@ export default function PomodoroTimer({
         if (!isRunning) {
             setIsRunning(true);
             setIsPaused(false);
+            setSessionStartTime(Date.now());
 
             intervalRef.current = setInterval(() => {
                 setTimeLeft(prev => {
@@ -160,6 +193,7 @@ export default function PomodoroTimer({
     const stopTimer = useCallback(() => {
         setIsRunning(false);
         setIsPaused(false);
+        setSessionStartTime(0);
 
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -170,6 +204,7 @@ export default function PomodoroTimer({
     const resetTimer = useCallback(() => {
         stopTimer();
         setTimeLeft(customTimes[currentPhase] * 60);
+        setSessionStartTime(0);
     }, [stopTimer, customTimes, currentPhase]);
 
     // Handle timer completion
