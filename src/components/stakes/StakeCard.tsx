@@ -167,89 +167,82 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     };
 
     return (
-        <div className="bg-card rounded-lg border border-border shadow-soft hover:shadow-medium transition-all duration-200">
-            {/* Header */}
-            <div className="p-4 border-b border-border">
-                <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-foreground line-clamp-2">{stake.title}</h3>
-                    <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(stake.status)}`}>
+        <div className="group bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99] touch-manipulation overflow-hidden">
+            {/* Aurora-Themed Header */}
+            <div className="p-4 sm:p-5 border-b border-border/50 bg-gradient-to-r from-primary/5 via-primary/8 to-primary/5">
+                <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground line-clamp-2 tracking-tight group-hover:text-primary transition-colors duration-200">{stake.title}</h3>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-medium backdrop-blur-sm ${getStatusColor(stake.status)}`}>
                             {getStatusIcon(stake.status)}
-                            <span className="ml-1">{stake.status}</span>
+                            <span className="ml-1.5">{stake.status}</span>
                         </span>
                     </div>
                 </div>
 
                 {stake.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{stake.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{stake.description}</p>
                 )}
             </div>
 
-            {/* Financial Info */}
-            <div className="p-4 border-b border-border">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Total Amount</p>
-                        <p className="text-lg font-semibold text-foreground">{formatCurrency(stake.totalAmount)}</p>
+            {/* Aurora-Themed Financial Info */}
+            <div className="p-4 sm:p-5 border-b border-border/50">
+                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                    <div className="space-y-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Amount</p>
+                        <p className="text-lg sm:text-xl font-bold text-info tabular-nums">{formatCurrency(stake.totalAmount)}</p>
                     </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Your Stake</p>
-                        <p className="text-lg font-semibold text-foreground">{formatCurrency(stake.userStake)}</p>
+                    <div className="space-y-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground font-medium">Your Stake</p>
+                        <p className="text-lg sm:text-xl font-bold text-primary tabular-nums">{formatCurrency(stake.userStake)}</p>
                     </div>
                 </div>
 
                 {stake.stakeType === 'SOCIAL_STAKE' && (
-                    <div className="mt-3 pt-3 border-t border-border/50">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Participants</span>
-                            <div className="flex items-center gap-1">
-                                <UserGroupIcon className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">{stake.totalParticipants}</span>
+                    <div className="mt-4 pt-4 border-t border-border/30">
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30">
+                            <span className="text-sm text-muted-foreground font-medium">Participants</span>
+                            <div className="flex items-center gap-2">
+                                <div className="p-1 rounded-lg bg-primary/10">
+                                    <UserGroupIcon className="w-3 h-3 text-primary" />
+                                </div>
+                                <span className="text-sm font-semibold text-foreground tabular-nums">{stake.totalParticipants}</span>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Time Info */}
-            <div className="p-4 border-b border-border">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Deadline</span>
-                    <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
+            {/* Aurora-Themed Time Info */}
+            <div className="p-4 sm:p-5 border-b border-border/50 space-y-3">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-muted/20">
+                    <span className="text-sm text-muted-foreground font-medium">Deadline</span>
+                    <div className="flex items-center gap-2">
+                        <div className="p-1 rounded-lg bg-warning/10">
+                            <CalendarIcon className="w-3 h-3 text-warning" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">
                             {new Date(stake.deadline).toLocaleDateString()}
                         </span>
                     </div>
                 </div>
 
                 {stake.status === 'ACTIVE' && (
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Time Remaining</span>
-                        <div className="flex items-center gap-1">
-                            <ClockIcon className="w-4 h-4 text-muted-foreground" />
-                            <span className={`text-sm font-medium ${stake.isOverdue ? 'text-destructive' : 'text-foreground'}`}>
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-muted/20">
+                        <span className="text-sm text-muted-foreground font-medium">Time Remaining</span>
+                        <div className="flex items-center gap-2">
+                            <div className={`p-1 rounded-lg ${stake.isOverdue ? 'bg-destructive/10' : 'bg-success/10'}`}>
+                                <ClockIcon className={`w-3 h-3 ${stake.isOverdue ? 'text-destructive' : 'text-success'}`} />
+                            </div>
+                            <span className={`text-sm font-semibold tabular-nums ${stake.isOverdue ? 'text-destructive' : 'text-success'}`}>
                                 {stake.isOverdue ? 'Overdue' : formatTimeRemaining(stake.timeRemaining)}
                             </span>
                         </div>
                     </div>
                 )}
-
-                {/* Progress Bar */}
-                {stake.status === 'ACTIVE' && (
-                    <div className="mt-3">
-                        <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                                className={`h-2 rounded-full transition-all duration-300 ${stake.isOverdue ? 'bg-destructive' : 'bg-primary'
-                                    }`}
-                                style={{ width: `${Math.min(100, Math.max(0, stake.progress))}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Actions */}
+            {/* Aurora-Themed Actions */}
             <div className="p-4">
                 {/* Overdue Actions */}
                 {stake.status === 'ACTIVE' && stake.isOverdue && stake.isOwner && (
