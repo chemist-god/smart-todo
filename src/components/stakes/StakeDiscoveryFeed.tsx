@@ -163,27 +163,29 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-xl p-6 text-white">
-                <div className="flex items-center justify-between">
+        <div className="space-y-4">
+            {/* Compact Aurora-Themed Header */}
+            <div className="flex items-center justify-between p-4 bg-warning/10 rounded-xl border border-warning/20">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-warning/20 rounded-lg">
+                        <MagnifyingGlassIcon className="w-5 h-5 text-warning" />
+                    </div>
                     <div>
-                        <h2 className="text-2xl font-bold mb-2">🔍 Discover & Explore</h2>
-                        <p className="text-emerald-100">Browse all stake types across the platform</p>
+                        <h3 className="text-lg font-semibold text-foreground">🔍 Discovery Feed</h3>
+                        <p className="text-sm text-muted-foreground">Browse all stake types</p>
                     </div>
-                    <div className="flex items-center gap-2 text-emerald-100">
-                        <MagnifyingGlassIcon className="w-6 h-6" />
-                        <span className="text-sm font-medium">{stakes.length} Stakes Available</span>
-                    </div>
+                </div>
+                <div className="text-sm font-medium text-warning">
+                    <span className="tabular-nums">{stakes.length}</span> available
                 </div>
             </div>
 
-            {/* Advanced Discovery Filters */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">🔍 Advanced Discovery</h3>
-                    <div className="text-sm text-gray-500">
-                        {stakes.length} stakes across all categories
+            {/* Aurora-Themed Advanced Discovery Filters */}
+            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-4 sm:p-6 shadow-soft">
+                <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">🔍 Advanced Discovery</h3>
+                    <div className="text-sm text-muted-foreground font-medium">
+                        <span className="tabular-nums">{stakes.length}</span> stakes across all categories
                     </div>
                 </div>
 

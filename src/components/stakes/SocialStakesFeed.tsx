@@ -222,27 +222,29 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 rounded-xl p-6 text-white">
-                <div className="flex items-center justify-between">
+        <div className="space-y-4">
+            {/* Ultra Compact Aurora Header */}
+            <div className="flex items-center justify-between p-3 bg-info/5 backdrop-blur-sm rounded-lg border border-info/10">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-info/15 rounded-md">
+                        <UserGroupIcon className="w-4 h-4 text-info" />
+                    </div>
                     <div>
-                        <h2 className="text-2xl font-bold mb-2">👥 Join & Support</h2>
-                        <p className="text-pink-100">Support your friends and join their challenges</p>
+                        <h4 className="text-sm font-medium text-foreground">👥 Social Stakes</h4>
+                        <p className="text-xs text-muted-foreground">Join challenges</p>
                     </div>
-                    <div className="flex items-center gap-2 text-pink-100">
-                        <UserGroupIcon className="w-6 h-6" />
-                        <span className="text-sm font-medium">{stakes.length} Social Stakes</span>
-                    </div>
+                </div>
+                <div className="text-xs font-medium text-info bg-info/10 px-2 py-1 rounded-md">
+                    {stakes.length}
                 </div>
             </div>
 
-            {/* Social Discovery */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">👥 Find Friends to Support</h3>
-                    <div className="text-sm text-gray-500">
-                        {stakes.length} social stakes available
+            {/* Aurora-Themed Social Discovery */}
+            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-4 sm:p-6 shadow-soft">
+                <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">👥 Find Friends to Support</h3>
+                    <div className="text-sm text-muted-foreground font-medium">
+                        <span className="tabular-nums">{stakes.length}</span> social stakes available
                     </div>
                 </div>
 
@@ -276,8 +278,8 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                     </div>
                 </div>
 
-                {/* Social Filter Tabs */}
-                <div className="mt-4 flex space-x-1 bg-pink-50 p-1 rounded-lg">
+                {/* Aurora Filter Tabs */}
+                <div className="mt-4 flex space-x-1 bg-info/5 p-1 rounded-lg">
                     {[
                         { id: 'trending', label: '🔥 Trending', icon: ArrowTrendingUpIcon },
                         { id: 'friends', label: '👥 Friends', icon: UserGroupIcon },
@@ -287,9 +289,9 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                         <button
                             key={tab.id}
                             onClick={() => setFilter(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${filter === tab.id
-                                ? 'bg-white text-pink-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${filter === tab.id
+                                ? 'bg-info text-info-foreground shadow-soft'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                 }`}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -299,89 +301,89 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                 </div>
             </div>
 
-            {/* Social Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-lg border border-pink-200">
-                    <div className="flex items-center">
-                        <div className="p-2 bg-pink-100 rounded-lg">
-                            <UserGroupIcon className="w-6 h-6 text-pink-600" />
+            {/* Aurora-Themed Social Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-info/10 rounded-xl group-hover:bg-info/20 transition-colors duration-300">
+                            <UserGroupIcon className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Friends' Stakes</p>
-                            <p className="text-2xl font-bold text-gray-900">{stakes.length}</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Active Social</p>
+                            <p className="text-lg sm:text-xl font-bold text-info tabular-nums">{stakes.filter(s => s.status === 'ACTIVE').length}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                    <div className="flex items-center">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <CurrencyDollarIcon className="w-6 h-6 text-blue-600" />
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors duration-300">
+                            <CurrencyDollarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Support Pool</p>
-                            <p className="text-2xl font-bold text-gray-900">
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Support Pool</p>
+                            <p className="text-lg sm:text-xl font-bold text-success tabular-nums">
                                 Gh{stakes.reduce((sum, stake) => sum + Number(stake.totalAmount), 0).toFixed(0)}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                    <div className="flex items-center">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                            <HandThumbUpIcon className="w-6 h-6 text-green-600" />
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors duration-300">
+                            <HandThumbUpIcon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Community</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {stakes.reduce((sum, stake) => sum + (stake.joinCount || 0), 0)} supporters
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Community</p>
+                            <p className="text-lg sm:text-xl font-bold text-primary tabular-nums">
+                                {stakes.reduce((sum, stake) => sum + (stake.joinCount || 0), 0)}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
-                    <div className="flex items-center">
-                        <div className="p-2 bg-orange-100 rounded-lg">
-                            <FireIcon className="w-6 h-6 text-orange-600" />
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-destructive/10 rounded-xl group-hover:bg-destructive/20 transition-colors duration-300">
+                            <FireIcon className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Trending</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {stakes.filter(s => (s.popularity || 0) > 10).length} hot
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Trending</p>
+                            <p className="text-lg sm:text-xl font-bold text-destructive tabular-nums">
+                                {stakes.filter(s => (s.popularity || 0) > 10).length}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Social Stakes Grid */}
+            {/* Aurora Empty State */}
             {stakes.length === 0 ? (
-                <div className="text-center py-12 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl border border-pink-200">
-                    <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <UserGroupIcon className="w-8 h-8 text-pink-600" />
+                <div className="text-center py-8 bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30">
+                    <div className="w-12 h-12 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <UserGroupIcon className="w-6 h-6 text-info" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">👥 No Friends' Stakes Yet</h3>
-                    <p className="text-gray-500 mb-6">
+                    <h3 className="text-base font-medium text-foreground mb-2">👥 No Social Stakes</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
                         {searchTerm || category !== 'all'
-                            ? 'Try adjusting your search to find friends\' stakes.'
-                            : 'Invite friends to create social stakes or check back later!'}
+                            ? 'Try adjusting your search filters.'
+                            : 'Invite friends to create stakes!'}
                     </p>
                     {!searchTerm && category === 'all' && (
-                        <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
                             <button
                                 onClick={() => window.location.href = '/stakes?tab=my-stakes'}
-                                className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors mr-3"
+                                className="inline-flex items-center px-3 py-2 bg-info text-info-foreground rounded-lg hover:bg-info/90 transition-colors text-sm"
                             >
-                                <SparklesIcon className="w-4 h-4 mr-2" />
-                                Create Social Stake
+                                <SparklesIcon className="w-4 h-4 mr-1" />
+                                Create Stake
                             </button>
                             <button
                                 onClick={() => setFilter('trending')}
-                                className="inline-flex items-center px-4 py-2 bg-white text-pink-600 border border-pink-300 rounded-lg hover:bg-pink-50 transition-colors"
+                                className="inline-flex items-center px-3 py-2 bg-card border border-border text-foreground rounded-lg hover:bg-muted transition-colors text-sm"
                             >
-                                <ArrowTrendingUpIcon className="w-4 h-4 mr-2" />
+                                <ArrowTrendingUpIcon className="w-4 h-4 mr-1" />
                                 View Trending
                             </button>
                         </div>
@@ -391,18 +393,18 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {stakes.map((stake) => (
                         <div key={stake.id} className="group">
-                            {/* Sleek Social Stake Card */}
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-pink-200 transition-all duration-300 overflow-hidden h-full flex flex-col">
-                                {/* Compact Header */}
+                            {/* Aurora Social Stake Card */}
+                            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-soft hover:shadow-medium hover:border-info/30 transition-all duration-300 overflow-hidden h-full flex flex-col group">
+                                {/* Aurora Header */}
                                 <div className="p-4 pb-3">
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                            <div className="w-8 h-8 bg-gradient-to-r from-info to-info/80 rounded-full flex items-center justify-center text-info-foreground font-semibold text-sm">
                                                 {stake.creator.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h4 className="font-semibold text-gray-900 text-sm truncate">{stake.creator.name}</h4>
-                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                <h4 className="font-semibold text-foreground text-sm truncate group-hover:text-info transition-colors">{stake.creator.name}</h4>
+                                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                     <StarIcon className="w-3 h-3" />
                                                     <span>#{stake.creator.rank || 'New'}</span>
                                                     <span>•</span>
@@ -419,75 +421,75 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                                     </div>
                                 </div>
 
-                                {/* Compact Content */}
+                                {/* Aurora Content */}
                                 <div className="px-4 pb-3 flex-1">
-                                    <h3 className="font-semibold text-gray-900 mb-2 text-sm line-clamp-2 leading-tight">{stake.title}</h3>
+                                    <h3 className="font-semibold text-foreground mb-2 text-sm line-clamp-2 leading-tight group-hover:text-info transition-colors">{stake.title}</h3>
 
-                                    {/* Key Stats */}
+                                    {/* Aurora Stats */}
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-900">Gh{Number(stake.totalAmount).toFixed(0)}</div>
-                                            <div className="text-xs text-gray-500">Pool</div>
+                                            <div className="text-base font-bold text-success tabular-nums">Gh{Number(stake.totalAmount).toFixed(0)}</div>
+                                            <div className="text-xs text-muted-foreground">Pool</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-900">{stake.participantCount || 0}</div>
-                                            <div className="text-xs text-gray-500">Joined</div>
+                                            <div className="text-base font-bold text-info tabular-nums">{stake.participantCount || 0}</div>
+                                            <div className="text-xs text-muted-foreground">Joined</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-900">{Math.ceil(stake.timeRemaining / (1000 * 60 * 60))}h</div>
-                                            <div className="text-xs text-gray-500">Left</div>
+                                            <div className="text-base font-bold text-warning tabular-nums">{Math.ceil(stake.timeRemaining / (1000 * 60 * 60))}h</div>
+                                            <div className="text-xs text-muted-foreground">Left</div>
                                         </div>
                                     </div>
 
-                                    {/* Progress Bar */}
+                                    {/* Aurora Progress Bar */}
                                     <div className="mb-3">
-                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div className="w-full bg-muted rounded-full h-1.5">
                                             <div
-                                                className="bg-gradient-to-r from-pink-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                                                className="bg-gradient-to-r from-info to-primary h-1.5 rounded-full transition-all duration-300"
                                                 style={{ width: `${Math.max(0, Math.min(100, stake.progress || 0))}%` }}
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Interactive Engagement Bar */}
-                                <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                                {/* Aurora Engagement Bar */}
+                                <div className="px-4 py-3 bg-muted/30 border-t border-border/30">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => handleViewStake(stake.id)}
-                                                className="flex items-center gap-1 text-gray-500 hover:text-pink-600 transition-colors group"
+                                                className="flex items-center gap-1 text-muted-foreground hover:text-info transition-colors group"
                                             >
                                                 <EyeIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                <span className="text-xs font-medium">{stake.viewCount || 0}</span>
+                                                <span className="text-xs font-medium tabular-nums">{stake.viewCount || 0}</span>
                                             </button>
                                             <button
                                                 onClick={() => handleLikeStake(stake.id)}
-                                                className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors group"
+                                                className="flex items-center gap-1 text-muted-foreground hover:text-destructive transition-colors group"
                                             >
                                                 <HeartIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                <span className="text-xs font-medium">{stake.joinCount || 0}</span>
+                                                <span className="text-xs font-medium tabular-nums">{stake.joinCount || 0}</span>
                                             </button>
                                             <button
                                                 onClick={() => handleShareStake(stake.id)}
-                                                className="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors group"
+                                                className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors group"
                                             >
                                                 <ShareIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                <span className="text-xs font-medium">{stake.shareCount || 0}</span>
+                                                <span className="text-xs font-medium tabular-nums">{stake.shareCount || 0}</span>
                                             </button>
                                         </div>
-                                        <div className="flex items-center gap-1 text-pink-600">
+                                        <div className="flex items-center gap-1 text-warning">
                                             <FireIcon className="w-4 h-4" />
-                                            <span className="text-xs font-bold">{stake.popularity || 0}</span>
+                                            <span className="text-xs font-bold tabular-nums">{stake.popularity || 0}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Action Button */}
+                                {/* Aurora Action Button */}
                                 <div className="p-4 pt-0">
                                     <button
                                         onClick={() => handleJoinStake(stake)}
-                                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm hover:from-pink-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                                        className="w-full bg-info hover:bg-info/90 text-info-foreground py-2.5 px-4 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-soft hover:shadow-medium"
                                     >
                                         Join & Support
                                     </button>

@@ -72,136 +72,155 @@ export default function StakeNotifications({ userId }: StakeNotificationsProps) 
     const getNotificationIcon = (type: string) => {
         switch (type) {
             case 'deadline':
-                return <ClockIcon className="h-5 w-5 text-red-500" />;
+                return <ClockIcon className="h-4 w-4 text-destructive" />;
             case 'achievement':
-                return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+                return <CheckCircleIcon className="h-4 w-4 text-success" />;
             case 'reminder':
-                return <BellIcon className="h-5 w-5 text-blue-500" />;
+                return <BellIcon className="h-4 w-4 text-info" />;
             case 'reward':
-                return <CurrencyDollarIcon className="h-5 w-5 text-yellow-500" />;
+                return <CurrencyDollarIcon className="h-4 w-4 text-warning" />;
             case 'penalty':
-                return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
+                return <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />;
             case 'social':
-                return <BellIcon className="h-5 w-5 text-purple-500" />;
+                return <BellIcon className="h-4 w-4 text-primary" />;
             default:
-                return <BellIcon className="h-5 w-5 text-gray-500" />;
+                return <BellIcon className="h-4 w-4 text-muted-foreground" />;
         }
     };
 
     const getNotificationBgColor = (type: string) => {
         switch (type) {
             case 'deadline':
-                return 'bg-red-50 border-red-200';
+                return 'bg-destructive/5 border-destructive/20';
             case 'achievement':
-                return 'bg-green-50 border-green-200';
+                return 'bg-success/5 border-success/20';
             case 'reminder':
-                return 'bg-blue-50 border-blue-200';
+                return 'bg-info/5 border-info/20';
             case 'reward':
-                return 'bg-yellow-50 border-yellow-200';
+                return 'bg-warning/5 border-warning/20';
             case 'penalty':
-                return 'bg-red-50 border-red-200';
+                return 'bg-destructive/5 border-destructive/20';
             case 'social':
-                return 'bg-purple-50 border-purple-200';
+                return 'bg-primary/5 border-primary/20';
             default:
-                return 'bg-gray-50 border-gray-200';
+                return 'bg-muted/20 border-border/30';
         }
     };
 
     const unreadCount = notifications.filter(n => !n.read).length;
-    const displayedNotifications = showAll ? notifications : notifications.slice(0, 5);
+    const displayedNotifications = showAll ? notifications : notifications.slice(0, 3);
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow p-6">
-                <div className="animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-                    <div className="space-y-3">
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded"></div>
-                        ))}
-                    </div>
+            <div className="space-y-3">
+                {/* Loading Header */}
+                <div className="flex items-center gap-2 px-1">
+                    <div className="w-6 h-6 bg-muted/30 rounded-full animate-pulse"></div>
+                    <div className="h-3 bg-muted/30 rounded w-20 animate-pulse"></div>
+                </div>
+                
+                {/* Loading Cards */}
+                <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="bg-card/40 backdrop-blur-xl border border-white/20 rounded-2xl p-3">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-muted/30 rounded-full animate-pulse"></div>
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 bg-muted/30 rounded w-3/4 animate-pulse"></div>
+                                    <div className="h-2 bg-muted/20 rounded w-full animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <BellIcon className="h-5 w-5 mr-2" />
-                        Notifications
-                        {unreadCount > 0 && (
-                            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
-                                {unreadCount}
-                            </span>
-                        )}
-                    </h3>
-                    {notifications.length > 5 && (
-                        <button
-                            onClick={() => setShowAll(!showAll)}
-                            className="text-sm text-purple-600 hover:text-purple-700"
-                        >
-                            {showAll ? 'Show Less' : `Show All (${notifications.length})`}
-                        </button>
+        <div className="space-y-3">
+            {/* Compact iPhone-style Header */}
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <BellIcon className="w-3 h-3 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                    {unreadCount > 0 && (
+                        <div className="w-5 h-5 bg-destructive rounded-full flex items-center justify-center">
+                            <span className="text-destructive-foreground text-xs font-bold">{unreadCount}</span>
+                        </div>
                     )}
                 </div>
+                {notifications.length > 3 && (
+                    <button
+                        onClick={() => setShowAll(!showAll)}
+                        className="text-xs text-primary font-medium"
+                    >
+                        {showAll ? 'Less' : 'All'}
+                    </button>
+                )}
             </div>
 
-            <div className="p-6">
+            {/* iPhone-style Glass Morphism Cards */}
+            <div className="space-y-2">
                 {notifications.length === 0 ? (
-                    <div className="text-center py-8">
-                        <BellIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">No notifications yet</p>
-                        <p className="text-sm text-gray-400 mt-1">
-                            You'll receive notifications about your stakes here
-                        </p>
+                    <div className="bg-card/40 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-center">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <BellIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <p className="text-xs font-medium text-foreground mb-1">No notifications</p>
+                        <p className="text-xs text-muted-foreground/70">Updates will appear here</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {displayedNotifications.map((notification) => (
-                            <div
-                                key={notification.id}
-                                className={`p-4 rounded-lg border transition-colors cursor-pointer ${notification.read
-                                        ? 'bg-gray-50 border-gray-200'
-                                        : getNotificationBgColor(notification.type)
-                                    }`}
-                                onClick={() => markAsRead(notification.id)}
-                            >
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0 mr-3">
-                                        {getNotificationIcon(notification.type)}
+                    displayedNotifications.slice(0, showAll ? notifications.length : 3).map((notification) => (
+                        <div
+                            key={notification.id}
+                            className={`group relative bg-card/40 backdrop-blur-xl border border-white/20 rounded-2xl p-3 transition-all duration-300 cursor-pointer hover:bg-card/60 hover:scale-[1.02] active:scale-[0.98] ${!notification.read ? 'shadow-lg shadow-' + notification.type.toLowerCase() + '/10' : ''}`}
+                            onClick={() => markAsRead(notification.id)}
+                        >
+                            {/* Glass morphism overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl pointer-events-none" />
+                            
+                            <div className="relative flex items-start gap-3">
+                                {/* Icon with glass effect */}
+                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 ${!notification.read ? getNotificationBgColor(notification.type).replace('bg-', 'bg-').replace('/5', '/20') : 'bg-muted/20'}`}>
+                                    {getNotificationIcon(notification.type)}
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                    {/* Header with timestamp */}
+                                    <div className="flex items-start justify-between mb-1">
+                                        <h4 className={`text-sm font-semibold leading-tight ${notification.read ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                            {notification.title}
+                                        </h4>
+                                        <span className="text-xs text-muted-foreground/70 ml-2 flex-shrink-0">
+                                            {new Date(notification.timestamp).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
+                                        </span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className={`text-sm font-medium ${notification.read ? 'text-gray-600' : 'text-gray-900'
-                                                }`}>
-                                                {notification.title}
-                                            </h4>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(notification.timestamp).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <p className={`text-sm mt-1 ${notification.read ? 'text-gray-500' : 'text-gray-700'
-                                            }`}>
-                                            {notification.message}
+                                    
+                                    {/* Message */}
+                                    <p className="text-xs leading-relaxed text-muted-foreground/90 mb-1">
+                                        {notification.message}
+                                    </p>
+                                    
+                                    {/* Amount if present */}
+                                    {notification.amount && (
+                                        <p className="text-xs font-bold text-success tabular-nums">
+                                            Gh{notification.amount.toFixed(2)}
                                         </p>
-                                        {notification.amount && (
-                                            <p className="text-sm font-semibold text-green-600 mt-1">
-                                                Gh{notification.amount.toFixed(2)}
-                                            </p>
-                                        )}
-                                    </div>
-                                    {!notification.read && (
-                                        <div className="flex-shrink-0 ml-2">
-                                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                        </div>
                                     )}
                                 </div>
+                                
+                                {/* Unread indicator */}
+                                {!notification.read && (
+                                    <div className="flex-shrink-0">
+                                        <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))
                 )}
             </div>
         </div>

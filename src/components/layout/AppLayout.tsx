@@ -57,13 +57,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <ErrorBoundary>
             <ToastProvider>
                 <SWRProvider>
-                    <div className="flex h-screen bg-background">
+                    <div className="flex h-screen bg-gradient-to-br from-background via-background to-muted/10">
                         <Sidebar />
-                        <main className="flex-1 overflow-auto lg:ml-0">
-                            <div className="container-responsive py-6 lg:py-8">
-                                <div className="max-w-7xl mx-auto">
-                                    {children}
-                                </div>
+                        <main className="flex-1 overflow-auto">
+                            <div className="p-4 sm:p-6 lg:p-8 lg:pl-4">
+                                {children}
                             </div>
                         </main>
                         <RealtimeStatus />

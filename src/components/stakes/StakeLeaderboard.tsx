@@ -93,12 +93,12 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 shadow-soft">
                 <div className="animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="h-4 bg-muted rounded w-1/3 mb-4"></div>
                     <div className="space-y-3">
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="h-12 bg-muted rounded-xl"></div>
                         ))}
                     </div>
                 </div>
@@ -108,10 +108,12 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
 
     if (!data) {
         return (
-            <div className="bg-white rounded-lg shadow p-6">
-                <div className="text-center text-gray-500">
-                    <TrophyIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p>No leaderboard data available</p>
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 shadow-soft">
+                <div className="text-center">
+                    <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <TrophyIcon className="h-6 w-6 text-warning" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">No leaderboard data available</p>
                 </div>
             </div>
         );
@@ -144,80 +146,82 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-lg bg-purple-100">
-                            <UserGroupIcon className="h-6 w-6 text-purple-600" />
+        <div className="space-y-4">
+            {/* Compact Aurora Header Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-3 sm:p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors duration-300">
+                            <UserGroupIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                         </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Total Users</p>
-                            <p className="text-2xl font-semibold text-gray-900">{data.totalUsers}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-lg bg-green-100">
-                            <TrophyIcon className="h-6 w-6 text-green-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Total Stakes</p>
-                            <p className="text-2xl font-semibold text-gray-900">{data.totalStakes}</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Users</p>
+                            <p className="text-lg sm:text-xl font-bold text-primary tabular-nums">{data.totalUsers}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-lg bg-yellow-100">
-                            <CurrencyDollarIcon className="h-6 w-6 text-yellow-600" />
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-3 sm:p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-warning/10 rounded-xl group-hover:bg-warning/20 transition-colors duration-300">
+                            <TrophyIcon className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
                         </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Total Earned</p>
-                            <p className="text-2xl font-semibold text-gray-900">Gh{data.totalEarned.toFixed(0)}</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Stakes</p>
+                            <p className="text-lg sm:text-xl font-bold text-warning tabular-nums">{data.totalStakes}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-3 sm:p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors duration-300">
+                            <CurrencyDollarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Earned</p>
+                            <p className="text-lg sm:text-xl font-bold text-success tabular-nums">Gh{data.totalEarned.toFixed(0)}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Leaderboard */}
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <TrophyIcon className="h-5 w-5 mr-2 text-yellow-500" />
+            {/* Aurora Leaderboard */}
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-soft overflow-hidden">
+                <div className="p-4 sm:p-6 border-b border-border/30">
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center">
+                            <div className="p-1.5 bg-warning/10 rounded-lg mr-2">
+                                <TrophyIcon className="h-4 w-4 text-warning" />
+                            </div>
                             {getTabTitle()}
                         </h3>
 
-                        {/* Tab Navigation */}
-                        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+                        {/* Aurora Tab Navigation */}
+                        <div className="flex space-x-1 bg-muted/50 rounded-lg p-1">
                             <button
                                 onClick={() => setActiveTab('earners')}
-                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'earners'
-                                    ? 'bg-white text-purple-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'earners'
+                                    ? 'bg-primary text-primary-foreground shadow-soft'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                     }`}
                             >
                                 Earners
                             </button>
                             <button
                                 onClick={() => setActiveTab('performers')}
-                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'performers'
-                                    ? 'bg-white text-purple-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'performers'
+                                    ? 'bg-primary text-primary-foreground shadow-soft'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                     }`}
                             >
                                 Performers
                             </button>
                             <button
                                 onClick={() => setActiveTab('streaks')}
-                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeTab === 'streaks'
-                                    ? 'bg-white text-purple-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'streaks'
+                                    ? 'bg-primary text-primary-foreground shadow-soft'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                     }`}
                             >
                                 Streaks
@@ -226,66 +230,73 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                     </div>
                 </div>
 
-                <div className="p-6">
-                    <div className="space-y-4">
+                <div className="p-4 sm:p-6">
+                    <div className="space-y-3">
                         {getCurrentLeaderboard().map((user, index) => (
                             <div
                                 key={user.id}
-                                className={`flex items-center justify-between p-4 rounded-lg transition-colors ${user.isCurrentUser
-                                    ? 'bg-purple-50 border-2 border-purple-200'
-                                    : 'bg-gray-50 hover:bg-gray-100'
+                                className={`group flex items-center justify-between p-3 sm:p-4 rounded-xl transition-all duration-200 hover:shadow-soft ${user.isCurrentUser
+                                    ? 'bg-primary/5 border border-primary/20 hover:bg-primary/10'
+                                    : 'bg-card/40 hover:bg-card/60 border border-border/20'
                                     }`}
                             >
-                                <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-3 min-w-0 flex-1">
                                     <div className="flex-shrink-0">
                                         {getRankIcon(user.rank)}
                                     </div>
 
-                                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                        <span className="text-purple-600 font-semibold text-sm">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-200">
+                                        <span className="text-primary font-semibold text-xs sm:text-sm">
                                             {user.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
 
-                                    <div>
-                                        <div className="flex items-center space-x-2">
-                                            <h4 className="font-semibold text-gray-900">{user.name}</h4>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center space-x-2 mb-1">
+                                            <h4 className="font-semibold text-foreground text-sm sm:text-base truncate">{user.name}</h4>
                                             {user.isCurrentUser && (
-                                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                                                <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium">
                                                     You
                                                 </span>
                                             )}
                                         </div>
 
-                                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                            <span>{user.totalStakes} stakes</span>
-                                            <span>{user.successRate}% success</span>
+                                        <div className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-muted-foreground">
+                                            <span className="tabular-nums">{user.totalStakes} stakes</span>
+                                            <span className="text-muted-foreground/50">•</span>
+                                            <span className="tabular-nums">{user.successRate}% success</span>
                                             {activeTab === 'streaks' ? (
-                                                <span className="flex items-center">
-                                                    <FireIcon className="h-4 w-4 mr-1 text-orange-500" />
-                                                    {user.currentStreak} streak
-                                                </span>
+                                                <>
+                                                    <span className="text-muted-foreground/50">•</span>
+                                                    <span className="flex items-center text-warning">
+                                                        <FireIcon className="h-3 w-3 mr-1" />
+                                                        <span className="tabular-nums">{user.currentStreak}</span>
+                                                    </span>
+                                                </>
                                             ) : (
-                                                <span>Gh{user.totalEarned.toFixed(0)} earned</span>
+                                                <>
+                                                    <span className="text-muted-foreground/50">•</span>
+                                                    <span className="text-success font-medium tabular-nums">Gh{user.totalEarned.toFixed(0)}</span>
+                                                </>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Badges */}
-                                <div className="flex items-center space-x-1">
-                                    {user.badges.slice(0, 3).map((badge, badgeIndex) => (
+                                {/* Aurora Badges */}
+                                <div className="flex items-center space-x-1 ml-2">
+                                    {user.badges.slice(0, 2).map((badge, badgeIndex) => (
                                         <div
                                             key={badgeIndex}
-                                            className="p-1 bg-white rounded-full shadow-sm"
+                                            className="p-1 bg-card border border-border/30 rounded-lg shadow-sm hover:shadow-soft transition-shadow duration-200"
                                             title={badge.replace('_', ' ')}
                                         >
                                             {getBadgeIcon(badge)}
                                         </div>
                                     ))}
-                                    {user.badges.length > 3 && (
-                                        <span className="text-xs text-gray-500">
-                                            +{user.badges.length - 3}
+                                    {user.badges.length > 2 && (
+                                        <span className="text-xs text-muted-foreground font-medium">
+                                            +{user.badges.length - 2}
                                         </span>
                                     )}
                                 </div>
@@ -295,25 +306,27 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                 </div>
             </div>
 
-            {/* Recent Winners */}
+            {/* Aurora Recent Winners */}
             {data.recentWinners.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <StarIcon className="h-5 w-5 mr-2 text-yellow-500" />
+                <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-soft p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
+                        <div className="p-1.5 bg-success/10 rounded-lg mr-2">
+                            <StarIcon className="h-4 w-4 text-success" />
+                        </div>
                         Recent Winners
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {data.recentWinners.map((winner) => (
-                            <div key={winner.id} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div key={winner.id} className="group p-3 bg-success/5 hover:bg-success/10 rounded-xl border border-success/20 transition-all duration-200 hover:shadow-soft">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                        <span className="text-green-600 font-semibold text-sm">
+                                    <div className="w-8 h-8 bg-success/10 group-hover:bg-success/20 rounded-full flex items-center justify-center transition-colors duration-200">
+                                        <span className="text-success font-semibold text-sm">
                                             {winner.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
-                                    <div>
-                                        <h4 className="font-medium text-gray-900">{winner.name}</h4>
-                                        <p className="text-sm text-green-600">Just completed a stake!</p>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-medium text-foreground text-sm truncate">{winner.name}</h4>
+                                        <p className="text-xs text-success">Just completed a stake!</p>
                                     </div>
                                 </div>
                             </div>

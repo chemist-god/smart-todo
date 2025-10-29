@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -38,6 +38,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
+
 // UI-facing calendar event shape
 type CalendarEvent = {
   id: string;
@@ -85,6 +86,7 @@ export function EventForm({
   onDelete,
 }: EventFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = !!event;
 
   const form = useForm<FormValues>({
@@ -101,18 +103,29 @@ export function EventForm({
   const watchAllDay = form.watch('allDay');
 
   const onSubmit = async (data: FormValues) => {
-    const eventData = {
-      title: data.title,
-      description: data.description,
-      dueDate: data.dueDate.toISOString(),
-      priority: data.priority,
-      completed: event?.completed || false,
-    };
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      const eventData = {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate.toISOString(),
+        priority: data.priority,
+        completed: event?.completed || false,
+      };
 
-    if (isEditing) {
-      await onUpdate(event.id, eventData);
-    } else {
-      await onCreate(eventData);
+      if (isEditing) {
+        await onUpdate(event.id, eventData);
+      } else {
+        await onCreate(eventData);
+      }
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -129,10 +142,12 @@ export function EventForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Event' : 'Create New Event'}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            {isEditing ? 'Edit Event' : 'Create New Event'}
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             {isEditing
               ? 'Update the event details below.'
               : 'Fill in the details to create a new event.'}
@@ -146,11 +161,15 @@ export function EventForm({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel className="text-sm font-medium">Title *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Event title" {...field} />
+                    <Input 
+                      placeholder="Enter event title" 
+                      className="h-11 focus:ring-2 focus:ring-primary/20" 
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -160,33 +179,34 @@ export function EventForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel className="text-sm font-medium">Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Add details about your event"
-                      className="resize-none"
+                      placeholder="Add details about your event (optional)"
+                      className="resize-none min-h-[80px] focus:ring-2 focus:ring-primary/20"
+                      rows={3}
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel className="text-sm font-medium">Date *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant="outline"
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
+                              'w-full h-11 pl-3 text-left font-normal justify-start focus:ring-2 focus:ring-primary/20',
                               !field.value && 'text-muted-foreground'
                             )}
                           >
@@ -204,34 +224,12 @@ export function EventForm({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-
-              <FormField
-                control={form.control}
-                name="allDay"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>All day</FormLabel>
-                      <FormDescription>
-                        This event will last all day
-                      </FormDescription>
-                    </div>
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -241,10 +239,10 @@ export function EventForm({
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priority</FormLabel>
+                    <FormLabel className="text-sm font-medium">Priority</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-11 focus:ring-2 focus:ring-primary/20">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                       </FormControl>
@@ -255,9 +253,9 @@ export function EventForm({
                               <span
                                 className={cn(
                                   'h-2 w-2 rounded-full mr-2',
-                                  option.value === 'HIGH' && 'bg-red-500',
-                                  option.value === 'MEDIUM' && 'bg-yellow-500',
-                                  option.value === 'LOW' && 'bg-green-500'
+                                  option.value === 'HIGH' && 'bg-destructive',
+                                  option.value === 'MEDIUM' && 'bg-warning',
+                                  option.value === 'LOW' && 'bg-success'
                                 )}
                               />
                               {option.label}
@@ -266,34 +264,78 @@ export function EventForm({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
             </div>
 
-            <DialogFooter className="mt-6">
+            <FormField
+              control={form.control}
+              name="allDay"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border/50 p-4 bg-muted/30">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="mt-0.5"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="text-sm font-medium">All day event</FormLabel>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      This event will last all day
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="mt-8 flex flex-col-reverse sm:flex-row gap-2">
               {isEditing && (
                 <Button
                   type="button"
                   variant="destructive"
                   onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="mr-auto"
+                  disabled={isDeleting || isSubmitting}
+                  className="sm:mr-auto h-11"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Event'
+                  )}
                 </Button>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {isEditing ? 'Update' : 'Create'} Event
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isSubmitting || isDeleting}
+                  className="h-11"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting || isDeleting}
+                  className="h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isEditing ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    <>{isEditing ? 'Update' : 'Create'} Event</>
+                  )}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

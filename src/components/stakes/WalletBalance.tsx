@@ -79,43 +79,55 @@ export default function WalletBalance({
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            {/* Main Balance Display */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <p className="text-green-100 text-sm font-medium">Available Balance</p>
-                        <p className="text-3xl font-bold">{formatCurrency(balance)}</p>
-                        <p className="text-green-100 text-sm mt-1">
-                            Monthly Earnings: {formatCurrency(monthlyEarnings)}
+        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-soft overflow-hidden">
+            {/* Aurora-Themed Main Balance Display */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-success via-success/90 to-success/80 p-6 sm:p-8 text-success-foreground">
+                <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-success/5 backdrop-blur-3xl"></div>
+                <div className="relative flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                    <div className="space-y-2 sm:space-y-3">
+                        <p className="text-success-foreground/80 text-sm sm:text-base font-medium">Available Balance</p>
+                        <p className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight tabular-nums">{formatCurrency(balance)}</p>
+                        <p className="text-success-foreground/70 text-sm font-medium">
+                            Monthly Earnings: <span className="font-semibold">{formatCurrency(monthlyEarnings)}</span>
                         </p>
                     </div>
-                    <div className="text-right">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrophyIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">#{rank}</span>
+                    <div className="flex flex-row sm:flex-col gap-4 sm:gap-3 sm:text-right">
+                        <div className="flex items-center gap-2 p-2 sm:p-3 rounded-xl bg-success-foreground/10 backdrop-blur-sm">
+                            <div className="p-1 rounded-lg bg-success-foreground/20">
+                                <TrophyIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success-foreground" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-success-foreground/70">Rank</p>
+                                <span className="text-sm sm:text-base font-bold tabular-nums">#{rank}</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <StarIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">{currentStreak} day streak</span>
+                        <div className="flex items-center gap-2 p-2 sm:p-3 rounded-xl bg-success-foreground/10 backdrop-blur-sm">
+                            <div className="p-1 rounded-lg bg-success-foreground/20">
+                                <StarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success-foreground" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-success-foreground/70">Streak</p>
+                                <span className="text-sm sm:text-base font-bold tabular-nums">{currentStreak} days</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-4">
+                <div className="relative flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mt-6">
                     <button
                         onClick={() => setShowDetails(!showDetails)}
-                        className="text-green-100 hover:text-white text-sm font-medium flex items-center gap-1"
+                        className="group relative inline-flex items-center gap-2 px-4 py-2 bg-success-foreground/10 hover:bg-success-foreground/20 text-success-foreground rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-success-foreground/20 touch-manipulation"
                     >
-                        {showDetails ? 'Hide Details' : 'Show Details'}
+                        <span>{showDetails ? 'Hide Details' : 'Show Details'}</span>
                         <svg
-                            className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                            className={`w-4 h-4 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
                         >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
+                        <div className="absolute inset-0 rounded-xl bg-success-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                     </button>
 
                     {/* Test Deposit Button - Only show in development */}
@@ -123,99 +135,100 @@ export default function WalletBalance({
                         <button
                             onClick={handleAddTestFunds}
                             disabled={isAddingFunds}
-                            className="inline-flex items-center px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                            className="group relative inline-flex items-center gap-2 px-4 py-2 bg-success-foreground/15 hover:bg-success-foreground/25 disabled:bg-success-foreground/5 text-success-foreground rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-success-foreground/20 disabled:opacity-50 touch-manipulation"
                         >
-                            <PlusIcon className="w-3 h-3 mr-1" />
-                            {isAddingFunds ? 'Adding...' : 'Add Test Funds'}
+                            <PlusIcon className="w-4 h-4" />
+                            <span>{isAddingFunds ? 'Adding...' : 'Add Test Funds'}</span>
+                            <div className="absolute inset-0 rounded-xl bg-success-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                         </button>
                     )}
                 </div>
 
                 {process.env.NODE_ENV !== 'production' && (
-                    <p className="text-green-100 text-xs mt-2">Development only - adds Gh100 for testing</p>
+                    <p className="text-success-foreground/60 text-xs mt-3 text-center sm:text-left">Development only - adds ₵100 for testing</p>
                 )}
             </div>
 
-            {/* Detailed Stats */}
+            {/* Aurora-Themed Detailed Stats */}
             {showDetails && (
-                <div className="p-6 border-t border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="p-4 sm:p-6 border-t border-border/50 bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 animate-in slide-in-from-top-2 duration-300">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {/* Total Earned */}
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <ArrowTrendingUpIcon className="w-6 h-6 text-green-600" />
+                        <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 text-center hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                            <div className="p-2 rounded-xl bg-success/10 w-fit mx-auto mb-3 group-hover:bg-success/20 transition-colors duration-300">
+                                <ArrowTrendingUpIcon className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                             </div>
-                            <p className="text-2xl font-bold text-green-600">{formatCurrency(totalEarned)}</p>
-                            <p className="text-sm text-gray-600">Total Earned</p>
+                            <p className="text-lg sm:text-2xl font-bold text-success tabular-nums">{formatCurrency(totalEarned)}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Earned</p>
                         </div>
 
                         {/* Total Lost */}
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <ArrowTrendingDownIcon className="w-6 h-6 text-red-600" />
+                        <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 text-center hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                            <div className="p-2 rounded-xl bg-destructive/10 w-fit mx-auto mb-3 group-hover:bg-destructive/20 transition-colors duration-300">
+                                <ArrowTrendingDownIcon className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
                             </div>
-                            <p className="text-2xl font-bold text-red-600">{formatCurrency(totalLost)}</p>
-                            <p className="text-sm text-gray-600">Total Lost</p>
+                            <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums">{formatCurrency(totalLost)}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Lost</p>
                         </div>
 
                         {/* Total Staked */}
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <WalletIcon className="w-6 h-6 text-blue-600" />
+                        <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 text-center hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                            <div className="p-2 rounded-xl bg-info/10 w-fit mx-auto mb-3 group-hover:bg-info/20 transition-colors duration-300">
+                                <WalletIcon className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
                             </div>
-                            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalStaked)}</p>
-                            <p className="text-sm text-gray-600">Total Staked</p>
+                            <p className="text-lg sm:text-2xl font-bold text-info tabular-nums">{formatCurrency(totalStaked)}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Staked</p>
                         </div>
 
                         {/* Success Rate */}
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <TrophyIcon className="w-6 h-6 text-purple-600" />
+                        <div className="group bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 text-center hover:shadow-soft transition-all duration-300 hover:-translate-y-1">
+                            <div className="p-2 rounded-xl bg-primary/10 w-fit mx-auto mb-3 group-hover:bg-primary/20 transition-colors duration-300">
+                                <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                             </div>
-                            <p className="text-2xl font-bold text-purple-600">{completionRate.toFixed(1)}%</p>
-                            <p className="text-sm text-gray-600">Success Rate</p>
+                            <p className="text-lg sm:text-2xl font-bold text-primary tabular-nums">{completionRate.toFixed(1)}%</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Success Rate</p>
                         </div>
                     </div>
 
-                    {/* Streak Information */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="text-center">
-                                <p className="text-lg font-semibold text-gray-900">{currentStreak}</p>
-                                <p className="text-sm text-gray-600">Current Streak</p>
+                    {/* Aurora-Themed Streak Information */}
+                    <div className="mt-6 pt-6 border-t border-border/30">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-xl p-4 text-center hover:shadow-soft transition-all duration-300">
+                                <p className="text-xl sm:text-2xl font-bold text-warning tabular-nums">{currentStreak}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Current Streak</p>
                             </div>
-                            <div className="text-center">
-                                <p className="text-lg font-semibold text-gray-900">{longestStreak}</p>
-                                <p className="text-sm text-gray-600">Longest Streak</p>
+                            <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-xl p-4 text-center hover:shadow-soft transition-all duration-300">
+                                <p className="text-xl sm:text-2xl font-bold text-info tabular-nums">{longestStreak}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Longest Streak</p>
                             </div>
-                            <div className="text-center">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRankColor(rank)}`}>
+                            <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-xl p-4 text-center hover:shadow-soft transition-all duration-300">
+                                <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-medium backdrop-blur-sm ${getRankColor(rank)}`}>
                                     {getRankLabel(rank)}
                                 </span>
-                                <p className="text-sm text-gray-600 mt-1">Global Rank</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-2">Global Rank</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Performance Summary */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-medium text-gray-900 mb-3">Performance Summary</h4>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Net Profit/Loss</span>
-                                <span className={`text-sm font-medium ${totalEarned - totalLost >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {/* Aurora-Themed Performance Summary */}
+                    <div className="mt-6 pt-6 border-t border-border/30">
+                        <h4 className="text-sm sm:text-base font-semibold text-foreground mb-4 tracking-tight">Performance Summary</h4>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
+                                <span className="text-sm font-medium text-muted-foreground">Net Profit/Loss</span>
+                                <span className={`text-sm font-bold tabular-nums ${totalEarned - totalLost >= 0 ? 'text-success' : 'text-destructive'}`}>
                                     {totalEarned - totalLost >= 0 ? '+' : ''}{formatCurrency(totalEarned - totalLost)}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">ROI</span>
-                                <span className={`text-sm font-medium ${totalStaked > 0 ? (totalEarned - totalLost) / totalStaked >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                            <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
+                                <span className="text-sm font-medium text-muted-foreground">ROI</span>
+                                <span className={`text-sm font-bold tabular-nums ${totalStaked > 0 ? (totalEarned - totalLost) / totalStaked >= 0 ? 'text-success' : 'text-destructive' : 'text-muted-foreground'}`}>
                                     {totalStaked > 0 ? `${(((totalEarned - totalLost) / totalStaked) * 100).toFixed(1)}%` : 'N/A'}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Average Stake</span>
-                                <span className="text-sm font-medium text-gray-900">
+                            <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
+                                <span className="text-sm font-medium text-muted-foreground">Average Stake</span>
+                                <span className="text-sm font-bold text-foreground tabular-nums">
                                     {formatCurrency(totalStaked / Math.max(1, totalEarned + totalLost))}
                                 </span>
                             </div>
