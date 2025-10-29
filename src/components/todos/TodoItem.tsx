@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
     PencilIcon,
@@ -13,6 +13,7 @@ import {
     StopIcon
 } from "@heroicons/react/24/outline";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import UnifiedTimer from "./UnifiedTimer";
 
 interface Todo {
     id: string;
@@ -148,110 +149,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
         // Could integrate with analytics or session tracking here
     };
 
-    // Timer control functions
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-    const startTimer = useCallback(() => {
-        if (!timerState.isRunning) {
-            const newState = {
-                ...timerState,
-                isRunning: true,
-                isPaused: false,
-                startTime: Date.now()
-            };
-            setTimerState(newState);
-
-            intervalRef.current = setInterval(() => {
-                setTimerState(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
-        }
-    }, [timerState]);
-
-    const pauseTimer = useCallback(() => {
-        if (timerState.isRunning && !timerState.isPaused) {
-            setTimerState({
-                ...timerState,
-                isPaused: true
-            });
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
-        }
-    }, [timerState]);
-
-    const resumeTimer = useCallback(() => {
-        if (timerState.isRunning && timerState.isPaused) {
-            setTimerState({
-                ...timerState,
-                isPaused: false,
-                startTime: Date.now()
-            });
-
-            intervalRef.current = setInterval(() => {
-                setTimerState(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
-        }
-    }, [timerState]);
-
-    const stopTimer = useCallback(async () => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-        }
-
-        // Save session if there was meaningful time
-        if (timerState.sessionTime > 0) {
-            const sessionMinutes = Math.floor(timerState.sessionTime / 60);
-            const newTotal = currentTimeSpent + sessionMinutes;
-            setCurrentTimeSpent(newTotal);
-            await handleTimeUpdate(newTotal);
-            await handleSessionComplete({
-                duration: timerState.sessionTime,
-                sessionType: 'FOCUS'
-            });
-        }
-
-        // Reset timer state
-        setTimerState({
-            isRunning: false,
-            isPaused: false,
-            sessionTime: 0
-        });
-    }, [timerState, currentTimeSpent, handleTimeUpdate, handleSessionComplete]);
-
-    const resetTimer = useCallback(() => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-        }
-        setTimerState({
-            isRunning: false,
-            isPaused: false,
-            sessionTime: 0
-        });
-    }, []);
-
-    // Auto-resume timer if it was running
-    useEffect(() => {
-        if (timerState.isRunning && !timerState.isPaused && !intervalRef.current) {
-            intervalRef.current = setInterval(() => {
-                setTimerState(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
-        }
-        
-        return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
-        };
-    }, [timerState.isRunning, timerState.isPaused]);
+    // Timer functions are now handled by UnifiedTimer component
 
     // Persist timer state
     useEffect(() => {
@@ -267,12 +165,12 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     };
 
     return (
-        <div className={`bg-card border border-border rounded-xl p-2.5 sm:p-3 lg:p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-0.5 group ${
+        <div className={`bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-3 sm:p-4 lg:p-5 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99] group touch-manipulation ${
             todo.completed
-                ? 'border-success/30 bg-success/5'
+                ? 'border-success/30 bg-success/5 hover:bg-success/10'
                 : isOverdue
-                    ? 'border-destructive/30 bg-destructive/5'
-                    : 'hover:border-primary/20'
+                    ? 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10'
+                    : 'hover:border-primary/30 hover:bg-primary/5'
         }`}>
             <div className="flex items-start gap-2 sm:gap-3">
                 {/* Enhanced Checkbox */}
@@ -360,23 +258,37 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     </div>
                 </div>
 
-                {/* Enhanced Actions */}
-                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                {/* Mobile-Optimized Actions */}
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {/* Unified Smart Timer */}
                     {!todo.completed && (
                         <button
                             onClick={() => setShowTimer(!showTimer)}
-                            className={`relative p-1 sm:p-1.5 rounded-md transition-all duration-200 group ${
+                            className={`relative p-2 sm:p-2.5 rounded-xl transition-all duration-200 group min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation ${
                                 showTimer || timerState.isRunning
-                                    ? 'text-primary bg-primary/10'
-                                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                                    ? 'text-primary bg-primary/10 hover:bg-primary/20'
+                                    : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                             }`}
                             title={showTimer ? 'Hide Timer' : 'Show Timer'}
                         >
                             {timerState.isRunning ? (
                                 <div className="flex items-center gap-0.5">
-                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                    <div className={`w-1.5 h-1.5 rounded-full ${
+                                        timerState.isPaused 
+                                            ? 'bg-warning' 
+                                            : 'bg-primary animate-pulse'
+                                    }`} />
                                     <span className="text-xs font-mono font-medium">
+                                        {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
+                                    </span>
+                                    {timerState.isPaused && (
+                                        <PauseIcon className="w-2 h-2 text-warning ml-0.5" />
+                                    )}
+                                </div>
+                            ) : timerState.sessionTime > 0 ? (
+                                <div className="flex items-center gap-0.5">
+                                    <ClockIcon className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-xs font-mono text-muted-foreground">
                                         {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
                                     </span>
                                 </div>
@@ -388,18 +300,18 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1 sm:p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-md transition-all duration-200"
-                        title="Expand"
+                        className="p-2 sm:p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation"
+                        title={isExpanded ? 'Collapse' : 'Expand'}
                     >
-                        <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDownIcon className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={isUpdating}
-                        className="p-1 sm:p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 sm:p-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation"
                         title="Delete"
                     >
-                        <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
             </div>
@@ -407,94 +319,15 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
             {/* Unified Smart Timer Interface */}
             {showTimer && !todo.completed && (
                 <div className="mt-3 pt-3 border-t border-border/30 animate-in slide-in-from-top-2 duration-200">
-                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
-                        {/* Timer Header */}
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="p-1.5 rounded-lg bg-primary/10">
-                                <ClockIcon className="w-3 h-3 text-primary" />
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-semibold text-foreground">Focus Timer</h4>
-                                <p className="text-xs text-muted-foreground">Track your productivity</p>
-                            </div>
-                        </div>
-
-                        {/* Timer Display */}
-                        <div className="text-center mb-3">
-                            <div className="text-xl font-mono font-bold text-foreground mb-1">
-                                {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
-                            </div>
-                            <div className="text-xs text-muted-foreground mb-2">
-                                Session Time
-                            </div>
-                            <div className="text-sm font-medium text-primary">
-                                Total: {Math.floor(currentTimeSpent / 60)}h {currentTimeSpent % 60}m
-                            </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        {todo.estimatedDuration && (
-                            <div className="mb-3">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                                    <span>Progress</span>
-                                    <span className="font-medium">{Math.round((currentTimeSpent / todo.estimatedDuration) * 100)}%</span>
-                                </div>
-                                <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
-                                    <div
-                                        className="bg-primary h-full rounded-full transition-all duration-500 ease-out"
-                                        style={{ width: `${Math.min((currentTimeSpent / todo.estimatedDuration) * 100, 100)}%` }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Timer Controls */}
-                        <div className="flex justify-center gap-1.5">
-                            {!timerState.isRunning ? (
-                                <button
-                                    onClick={startTimer}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 text-sm font-medium"
-                                >
-                                    <PlayIcon className="w-3 h-3" />
-                                    <span>Start</span>
-                                </button>
-                            ) : timerState.isPaused ? (
-                                <button
-                                    onClick={resumeTimer}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 text-sm font-medium"
-                                >
-                                    <PlayIcon className="w-3 h-3" />
-                                    <span>Resume</span>
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={pauseTimer}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-warning text-warning-foreground rounded-lg hover:bg-warning/90 transition-all duration-200 text-sm font-medium"
-                                >
-                                    <PauseIcon className="w-3 h-3" />
-                                    <span>Pause</span>
-                                </button>
-                            )}
-
-                            {timerState.isRunning && (
-                                <button
-                                    onClick={stopTimer}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-all duration-200 text-sm font-medium"
-                                >
-                                    <StopIcon className="w-3 h-3" />
-                                    <span>Stop</span>
-                                </button>
-                            )}
-
-                            <button
-                                onClick={resetTimer}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 hover:text-foreground transition-all duration-200 text-sm font-medium"
-                            >
-                                <ArrowPathIcon className="w-3 h-3" />
-                                <span>Reset</span>
-                            </button>
-                        </div>
-                    </div>
+                    <UnifiedTimer
+                        todoId={todo.id}
+                        initialTimeSpent={currentTimeSpent}
+                        estimatedDuration={todo.estimatedDuration}
+                        onTimeUpdate={handleTimeUpdate}
+                        onSessionComplete={handleSessionComplete}
+                        timerState={timerState}
+                        onStateChange={setTimerState}
+                    />
                 </div>
             )}
 
@@ -533,8 +366,23 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                 )}
                                 {currentTimeSpent > 0 && (
                                     <div className="flex justify-between items-center py-1.5 px-3 bg-success/10 rounded-md">
-                                        <span className="text-muted-foreground">Time Spent</span>
+                                        <span className="text-muted-foreground">Focus Time</span>
                                         <span className="font-medium text-success">{formatDuration(currentTimeSpent)}</span>
+                                    </div>
+                                )}
+                                {todo.timerStartTime && (
+                                    <div className="flex justify-between items-center py-1.5 px-3 bg-info/10 rounded-md">
+                                        <span className="text-muted-foreground">
+                                            {todo.completed ? 'Total Duration' : 'Time Since Started'}
+                                        </span>
+                                        <span className="font-medium text-info">
+                                            {(() => {
+                                                const startTime = new Date(todo.timerStartTime);
+                                                const endTime = todo.completedAt ? new Date(todo.completedAt) : new Date();
+                                                const diffMinutes = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+                                                return formatDuration(diffMinutes);
+                                            })()}
+                                        </span>
                                     </div>
                                 )}
                                 {todo.pomodoroSessions && todo.pomodoroSessions > 0 && (
