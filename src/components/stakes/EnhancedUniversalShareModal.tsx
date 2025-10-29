@@ -235,35 +235,37 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4">
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm">
+            <div className="flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-                <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 px-6 py-4">
-                        <div className="flex items-center justify-between">
+                <div className="relative w-full max-w-2xl sm:max-w-4xl bg-card/95 backdrop-blur-xl border border-border/50 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+                    {/* Aurora Header */}
+                    <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border-b border-border/50">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
+                        <div className="relative flex items-center justify-between p-4 sm:p-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white/20 rounded-lg">
-                                    <SparklesIcon className="w-6 h-6 text-white" />
+                                <div className="p-2 bg-primary/20 rounded-xl">
+                                    <ShareIcon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">Universal Share</h2>
-                                    <p className="text-purple-100 text-sm">Share your stake across all platforms</p>
+                                    <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Share Challenge</h2>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">Spread the word across platforms</p>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                className="group relative p-2 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-105 touch-manipulation"
                             >
-                                <XMarkIcon className="w-6 h-6 text-white" />
+                                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                                <div className="absolute inset-0 rounded-xl bg-destructive/10 scale-0 group-hover:scale-100 transition-transform duration-200"></div>
                             </button>
                         </div>
                     </div>
 
-                    {/* Tab Navigation */}
-                    <div className="border-b border-gray-200">
-                        <nav className="flex space-x-8 px-6">
+                    {/* Aurora Tab Navigation */}
+                    <div className="border-b border-border/30">
+                        <nav className="flex space-x-1 p-1 mx-4 sm:mx-6 bg-muted/50 rounded-lg">
                             {[
                                 { id: 'platforms', label: 'Platforms', icon: ShareIcon },
                                 { id: 'templates', label: 'Templates', icon: CodeBracketIcon },
@@ -272,41 +274,48 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                                            ? 'border-purple-500 text-purple-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex-1 justify-center ${activeTab === tab.id
+                                            ? 'bg-primary text-primary-foreground shadow-soft'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                         }`}
                                 >
-                                    <tab.icon className="w-4 h-4" />
-                                    {tab.label}
+                                    <tab.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">{tab.label}</span>
                                 </button>
                             ))}
                         </nav>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-6 max-h-96 overflow-y-auto">
+                    {/* Aurora Content */}
+                    <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto">
                         {activeTab === 'platforms' && (
-                            <div className="space-y-6">
-                                <div className="text-center mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Platform</h3>
-                                    <p className="text-gray-600">Share your stake with the world</p>
+                            <div className="space-y-4">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">Choose Platform</h3>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">Share your challenge</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                     {platforms.map((platform) => (
                                         <button
                                             key={platform.id}
                                             onClick={() => handlePlatformShare(platform)}
-                                            className={`group relative p-4 rounded-xl border-2 transition-all duration-200 ${platform.bgColor} ${platform.borderColor} hover:shadow-lg hover:scale-105`}
+                                            className="group relative bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-3 sm:p-4 transition-all duration-300 hover:bg-card/60 hover:shadow-soft hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
                                         >
-                                            <div className="text-center">
-                                                <div className="text-3xl mb-2">{platform.icon}</div>
-                                                <h4 className={`font-semibold ${platform.textColor}`}>{platform.name}</h4>
-                                                <p className="text-xs text-gray-500 mt-1">{platform.description}</p>
+                                            {/* Glass morphism overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl pointer-events-none" />
+                                            
+                                            <div className="relative text-center">
+                                                <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">{platform.icon}</div>
+                                                <h4 className="font-semibold text-foreground text-xs sm:text-sm group-hover:text-primary transition-colors">{platform.name}</h4>
+                                                <p className="text-xs text-muted-foreground/70 mt-1 hidden sm:block">{platform.description}</p>
                                             </div>
-                                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ArrowTopRightOnSquareIcon className="w-4 h-4 text-gray-400" />
+                                            
+                                            {/* Hover indicator */}
+                                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-110">
+                                                <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                                                    <ArrowTopRightOnSquareIcon className="w-3 h-3 text-primary" />
+                                                </div>
                                             </div>
                                         </button>
                                     ))}
@@ -315,38 +324,43 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                         )}
 
                         {activeTab === 'templates' && (
-                            <div className="space-y-6">
-                                <div className="text-center mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Message Templates</h3>
-                                    <p className="text-gray-600">Choose a catchy message to share</p>
+                            <div className="space-y-4">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">Message Templates</h3>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">Choose your style</p>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {templates.map((template) => (
                                         <div
                                             key={template.id}
                                             onClick={() => handleTemplateSelect(template)}
-                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedTemplate?.id === template.id
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                                            className={`group relative bg-card/40 backdrop-blur-sm border rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-soft ${selectedTemplate?.id === template.id
+                                                    ? 'border-primary/30 bg-primary/5'
+                                                    : 'border-border/30 hover:border-primary/20 hover:bg-card/60'
                                                 }`}
                                         >
-                                            <div className="flex items-start gap-3">
-                                                <div className="text-2xl">{template.emoji}</div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-semibold text-gray-900">{template.title}</h4>
-                                                    <p className="text-sm text-gray-600 mt-1">{template.template}</p>
+                                            {/* Glass morphism overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl pointer-events-none" />
+                                            
+                                            <div className="relative flex items-start gap-3">
+                                                <div className="text-xl sm:text-2xl">{template.emoji}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-semibold text-foreground text-sm sm:text-base">{template.title}</h4>
+                                                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.template}</p>
                                                 </div>
                                                 {selectedTemplate?.id === template.id && (
-                                                    <CheckIcon className="w-5 h-5 text-purple-600" />
+                                                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                                        <CheckIcon className="w-3 h-3 text-primary-foreground" />
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="mt-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className="mt-4">
+                                    <label className="block text-sm font-semibold text-foreground mb-2">
                                         Custom Message
                                     </label>
                                     <textarea
@@ -354,53 +368,53 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                         onChange={(e) => setCustomMessage(e.target.value)}
                                         placeholder="Write your own message..."
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-3 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 text-foreground placeholder:text-muted-foreground text-sm"
                                     />
                                 </div>
 
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-medium text-gray-900 mb-2">Preview:</h4>
-                                    <p className="text-sm text-gray-700 italic">"{generateMessage()}"</p>
+                                <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-3 sm:p-4">
+                                    <h4 className="font-semibold text-foreground mb-2 text-sm">Preview:</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground italic leading-relaxed">"{generateMessage()}"</p>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'advanced' && (
-                            <div className="space-y-6">
-                                <div className="text-center mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Advanced Sharing</h3>
-                                    <p className="text-gray-600">QR codes, embed codes, and direct links</p>
+                            <div className="space-y-4">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">Advanced Options</h3>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">QR codes and embed links</p>
                                 </div>
 
-                                <div className="grid md:grid-cols-2 gap-6">
+                                <div className="grid sm:grid-cols-2 gap-4">
                                     {/* QR Code */}
-                                    <div className="text-center">
-                                        <h4 className="font-medium text-gray-900 mb-4">QR Code</h4>
+                                    <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-4 text-center">
+                                        <h4 className="font-semibold text-foreground mb-3 text-sm">QR Code</h4>
                                         {qrCodeDataUrl ? (
-                                            <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block">
-                                                <img src={qrCodeDataUrl} alt="QR Code" className="w-48 h-48" />
+                                            <div className="bg-card p-3 rounded-xl border border-border/30 inline-block">
+                                                <img src={qrCodeDataUrl} alt="QR Code" className="w-32 h-32 sm:w-40 sm:h-40" />
                                             </div>
                                         ) : (
-                                            <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
+                                            <div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted/30 rounded-xl flex items-center justify-center mx-auto">
                                                 <LoadingSpinner size="lg" />
                                             </div>
                                         )}
-                                        <p className="text-sm text-gray-500 mt-2">Scan to join the stake</p>
+                                        <p className="text-xs text-muted-foreground mt-2">Scan to join</p>
                                     </div>
 
                                     {/* Direct Link */}
-                                    <div>
-                                        <h4 className="font-medium text-gray-900 mb-4">Direct Link</h4>
+                                    <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-4">
+                                        <h4 className="font-semibold text-foreground mb-3 text-sm">Direct Link</h4>
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
                                                 value={`${window.location.origin}/stakes/invite/${shareData.stakeId}`}
                                                 readOnly
-                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                                                className="flex-1 px-3 py-2 bg-muted border border-border rounded-lg text-xs text-muted-foreground"
                                             />
                                             <button
                                                 onClick={() => handleCopy(`${window.location.origin}/stakes/invite/${shareData.stakeId}`, 'direct-link')}
-                                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                                className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                                             >
                                                 {copiedItems.has('direct-link') ? (
                                                     <CheckIcon className="w-4 h-4" />
@@ -413,48 +427,50 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                 </div>
 
                                 {/* Embed Code */}
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-4">Embed Code</h4>
-                                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                                <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-4">
+                                    <h4 className="font-semibold text-foreground mb-3 text-sm">Embed Code</h4>
+                                    <div className="bg-muted p-3 rounded-xl font-mono text-xs overflow-x-auto text-muted-foreground">
                                         {`<iframe src="${window.location.origin}/stakes/invite/${shareData.stakeId}" width="400" height="600" frameborder="0"></iframe>`}
                                     </div>
                                     <button
                                         onClick={() => handleCopy(`<iframe src="${window.location.origin}/stakes/invite/${shareData.stakeId}" width="400" height="600" frameborder="0"></iframe>`, 'embed-code')}
-                                        className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+                                        className="mt-3 px-3 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
                                     >
                                         {copiedItems.has('embed-code') ? (
                                             <CheckIcon className="w-4 h-4" />
                                         ) : (
                                             <ClipboardDocumentIcon className="w-4 h-4" />
                                         )}
-                                        Copy Embed Code
+                                        Copy Code
                                     </button>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Footer */}
-                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <EyeIcon className="w-4 h-4" />
-                                <span>Share your challenge with the world</span>
+                    {/* Aurora Footer */}
+                    <div className="bg-muted/30 px-4 sm:px-6 py-3 sm:py-4 border-t border-border/30">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                <div className="w-4 h-4 bg-info/20 rounded-full flex items-center justify-center">
+                                    <EyeIcon className="w-3 h-3 text-info" />
+                                </div>
+                                <span>Spread the challenge</span>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
                                 <button
                                     onClick={onClose}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
                                 >
                                     Close
                                 </button>
                                 <button
                                     onClick={generateShareLinks}
                                     disabled={loading}
-                                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                                    className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium"
                                 >
                                     {loading && <LoadingSpinner size="sm" />}
-                                    Update Links
+                                    <span>Update Links</span>
                                 </button>
                             </div>
                         </div>
