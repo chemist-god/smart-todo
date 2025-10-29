@@ -42,10 +42,37 @@ export default function UnifiedTimer({
     onStateChange
 }: UnifiedTimerProps) {
     const [totalTimeSpent, setTotalTimeSpent] = useState(initialTimeSpent);
-    const [sessionNotes, setSessionNotes] = useState("");
+    
+    // Persist session notes in localStorage
+    const getNotesStorageKey = (todoId: string) => `smart_todo_notes_${todoId}`;
+    const [sessionNotes, setSessionNotes] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(getNotesStorageKey(todoId)) || "";
+        }
+        return "";
+    });
     const [showNotes, setShowNotes] = useState(false);
     
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const sessionTimeRef = useRef(timerState.sessionTime);
+    const timerStateRef = useRef(timerState);
+
+    // Update refs when timerState changes
+    useEffect(() => {
+        sessionTimeRef.current = timerState.sessionTime;
+        timerStateRef.current = timerState;
+    }, [timerState]);
+
+    // Persist session notes to localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (sessionNotes) {
+                localStorage.setItem(getNotesStorageKey(todoId), sessionNotes);
+            } else {
+                localStorage.removeItem(getNotesStorageKey(todoId));
+            }
+        }
+    }, [sessionNotes, todoId]);
 
     // Format time in MM:SS
     const formatTime = useCallback((seconds: number): string => {
@@ -60,7 +87,7 @@ export default function UnifiedTimer({
         : 0;
 
     // Start timer
-    const startTimer = useCallback(() => {
+    const startTimer = useCallback(async () => {
         if (!timerState.isRunning) {
             const newState = {
                 ...timerState,
@@ -69,15 +96,26 @@ export default function UnifiedTimer({
                 startTime: Date.now()
             };
             onStateChange(newState);
-
-            intervalRef.current = setInterval(() => {
-                onStateChange(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
+            
+            // Track first timer activation for this todo
+            // This helps calculate total time from first focus to completion
+            try {
+                const response = await fetch(`/api/todos/${todoId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        timerStartTime: timerState.startTime ? undefined : new Date().toISOString(),
+                        timerStatus: 'RUNNING'
+                    })
+                });
+                if (!response.ok) {
+                    console.warn('Failed to update timer start time');
+                }
+            } catch (error) {
+                console.warn('Failed to track timer activation:', error);
+            }
         }
-    }, [timerState, onStateChange]);
+    }, [timerState, onStateChange, todoId]);
 
     // Pause timer
     const pauseTimer = useCallback(() => {
@@ -100,13 +138,6 @@ export default function UnifiedTimer({
                 isPaused: false,
                 startTime: Date.now()
             });
-
-            intervalRef.current = setInterval(() => {
-                onStateChange(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
         }
     }, [timerState, onStateChange]);
 
@@ -128,6 +159,20 @@ export default function UnifiedTimer({
             setTotalTimeSpent(newTotal);
             await onTimeUpdate(newTotal);
             await onSessionComplete(sessionData);
+            
+            // Update timer status in database
+            try {
+                await fetch(`/api/todos/${todoId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        timerStatus: 'STOPPED',
+                        totalTimeSpent: newTotal
+                    })
+                });
+            } catch (error) {
+                console.warn('Failed to update timer status:', error);
+            }
         }
 
         // Reset timer state
@@ -136,6 +181,7 @@ export default function UnifiedTimer({
             isPaused: false,
             sessionTime: 0
         });
+        // Only clear notes after successful session completion
         setSessionNotes("");
         setShowNotes(false);
     }, [timerState, totalTimeSpent, sessionNotes, onTimeUpdate, onSessionComplete, onStateChange]);
@@ -152,23 +198,32 @@ export default function UnifiedTimer({
         });
     }, [onStateChange]);
 
-    // Auto-resume timer if it was running
+    // Manage timer interval
     useEffect(() => {
-        if (timerState.isRunning && !timerState.isPaused && !intervalRef.current) {
-            intervalRef.current = setInterval(() => {
-                onStateChange(prev => ({
-                    ...prev,
-                    sessionTime: prev.sessionTime + 1
-                }));
-            }, 1000);
+        if (timerState.isRunning && !timerState.isPaused) {
+            if (!intervalRef.current) {
+                intervalRef.current = setInterval(() => {
+                    sessionTimeRef.current += 1;
+                    onStateChange({
+                        ...timerStateRef.current,
+                        sessionTime: sessionTimeRef.current
+                    });
+                }, 1000);
+            }
+        } else {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
         }
         
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
+                intervalRef.current = null;
             }
         };
-    }, [timerState.isRunning, timerState.isPaused, onStateChange]);
+    }, [timerState.isRunning, timerState.isPaused, timerState, onStateChange]);
 
     return (
         <div className="bg-card/30 border border-border/20 rounded-xl p-3 sm:p-4">
