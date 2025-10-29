@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import {
     PencilIcon,
@@ -12,8 +12,7 @@ import {
     PauseIcon,
     StopIcon
 } from "@heroicons/react/24/outline";
-import TodoTimer from "./TodoTimer";
-import PomodoroTimer from "./PomodoroTimer";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 interface Todo {
     id: string;
@@ -47,13 +46,47 @@ interface TodoItemProps {
     onDelete: (todoId: string) => Promise<void>;
 }
 
+interface TimerState {
+    isRunning: boolean;
+    isPaused: boolean;
+    sessionTime: number;
+    startTime?: number;
+}
+
 export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
-    const [showPomodoro, setShowPomodoro] = useState(false);
     const [currentTimeSpent, setCurrentTimeSpent] = useState(todo.totalTimeSpent || 0);
-
+    
+    // Persistent timer state using localStorage
+    const getTimerStorageKey = (todoId: string) => `smart_todo_timer_${todoId}`;
+    
+    const [timerState, setTimerState] = useState<{
+        isRunning: boolean;
+        isPaused: boolean;
+        sessionTime: number;
+        startTime?: number;
+    }>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(getTimerStorageKey(todo.id));
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Resume session time if timer was running
+                if (parsed.isRunning && parsed.startTime) {
+                    const elapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
+                    return {
+                        ...parsed,
+                        sessionTime: parsed.sessionTime + elapsed,
+                        startTime: Date.now()
+                    };
+                }
+                return parsed;
+            }
+        }
+        return { isRunning: false, isPaused: false, sessionTime: 0 };
+    });
+    
     const priorityColors = {
         LOW: "bg-success/10 text-success border-success/20",
         MEDIUM: "bg-warning/10 text-warning border-warning/20",
@@ -66,64 +99,9 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
         HIGH: "High",
     };
 
-    const priorityIcons = {
-        LOW: "🟢",
-        MEDIUM: "🟡",
-        HIGH: "🔴",
-    };
+    const isOverdue = todo.dueDate && new Date(todo.dueDate) < new Date() && !todo.completed;
 
-    const isOverdue = todo.dueDate && new Date() > new Date(todo.dueDate) && !todo.completed;
-
-    const handleToggleComplete = async () => {
-        if (isUpdating) return;
-
-        setIsUpdating(true);
-        try {
-            await onUpdate(todo.id, { completed: !todo.completed });
-        } catch (error) {
-            console.error('Failed to toggle todo:', error);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (isUpdating) return;
-
-        if (confirm('Are you sure you want to delete this todo?')) {
-            setIsUpdating(true);
-            try {
-                await onDelete(todo.id);
-            } catch (error) {
-                console.error('Failed to delete todo:', error);
-            } finally {
-                setIsUpdating(false);
-            }
-        }
-    };
-
-    const handleTimeUpdate = async (timeSpent: number) => {
-        setCurrentTimeSpent(timeSpent);
-        try {
-            await onUpdate(todo.id, { totalTimeSpent: timeSpent });
-        } catch (error) {
-            console.error('Failed to update time spent:', error);
-        }
-    };
-
-    const handleSessionComplete = async (sessionData: any) => {
-        try {
-            // Update pomodoro sessions count if it's a focus session
-            if (sessionData.sessionType === 'FOCUS' || sessionData.sessionType === 'DEEP_WORK') {
-                await onUpdate(todo.id, {
-                    pomodoroSessions: (todo.pomodoroSessions || 0) + 1
-                });
-            }
-        } catch (error) {
-            console.error('Failed to update session data:', error);
-        }
-    };
-
+    // Format duration helper
     const formatDuration = (minutes: number): string => {
         if (minutes < 60) {
             return `${minutes}m`;
@@ -133,13 +111,168 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
         return `${hours}h ${mins}m`;
     };
 
+    // Event handlers
+    const handleToggleComplete = async () => {
+        setIsUpdating(true);
+        try {
+            await onUpdate(todo.id, { completed: !todo.completed });
+        } catch (error) {
+            console.error('Failed to update todo:', error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (window.confirm('Are you sure you want to delete this todo?')) {
+            setIsUpdating(true);
+            try {
+                await onDelete(todo.id);
+            } catch (error) {
+                console.error('Failed to delete todo:', error);
+                setIsUpdating(false);
+            }
+        }
+    };
+
+    const handleTimeUpdate = async (timeSpent: number) => {
+        try {
+            await onUpdate(todo.id, { totalTimeSpent: timeSpent });
+        } catch (error) {
+            console.error('Failed to update time:', error);
+        }
+    };
+
+    const handleSessionComplete = async (sessionData: any) => {
+        console.log('Session completed:', sessionData);
+        // Could integrate with analytics or session tracking here
+    };
+
+    // Timer control functions
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startTimer = useCallback(() => {
+        if (!timerState.isRunning) {
+            const newState = {
+                ...timerState,
+                isRunning: true,
+                isPaused: false,
+                startTime: Date.now()
+            };
+            setTimerState(newState);
+
+            intervalRef.current = setInterval(() => {
+                setTimerState(prev => ({
+                    ...prev,
+                    sessionTime: prev.sessionTime + 1
+                }));
+            }, 1000);
+        }
+    }, [timerState]);
+
+    const pauseTimer = useCallback(() => {
+        if (timerState.isRunning && !timerState.isPaused) {
+            setTimerState({
+                ...timerState,
+                isPaused: true
+            });
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        }
+    }, [timerState]);
+
+    const resumeTimer = useCallback(() => {
+        if (timerState.isRunning && timerState.isPaused) {
+            setTimerState({
+                ...timerState,
+                isPaused: false,
+                startTime: Date.now()
+            });
+
+            intervalRef.current = setInterval(() => {
+                setTimerState(prev => ({
+                    ...prev,
+                    sessionTime: prev.sessionTime + 1
+                }));
+            }, 1000);
+        }
+    }, [timerState]);
+
+    const stopTimer = useCallback(async () => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+
+        // Save session if there was meaningful time
+        if (timerState.sessionTime > 0) {
+            const sessionMinutes = Math.floor(timerState.sessionTime / 60);
+            const newTotal = currentTimeSpent + sessionMinutes;
+            setCurrentTimeSpent(newTotal);
+            await handleTimeUpdate(newTotal);
+            await handleSessionComplete({
+                duration: timerState.sessionTime,
+                sessionType: 'FOCUS'
+            });
+        }
+
+        // Reset timer state
+        setTimerState({
+            isRunning: false,
+            isPaused: false,
+            sessionTime: 0
+        });
+    }, [timerState, currentTimeSpent, handleTimeUpdate, handleSessionComplete]);
+
+    const resetTimer = useCallback(() => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+        setTimerState({
+            isRunning: false,
+            isPaused: false,
+            sessionTime: 0
+        });
+    }, []);
+
+    // Auto-resume timer if it was running
+    useEffect(() => {
+        if (timerState.isRunning && !timerState.isPaused && !intervalRef.current) {
+            intervalRef.current = setInterval(() => {
+                setTimerState(prev => ({
+                    ...prev,
+                    sessionTime: prev.sessionTime + 1
+                }));
+            }, 1000);
+        }
+        
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [timerState.isRunning, timerState.isPaused]);
+
+    // Persist timer state
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(getTimerStorageKey(todo.id), JSON.stringify(timerState));
+        }
+    }, [timerState, todo.id]);
+
+    const priorityIcons = {
+        LOW: "🟢",
+        MEDIUM: "🟡",
+        HIGH: "🔴",
+    };
+
     return (
-        <div className={`bg-card border border-border rounded-xl p-3 sm:p-4 lg:p-5 hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 group ${
+        <div className={`bg-card border border-border rounded-xl p-2.5 sm:p-3 lg:p-4 hover:shadow-soft transition-all duration-300 hover:-translate-y-0.5 group ${
             todo.completed
-                ? 'border-success/50 bg-success/5'
+                ? 'border-success/30 bg-success/5'
                 : isOverdue
-                    ? 'border-destructive/50 bg-destructive/5'
-                    : 'hover:border-primary/30'
+                    ? 'border-destructive/30 bg-destructive/5'
+                    : 'hover:border-primary/20'
         }`}>
             <div className="flex items-start gap-2 sm:gap-3">
                 {/* Enhanced Checkbox */}
@@ -158,7 +291,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                         <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm sm:text-base lg:text-lg font-semibold leading-tight transition-all duration-200 ${
+                            <h3 className={`text-sm sm:text-base font-semibold leading-tight transition-all duration-200 ${
                                 todo.completed
                                     ? "line-through text-muted-foreground"
                                     : "text-foreground group-hover:text-primary"
@@ -166,7 +299,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                                 {todo.title}
                             </h3>
                             {todo.description && (
-                                <p className={`text-xs sm:text-sm lg:text-base mt-1 sm:mt-1.5 leading-relaxed transition-colors duration-200 line-clamp-2 ${
+                                <p className={`text-xs sm:text-sm mt-1 leading-relaxed transition-colors duration-200 line-clamp-2 ${
                                     todo.completed
                                         ? "text-muted-foreground/70"
                                         : "text-muted-foreground"
@@ -177,10 +310,10 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                         </div>
 
                         {/* Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 flex-shrink-0">
                             {/* Priority Badge */}
-                            <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 lg:px-3 lg:py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-all duration-200 ${priorityColors[todo.priority]}`}>
-                                <span className="text-xs sm:text-sm">
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium ${priorityColors[todo.priority]}`}>
+                                <span className="text-xs">
                                     {todo.priority === 'HIGH' ? '🔴' : todo.priority === 'MEDIUM' ? '🟡' : '🟢'}
                                 </span>
                                 <span className="hidden sm:inline">{priorityLabels[todo.priority]}</span>
@@ -188,14 +321,14 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                             </span>
 
                             {/* Points Badge */}
-                            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 lg:px-3 lg:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20 transition-all duration-200 hover:bg-primary/20">
-                                <StarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                <StarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                 {todo.points}
                             </span>
 
                             {/* Time Spent Badge */}
                             {currentTimeSpent > 0 && (
-                                <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
                                     <ClockIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                     {formatDuration(currentTimeSpent)}
                                 </span>
@@ -229,29 +362,33 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                 {/* Enhanced Actions */}
                 <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                    {/* Timer Controls */}
+                    {/* Unified Smart Timer */}
                     {!todo.completed && (
-                        <>
-                            <button
-                                onClick={() => setShowTimer(!showTimer)}
-                                className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200 focus-enhanced"
-                                title="Timer"
-                            >
+                        <button
+                            onClick={() => setShowTimer(!showTimer)}
+                            className={`relative p-1 sm:p-1.5 rounded-md transition-all duration-200 group ${
+                                showTimer || timerState.isRunning
+                                    ? 'text-primary bg-primary/10'
+                                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                            }`}
+                            title={showTimer ? 'Hide Timer' : 'Show Timer'}
+                        >
+                            {timerState.isRunning ? (
+                                <div className="flex items-center gap-0.5">
+                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                    <span className="text-xs font-mono font-medium">
+                                        {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
+                                    </span>
+                                </div>
+                            ) : (
                                 <PlayIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
-                            <button
-                                onClick={() => setShowPomodoro(!showPomodoro)}
-                                className="p-1.5 sm:p-2 text-muted-foreground hover:text-info hover:bg-info/10 rounded-lg transition-all duration-200 focus-enhanced"
-                                title="Pomodoro"
-                            >
-                                🍅
-                            </button>
-                        </>
+                            )}
+                        </button>
                     )}
 
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus-enhanced"
+                        className="p-1 sm:p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-md transition-all duration-200"
                         title="Expand"
                     >
                         <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -259,7 +396,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     <button
                         onClick={handleDelete}
                         disabled={isUpdating}
-                        className="p-1.5 sm:p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-enhanced"
+                        className="p-1 sm:p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete"
                     >
                         <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -267,28 +404,97 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                 </div>
             </div>
 
-            {/* Enhanced Timer Components */}
+            {/* Unified Smart Timer Interface */}
             {showTimer && !todo.completed && (
-                <div className="mt-4 pt-4 border-t border-border/50">
-                    <TodoTimer
-                        todoId={todo.id}
-                        initialTimeSpent={currentTimeSpent}
-                        estimatedDuration={todo.estimatedDuration}
-                        onTimeUpdate={handleTimeUpdate}
-                        onSessionComplete={handleSessionComplete}
-                        isFocusMode={todo.focusMode}
-                        className="mb-4"
-                    />
-                </div>
-            )}
+                <div className="mt-3 pt-3 border-t border-border/30 animate-in slide-in-from-top-2 duration-200">
+                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+                        {/* Timer Header */}
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="p-1.5 rounded-lg bg-primary/10">
+                                <ClockIcon className="w-3 h-3 text-primary" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-foreground">Focus Timer</h4>
+                                <p className="text-xs text-muted-foreground">Track your productivity</p>
+                            </div>
+                        </div>
 
-            {showPomodoro && !todo.completed && (
-                <div className="mt-4 pt-4 border-t border-border/50">
-                    <PomodoroTimer
-                        todoId={todo.id}
-                        onSessionComplete={handleSessionComplete}
-                        className="mb-4"
-                    />
+                        {/* Timer Display */}
+                        <div className="text-center mb-3">
+                            <div className="text-xl font-mono font-bold text-foreground mb-1">
+                                {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-2">
+                                Session Time
+                            </div>
+                            <div className="text-sm font-medium text-primary">
+                                Total: {Math.floor(currentTimeSpent / 60)}h {currentTimeSpent % 60}m
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        {todo.estimatedDuration && (
+                            <div className="mb-3">
+                                <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                                    <span>Progress</span>
+                                    <span className="font-medium">{Math.round((currentTimeSpent / todo.estimatedDuration) * 100)}%</span>
+                                </div>
+                                <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                        className="bg-primary h-full rounded-full transition-all duration-500 ease-out"
+                                        style={{ width: `${Math.min((currentTimeSpent / todo.estimatedDuration) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Timer Controls */}
+                        <div className="flex justify-center gap-1.5">
+                            {!timerState.isRunning ? (
+                                <button
+                                    onClick={startTimer}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 text-sm font-medium"
+                                >
+                                    <PlayIcon className="w-3 h-3" />
+                                    <span>Start</span>
+                                </button>
+                            ) : timerState.isPaused ? (
+                                <button
+                                    onClick={resumeTimer}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 text-sm font-medium"
+                                >
+                                    <PlayIcon className="w-3 h-3" />
+                                    <span>Resume</span>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={pauseTimer}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-warning text-warning-foreground rounded-lg hover:bg-warning/90 transition-all duration-200 text-sm font-medium"
+                                >
+                                    <PauseIcon className="w-3 h-3" />
+                                    <span>Pause</span>
+                                </button>
+                            )}
+
+                            {timerState.isRunning && (
+                                <button
+                                    onClick={stopTimer}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-all duration-200 text-sm font-medium"
+                                >
+                                    <StopIcon className="w-3 h-3" />
+                                    <span>Stop</span>
+                                </button>
+                            )}
+
+                            <button
+                                onClick={resetTimer}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 hover:text-foreground transition-all duration-200 text-sm font-medium"
+                            >
+                                <ArrowPathIcon className="w-3 h-3" />
+                                <span>Reset</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
