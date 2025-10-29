@@ -562,10 +562,10 @@ model UserWallet {
   userId          String      @unique
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  balance         Float     @default(0)
-  totalEarned     Float     @default(0)
-  totalLost       Float     @default(0)
-  totalStaked     Float     @default(0)
+  balance         Decimal   @default(0)
+  totalEarned     Decimal   @default(0)
+  totalLost       Decimal   @default(0)
+  totalStaked     Decimal   @default(0)
   
   // Advanced Metrics
   completionRate  Float     @default(0)
@@ -592,7 +592,7 @@ model WalletTransaction {
   userId          String
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   type            String
-  amount          Float
+  amount          Decimal
   description     String
   referenceId     String?
   
