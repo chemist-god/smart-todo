@@ -71,8 +71,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Send verification email/SMS
-        console.log(`📧 Resending verification ${type} to: ${identifier}`);
-        console.log(`🔑 New verification token: ${token}`);
+        // Use the identifier from the request (already declared above)
 
         // Send email for email verification
         if (type === "EMAIL_VERIFICATION") {
@@ -94,8 +93,8 @@ export async function POST(request: NextRequest) {
 
         // TODO: Implement SMS sending for phone verification
         if (type === "PHONE_VERIFICATION") {
-            console.log(`📱 SMS would be sent to: ${identifier}`);
-            console.log(`📱 SMS content: Your Smart Todo verification code is: ${token}`);
+            // SMS implementation will be added later
+            console.log(`📱 SMS verification for phone numbers will be implemented soon`);
         }
 
         return NextResponse.json({
