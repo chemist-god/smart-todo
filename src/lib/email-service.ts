@@ -1,6 +1,18 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization of Resend client
+let resend: Resend | null = null;
+
+function getResendClient(): Resend {
+    if (!resend) {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) {
+            throw new Error('RESEND_API_KEY environment variable is not set');
+        }
+        resend = new Resend(apiKey);
+    }
+    return resend;
+}
 
 export interface EmailOptions {
     to: string;
@@ -23,7 +35,8 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
         }
 
         // In production, actually send the email via Resend
-        const data = await resend.emails.send({
+        const resendClient = getResendClient();
+        const data = await resendClient.emails.send({
             from: 'Smart Todo <onboarding@resend.dev>', // Use your verified domain later
             to: [to],
             subject: subject,
