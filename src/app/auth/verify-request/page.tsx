@@ -2,224 +2,289 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { CheckCircle, Mail, Smartphone, Copy, Sparkles } from "lucide-react";
 
 function VerifyRequestContent() {
-    const [token, setToken] = useState("");
-    const [type, setType] = useState("EMAIL_VERIFICATION");
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
-    const [devToken, setDevToken] = useState("");
+  const [token, setToken] = useState("");
+  const [type, setType] = useState("EMAIL_VERIFICATION");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [devToken, setDevToken] = useState("");
+  const [copied, setCopied] = useState(false);
 
-    const router = useRouter();
-    const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    // Check for token in URL params (for development)
-    useEffect(() => {
-        const urlToken = searchParams.get('token');
-        const urlType = searchParams.get('type');
+  // Check for token in URL params (for development)
+  useEffect(() => {
+    const urlToken = searchParams.get('token');
+    const urlType = searchParams.get('type');
 
-        if (urlToken) {
-            setToken(urlToken);
-            setDevToken(urlToken);
-        }
+    if (urlToken) {
+      setToken(urlToken);
+      setDevToken(urlToken);
+    }
 
-        if (urlType) {
-            setType(urlType);
-        }
-    }, [searchParams]);
+    if (urlType) {
+      setType(urlType);
+    }
+  }, [searchParams]);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError("");
-        setSuccess("");
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
 
-        try {
-            const response = await fetch("/api/auth/verify", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ token, type }),
-            });
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, type }),
+      });
 
-            const data = await response.json();
+      const data = await response.json();
 
-            if (response.ok) {
-                setSuccess("Account verified successfully! You can now sign in.");
-                setTimeout(() => {
-                    router.push("/auth/signin");
-                }, 2000);
-            } else {
-                setError(data.error || "Verification failed");
-            }
-        } catch (error) {
-            setError("An error occurred. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      if (response.ok) {
+        setSuccess("Account verified successfully! You can now sign in.");
+        setTimeout(() => {
+          router.push("/auth/signin");
+        }, 2000);
+      } else {
+        setError(data.error || "Verification failed");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleResend = async () => {
-        setIsLoading(true);
-        setError("");
-        setSuccess("");
+  const handleResend = async () => {
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
 
-        try {
-            const response = await fetch("/api/auth/resend-verification", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    identifier: "your-email@example.com", // This should come from the registration flow
-                    type,
-                }),
-            });
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: "your-email@example.com", // This should come from the registration flow
+          type,
+        }),
+      });
 
-            const data = await response.json();
+      const data = await response.json();
 
-            if (response.ok) {
-                setSuccess("Verification token sent successfully!");
-            } else {
-                setError(data.error || "Failed to resend verification");
-            }
-        } catch (error) {
-            setError("An error occurred. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      if (response.ok) {
+        setSuccess("Verification token sent successfully!");
+      } else {
+        setError(data.error || "Failed to resend verification");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Verify your account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Enter the verification code sent to your email or phone
-                    </p>
-                </div>
+  const handleCopyToken = async () => {
+    if (devToken) {
+      await navigator.clipboard.writeText(devToken);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
-                <div className="mt-8 space-y-6">
-                    <div className="flex mb-4">
-                        <button
-                            type="button"
-                            onClick={() => setType("EMAIL_VERIFICATION")}
-                            className={`flex-1 py-2 px-4 text-sm font-medium rounded-l-md border ${type === "EMAIL_VERIFICATION"
-                                ? "bg-indigo-600 text-white border-indigo-600"
-                                : "bg-white text-gray-700 border-gray-300"
-                                }`}
-                        >
-                            Email
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setType("PHONE_VERIFICATION")}
-                            className={`flex-1 py-2 px-4 text-sm font-medium rounded-r-md border ${type === "PHONE_VERIFICATION"
-                                ? "bg-indigo-600 text-white border-indigo-600"
-                                : "bg-white text-gray-700 border-gray-300"
-                                }`}
-                        >
-                            Phone
-                        </button>
-                    </div>
-
-                    <form onSubmit={handleVerify} className="space-y-6">
-                        <div>
-                            <label htmlFor="token" className="sr-only">
-                                Verification Code
-                            </label>
-                            <input
-                                id="token"
-                                name="token"
-                                type="text"
-                                required
-                                value={token}
-                                onChange={(e) => setToken(e.target.value)}
-                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Enter verification code"
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="text-red-600 text-sm text-center">{error}</div>
-                        )}
-
-                        {success && (
-                            <div className="text-green-600 text-sm text-center">{success}</div>
-                        )}
-
-                        <div className="space-y-3">
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                            >
-                                {isLoading ? "Verifying..." : "Verify Account"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={isLoading}
-                                className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                            >
-                                {isLoading ? "Sending..." : "Resend Code"}
-                            </button>
-                        </div>
-                    </form>
-
-                    {/* Development Token Display */}
-                    {process.env.NODE_ENV === 'development' && devToken && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
-                            <h3 className="text-sm font-medium text-yellow-800 mb-2">
-                                🚧 Development Mode - Verification Token
-                            </h3>
-                            <div className="bg-yellow-100 p-3 rounded border">
-                                <p className="text-sm text-yellow-700 mb-2">
-                                    Copy this token to verify your account:
-                                </p>
-                                <code className="block text-lg font-mono bg-white p-2 rounded border text-center">
-                                    {devToken}
-                                </code>
-                                <button
-                                    type="button"
-                                    onClick={() => navigator.clipboard.writeText(devToken)}
-                                    className="mt-2 text-xs text-yellow-600 hover:text-yellow-800 underline"
-                                >
-                                    Copy to clipboard
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600">
-                            Check your {type === "EMAIL_VERIFICATION" ? "email" : "phone"} for the verification code.
-                            {process.env.NODE_ENV === 'development' && (
-                                <>
-                                    <br />
-                                    <span className="text-xs text-gray-500">
-                                        (Development: Token is shown above and logged to console)
-                                    </span>
-                                </>
-                            )}
-                        </p>
-                    </div>
-                </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        <Card className="glass shadow-strong border-0 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
+                <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+              </div>
             </div>
-        </div>
-    );
+            <div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Verify Your Account
+              </CardTitle>
+              <CardDescription className="text-muted-foreground mt-2">
+                Enter the verification code sent to your {type === "EMAIL_VERIFICATION" ? "email" : "phone"}
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Verification Type Toggle */}
+            <div className="flex rounded-lg bg-muted/50 p-1 border">
+              <button
+                type="button"
+                onClick={() => setType("EMAIL_VERIFICATION")}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200",
+                  type === "EMAIL_VERIFICATION"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                )}
+              >
+                <Mail className="w-4 h-4" />
+                Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setType("PHONE_VERIFICATION")}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200",
+                  type === "PHONE_VERIFICATION"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                )}
+              >
+                <Smartphone className="w-4 h-4" />
+                Phone
+              </button>
+            </div>
+
+            {/* Verification Form */}
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  id="token"
+                  name="token"
+                  type="text"
+                  required
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="Enter verification code"
+                  disabled={isLoading}
+                  className="text-center text-lg tracking-wider bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                />
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20 text-success text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>{success}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm transition-all duration-200 hover:shadow-md"
+                  disabled={isLoading || !token.trim()}
+                >
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner className="w-4 h-4 mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify Account"
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleResend}
+                  disabled={isLoading}
+                  className="w-full h-11 border-border/50 hover:bg-muted/50 transition-all duration-200"
+                >
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner className="w-4 h-4 mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Resend Code"
+                  )}
+                </Button>
+              </div>
+            </form>
+
+            {/* Development Token Display */}
+            {process.env.NODE_ENV === 'development' && devToken && (
+              <Card className="bg-warning/5 border-warning/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-warning flex items-center gap-2">
+                    🚧 Development Mode
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Copy this token to verify your account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-warning/10 p-3 rounded-lg border border-warning/20">
+                    <code className="block text-sm font-mono bg-background p-2 rounded border text-center select-all">
+                      {devToken}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyToken}
+                      className="w-full mt-2 h-8 text-xs border-warning/30 hover:bg-warning/10"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      {copied ? "Copied!" : "Copy to clipboard"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Help Text */}
+            <p className="text-center text-sm text-muted-foreground">
+              Check your {type === "EMAIL_VERIFICATION" ? "email" : "phone"} for the verification code.
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <br />
+                  <span className="text-xs opacity-75">
+                    (Development: Token is shown above and logged to console)
+                  </span>
+                </>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
 
 export default function VerifyRequestPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-            <VerifyRequestContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <LoadingSpinner className="w-8 h-8" />
+      </div>
+    }>
+      <VerifyRequestContent />
+    </Suspense>
+  );
 }
