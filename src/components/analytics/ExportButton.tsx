@@ -50,11 +50,11 @@ export default function ExportButton({ period = '30' }: ExportButtonProps) {
     };
 
     return (
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3">
             <button
                 onClick={() => handleExport('csv')}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-success text-success-foreground rounded-2xl hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
                 <ArrowDownTrayIcon className="w-4 h-4" />
                 {isExporting ? 'Exporting...' : 'Export CSV'}
@@ -62,7 +62,7 @@ export default function ExportButton({ period = '30' }: ExportButtonProps) {
             <button
                 onClick={() => handleExport('json')}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
                 <ArrowDownTrayIcon className="w-4 h-4" />
                 {isExporting ? 'Exporting...' : 'Export JSON'}
