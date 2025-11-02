@@ -1,13 +1,18 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Email configuration
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address
-        pass: process.env.EMAIL_APP_PASSWORD, // Gmail App Password (not regular password)
-    },
-});
+// Lazy initialization of Resend client
+let resend: Resend | null = null;
+
+function getResendClient(): Resend {
+    if (!resend) {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) {
+            throw new Error('RESEND_API_KEY environment variable is not set');
+        }
+        resend = new Resend(apiKey);
+    }
+    return resend;
+}
 
 export interface EmailOptions {
     to: string;
@@ -23,30 +28,31 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
             console.log('\n📧 EMAIL WOULD BE SENT:');
             console.log('To:', to);
             console.log('Subject:', subject);
-            console.log('HTML:', html);
+            console.log('HTML:', html.substring(0, 500) + (html.length > 500 ? '...' : ''));
             console.log('Text:', text);
             console.log('📧 END EMAIL\n');
             return { success: true, message: 'Email logged to console (development mode)' };
         }
 
-        // In production, actually send the email
-        const info = await transporter.sendMail({
-            from: `"Smart Todo" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            html,
-            text,
+        // In production, actually send the email via Resend
+        const resendClient = getResendClient();
+        const data = await resendClient.emails.send({
+            from: 'Smart Todo <onboarding@resend.dev>', // Use your verified domain later
+            to: [to],
+            subject: subject,
+            html: html,
+            text: text,
         });
 
-        console.log('Email sent successfully:', info.messageId);
-        return { success: true, messageId: info.messageId };
+        console.log('Email sent successfully via Resend:', data.data?.id);
+        return { success: true, messageId: data.data?.id };
     } catch (error) {
         console.error('Email sending failed:', error);
         return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
 
-export function generateVerificationEmailHtml(token: string, type: 'email' | 'phone', identifier: string) {
+export function generateVerificationEmailHtml(token: string, type: 'email' | 'phone', identifier: string): string {
     const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-request?token=${token}&type=${type.toUpperCase()}_VERIFICATION`;
 
     return `
@@ -56,60 +62,71 @@ export function generateVerificationEmailHtml(token: string, type: 'email' | 'ph
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Verify Your Account - Smart Todo</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #4f46e5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-        .code { background: #e5e7eb; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 18px; text-align: center; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
-      </style>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🎯 Smart Todo</h1>
-          <p>Verify Your Account</p>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 50px 30px; text-align: center; border-radius: 16px 16px 0 0; box-shadow: 0 10px 40px rgba(79, 70, 229, 0.2);">
+          <div style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">🎯 Smart Todo</div>
+          <div style="font-size: 18px; opacity: 0.9; font-weight: 500;">Verify Your Account</div>
         </div>
-        <div class="content">
-          <h2>Welcome to Smart Todo!</h2>
-          <p>Thank you for signing up. To complete your account setup, please verify your ${type} address.</p>
-          
-          <p><strong>Verification Code:</strong></p>
-          <div class="code">${token}</div>
-          
-          <p>Or click the button below to verify automatically:</p>
-          <a href="${verificationUrl}" class="button">Verify Account</a>
-          
-          <p>This verification code will expire in 24 hours.</p>
-          
-          <p>If you didn't create an account with Smart Todo, please ignore this email.</p>
+
+        <!-- Content -->
+        <div style="background: #ffffff; padding: 50px 40px; border-radius: 0 0 16px 16px; border: 1px solid #e2e8f0; border-top: none; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
+          <h1 style="margin: 0 0 24px 0; color: #1e293b; font-size: 28px; font-weight: 700;">Welcome to Smart Todo! 🚀</h1>
+
+          <p style="margin-bottom: 32px; font-size: 16px; color: #64748b;">Thank you for signing up! To complete your account setup and start boosting your productivity, please verify your ${type} address.</p>
+
+          <!-- Verification Code -->
+          <div style="margin-bottom: 32px;">
+            <p style="margin: 0 0 12px 0; font-weight: 600; color: #374151; font-size: 16px;">Your Verification Code:</p>
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 20px 24px; border-radius: 12px; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 24px; font-weight: 700; text-align: center; letter-spacing: 3px; border: 2px solid #cbd5e1; color: #1e293b; word-break: break-all;">${token}</div>
+          </div>
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin-bottom: 32px;">
+            <p style="margin: 0 0 20px 0; color: #64748b;">Or click the button below to verify automatically:</p>
+            <a href="${verificationUrl}" style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);">✅ Verify My Account</a>
+          </div>
+
+          <!-- Warning -->
+          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+            <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 14px;">⏰ <strong>Important:</strong> This verification code will expire in 24 hours.</p>
+          </div>
+
+          <p style="margin: 24px 0 0 0; color: #64748b; font-size: 14px;">If you didn't create an account with Smart Todo, please ignore this email.</p>
         </div>
-        <div class="footer">
-          <p>© 2024 Smart Todo. All rights reserved.</p>
-          <p>This email was sent to ${identifier}</p>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 32px; color: #94a3b8; font-size: 14px;">
+          <p style="margin: 0 0 8px 0;">© 2024 Smart Todo. All rights reserved.</p>
+          <p style="margin: 0; font-size: 12px;">This email was sent to ${identifier}</p>
         </div>
       </div>
     </body>
     </html>
-  `;
+  `.trim();
 }
 
 export function generateVerificationEmailText(token: string, type: 'email' | 'phone', identifier: string) {
+    const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-request?token=${token}&type=${type.toUpperCase()}_VERIFICATION`;
+
     return `
-Smart Todo - Account Verification
+🎯 Smart Todo - Account Verification
 
-Welcome to Smart Todo!
+Welcome to Smart Todo! 🚀
 
-Thank you for signing up. To complete your account setup, please verify your ${type} address.
+Thank you for signing up! To complete your account setup and start boosting your productivity, please verify your ${type} address.
 
-Verification Code: ${token}
+Your Verification Code: ${token}
 
-This verification code will expire in 24 hours.
+Or verify automatically: ${verificationUrl}
+
+⏰ Important: This verification code will expire in 24 hours.
 
 If you didn't create an account with Smart Todo, please ignore this email.
 
 © 2024 Smart Todo. All rights reserved.
+This email was sent to ${identifier}
   `.trim();
 }

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { randomBytes } from "crypto";
 import { sendEmail, generateVerificationEmailHtml, generateVerificationEmailText } from "@/lib/email-service";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
     try {
@@ -71,10 +69,6 @@ export async function POST(request: NextRequest) {
 
         // Send verification email/SMS
         const identifier = email || phone!;
-        const type = email ? 'email' : 'phone';
-
-        console.log(`📧 Sending verification ${type} to: ${identifier}`);
-        console.log(`🔑 Verification token: ${token}`);
 
         // Send email for email verification
         if (email) {
@@ -92,8 +86,8 @@ export async function POST(request: NextRequest) {
 
         // TODO: Implement SMS sending for phone verification
         if (phone) {
-            console.log(`📱 SMS would be sent to: ${phone}`);
-            console.log(`📱 SMS content: Your Smart Todo verification code is: ${token}`);
+            // SMS implementation will be added later
+            console.log(`📱 SMS verification for phone numbers will be implemented soon`);
         }
 
         return NextResponse.json({
