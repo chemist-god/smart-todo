@@ -67,7 +67,7 @@ export function validateProductivityData(data: any): ProductivityData {
         completionRate: safeNumber(data?.completionRate, 0),
         totalTasks: safeNumber(data?.totalTasks, 0),
         completedTasks: safeNumber(data?.completedTasks, 0),
-        averageCompletionTime: safeNumber(data?.averageCompletionTime, 0),
+        averageCompletionTime: safeNumber(data?.avgCompletionTime, 0),
         productivityScore: safeNumber(data?.productivityScore, 0),
         overallCompletionRate: safeNumber(data?.overallCompletionRate, 0)
     };
@@ -132,7 +132,7 @@ export function generateMockProductivityData(): ProductivityData {
         completionRate: 75.5,
         totalTasks: 50,
         completedTasks: 38,
-        averageCompletionTime: 2.5,
+        avgCompletionTime: 2.5,
         productivityScore: 85,
         overallCompletionRate: 76.0
     };
