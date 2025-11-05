@@ -30,13 +30,12 @@ interface PatternData {
         priority: string;
         count: number;
         avgPoints: number;
+        completionRate?: number;
     }>;
-    completionTimeRanges: {
-        sameDay: number;
-        withinWeek: number;
-        withinMonth: number;
-        overMonth: number;
-    };
+    completionTimeRanges: Array<{
+        range: string;
+        count: number;
+    }>;
     productivityScore: number;
     insights: Array<{
         type: string;
@@ -218,7 +217,7 @@ export default function PatternAnalysis() {
                                 <span className="text-2xl font-bold text-foreground tabular-nums">{pattern.count}</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                Avg. points: {pattern.avgPoints.toFixed(1)}
+                                Avg. points: {(pattern.avgPoints || 0).toFixed(1)}
                             </p>
                         </div>
                     ))}
@@ -229,12 +228,18 @@ export default function PatternAnalysis() {
             <div className="backdrop-blur-sm bg-card/50 p-6 rounded-2xl border border-border/50 shadow-lg">
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-4">Task Completion Time Analysis</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {safeData.completionTimeRanges && safeData.completionTimeRanges.map((range: any, index: number) => (
-                        <div key={index} className="text-center p-4 bg-card/30 rounded-2xl border border-border/50">
-                            <div className="text-2xl font-bold text-primary tabular-nums">{range.count}</div>
-                            <div className="text-sm text-muted-foreground">{range.range}</div>
+                    {safeData.completionTimeRanges?.length > 0 ? (
+                        safeData.completionTimeRanges.map((range, index) => (
+                            <div key={index} className="text-center p-4 bg-card/30 rounded-2xl border border-border/50">
+                                <div className="text-2xl font-bold text-primary tabular-nums">{range.count || 0}</div>
+                                <div className="text-sm text-muted-foreground">{range.range || 'N/A'}</div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center text-muted-foreground py-4">
+                            No completion time data available
                         </div>
-                    ))}
+                    )}
                 </div>
             </div>
         </div>
