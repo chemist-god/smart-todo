@@ -16,7 +16,7 @@ export default function AuthStatus() {
         onClick={() => signIn("google")}
         className="rounded bg-primary text-primary-foreground px-4 py-2 hover:bg-primary/90 transition-colors"
       >
-        Sign in with Google
+        Sign In
       </button>
     );
   }

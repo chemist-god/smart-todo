@@ -24,7 +24,11 @@ import {
     BellIcon,
     QuestionMarkCircleIcon,
     ChevronLeftIcon,
-    ChevronRightIcon
+    ChevronRightIcon,
+    Cog6ToothIcon,
+    UserCircleIcon,
+    ArrowLeftOnRectangleIcon,
+    ChevronDownIcon
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
@@ -271,43 +276,110 @@ export default function Sidebar() {
                     })}
                 </div>
 
-                {/* User Profile - only show when expanded */}
-                {(!isCollapsed && !isMobileCollapsed) && session?.user && (
-                    <div className="p-4 border-t border-border/50">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
-                            <div className="flex-shrink-0">
-                                {session.user.image ? (
-                                    <img
-                                        className="h-8 w-8 rounded-full ring-2 ring-primary/20"
-                                        src={session.user.image}
-                                        alt={session.user.name || "User"}
-                                    />
-                                ) : (
-                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
-                                        <UserIcon className="h-4 w-4 text-primary-foreground" />
+                {/* User Profile Section */}
+                <div className={cn("border-t border-border/50 transition-all duration-300", {
+                    'p-2': isCollapsed || isMobileCollapsed,
+                    'p-4': !isCollapsed && !isMobileCollapsed
+                })}>
+                    {session?.user && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className={cn(
+                                    "w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200",
+                                    "hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/20",
+                                    isCollapsed || isMobileCollapsed ? 'justify-center' : 'justify-between',
+                                )}>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-shrink-0">
+                                            {session.user.image ? (
+                                                <img
+                                                    className="h-8 w-8 rounded-full ring-2 ring-primary/20"
+                                                    src={session.user.image}
+                                                    alt={session.user.name || "User"}
+                                                />
+                                            ) : (
+                                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+                                                    <UserIcon className="h-4 w-4 text-primary-foreground" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {(!isCollapsed && !isMobileCollapsed) && (
+                                            <div className="text-left">
+                                                <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                                                    {session.user.name || session.user.email?.split('@')[0]}
+                                                </p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-8 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
+                                                            style={{ width: `${Math.min(100, ((stats?.totalPoints ?? 0) % 1000) / 10)}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Lvl {stats?.level ?? 1}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-foreground truncate">
-                                    {session.user.name || session.user.email}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Level {stats?.level ?? 1} • {stats?.totalPoints?.toLocaleString() ?? 0} XP
-                                </p>
-                            </div>
-                            <Button
-                                onClick={() => signOut()}
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                                title="Sign out"
-                            >
-                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                                    
+                                    {(!isCollapsed && !isMobileCollapsed) && (
+                                        <ChevronDownIcon className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-200" />
+                                    )}
+                                </button>
+                            </DropdownMenuTrigger>
+                            
+                            <DropdownMenuContent className="w-56 p-2 border-border/50 bg-card/95 backdrop-blur-sm" align="end" sideOffset={10}>
+                                <div className="px-2 py-1.5">
+                                    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                                        <div className="flex-shrink-0">
+                                            {session.user.image ? (
+                                                <img
+                                                    className="h-10 w-10 rounded-full ring-2 ring-primary/20"
+                                                    src={session.user.image}
+                                                    alt={session.user.name || "User"}
+                                                />
+                                            ) : (
+                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+                                                    <UserIcon className="h-5 w-5 text-primary-foreground" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-foreground truncate">
+                                                {session.user.name || session.user.email}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground truncate">
+                                                {session.user.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile" className="cursor-pointer">
+                                        <UserCircleIcon className="mr-2 h-4 w-4" />
+                                        <span>My Profile</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/settings" className="cursor-pointer">
+                                        <Cog6ToothIcon className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+                                    onClick={() => signOut()}
+                                >
+                                    <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
             </div>
         </>
     );

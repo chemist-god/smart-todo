@@ -11,7 +11,8 @@ interface ProductivityData {
         date: string;
         completed: number;
         created: number;
-        completionRate: number;
+        points: number;
+        completionRate?: number;
     }>;
     weeklyStats: Array<{
         week: string;
@@ -28,6 +29,10 @@ interface ProductivityData {
     totalCompleted: number;
     totalCreated: number;
     overallCompletionRate: number;
+    completionRate: number;
+    totalTasks: number;
+    completedTasks: number;
+    productivityScore: number;
 }
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
@@ -80,7 +85,7 @@ export default function ProductivityChart() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div className="backdrop-blur-sm bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-4 sm:p-5 rounded-2xl text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200">
                     <div className="text-sm opacity-90">Completion Rate</div>
-                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{safeData.overallCompletionRate.toFixed(1)}%</div>
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{(safeData.overallCompletionRate || 0).toFixed(1)}%</div>
                 </div>
                 <div className="backdrop-blur-sm bg-gradient-to-r from-success via-success/90 to-success/80 p-4 sm:p-5 rounded-2xl text-success-foreground shadow-lg hover:shadow-xl transition-all duration-200">
                     <div className="text-sm opacity-90">Tasks Completed</div>
@@ -92,7 +97,7 @@ export default function ProductivityChart() {
                 </div>
                 <div className="backdrop-blur-sm bg-gradient-to-r from-info via-info/90 to-info/80 p-4 sm:p-5 rounded-2xl text-info-foreground shadow-lg hover:shadow-xl transition-all duration-200">
                     <div className="text-sm opacity-90">Avg. Completion Time</div>
-                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{safeData.avgCompletionTime.toFixed(1)}h</div>
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{(safeData.avgCompletionTime || 0).toFixed(1)}h</div>
                 </div>
             </div>
 
