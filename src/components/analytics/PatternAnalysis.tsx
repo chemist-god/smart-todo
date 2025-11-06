@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState } from 'react';
 import { usePatternAnalytics } from '@/hooks/useData';
 import { ClockIcon, CalendarIcon, ChartBarIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import { validatePatternData, generateMockPatternData, type PatternData as ValidatedPatternData } from '@/lib/analytics-validator';
+import { validatePatternData, type PatternData as ValidatedPatternData } from '@/lib/analytics-validator';
 
 interface PatternData {
     period: string;
@@ -64,16 +64,29 @@ export default function PatternAnalysis() {
         );
     }
 
-    if (!data) {
+    // Validate and normalize data
+    const safeData = data ? validatePatternData(data) : null;
+
+    if (!safeData) {
         return (
-            <div className="backdrop-blur-sm bg-card/50 rounded-2xl p-6 border border-border/50 shadow-lg text-center">
-                <p className="text-muted-foreground">No data available for the selected period.</p>
+            <div className="backdrop-blur-sm bg-card/50 rounded-2xl p-8 border border-border/50 shadow-lg text-center">
+                <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-success/10 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Discover Your Patterns</h3>
+                    <p className="text-muted-foreground mb-6">
+                        Track your task completion patterns to understand when you're most productive and how to optimize your workflow.
+                    </p>
+                    <div className="text-sm text-muted-foreground">
+                        💡 <strong>Insight:</strong> Most people are 2x more productive during their peak hours. Find yours!
+                    </div>
+                </div>
             </div>
         );
     }
-
-    // Validate and normalize data with fallbacks
-    const safeData = data ? validatePatternData(data) : generateMockPatternData();
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
