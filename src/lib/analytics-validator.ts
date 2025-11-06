@@ -40,7 +40,12 @@ export interface PatternData {
         range: string;
         count: number;
     }>;
-    mostProductiveDay: string;
+    mostProductiveDay: {
+        day: number;
+        dayName: string;
+        completed: number;
+        points: number;
+    };
     insights: Array<{
         type: string;
         message: string;
