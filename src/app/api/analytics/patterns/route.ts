@@ -138,44 +138,117 @@ export async function GET(request: NextRequest) {
             (Math.min(avgPointsPerDay, 50) * 0.6)
         ));
 
-        // Generate insights
+        // Generate intelligent insights based on real user data patterns
         const insights = [];
 
+        // Peak productivity insights
         if (peakHours[0] && peakHours[0].completed > 0) {
+            const peakHour = peakHours[0];
             insights.push({
                 type: 'peak_hour',
-                message: `Your most productive hour is ${peakHours[0].time} with ${peakHours[0].completed} tasks completed.`,
+                message: `You're most productive at ${peakHour.time} (${peakHour.completed} tasks completed). Schedule your most important work during this time.`,
                 priority: 'high'
             });
         }
 
+        // Day pattern insights
         if (mostProductiveDay.completed > 0) {
-            insights.push({
-                type: 'peak_day',
-                message: `${mostProductiveDay.dayName} is your most productive day with ${mostProductiveDay.completed} tasks completed.`,
-                priority: 'medium'
-            });
+            const avgDaily = dayStats.reduce((sum, day) => sum + day.completed, 0) / 7;
+            const productivityDiff = ((mostProductiveDay.completed - avgDaily) / avgDaily) * 100;
+
+            if (productivityDiff > 50) {
+                insights.push({
+                    type: 'peak_day',
+                    message: `${mostProductiveDay.dayName} is your powerhouse day (${productivityDiff.toFixed(0)}% more productive than average). Leverage this day for high-priority tasks.`,
+                    priority: 'high'
+                });
+            } else {
+                insights.push({
+                    type: 'peak_day',
+                    message: `${mostProductiveDay.dayName} is your most productive day with ${mostProductiveDay.completed} tasks completed.`,
+                    priority: 'medium'
+                });
+            }
         }
 
-        if (completionRate < 50) {
+        // Completion rate analysis
+        if (completionRate < 30) {
             insights.push({
                 type: 'completion_rate',
-                message: `Your completion rate is ${completionRate.toFixed(1)}%. Consider breaking down large tasks into smaller ones.`,
+                message: `Your completion rate is ${completionRate.toFixed(1)}%. Consider breaking down large tasks into smaller, manageable steps and setting specific deadlines.`,
                 priority: 'high'
             });
-        } else if (completionRate > 80) {
+        } else if (completionRate < 50) {
             insights.push({
                 type: 'completion_rate',
-                message: `Excellent! Your completion rate is ${completionRate.toFixed(1)}%. Keep up the great work!`,
+                message: `Your completion rate is ${completionRate.toFixed(1)}%. Try the Pomodoro technique (25-minute focused work sessions) to maintain momentum.`,
+                priority: 'high'
+            });
+        } else if (completionRate > 85) {
+            insights.push({
+                type: 'completion_rate',
+                message: `Outstanding! Your ${completionRate.toFixed(1)}% completion rate shows excellent productivity. Consider mentoring others or taking on more challenging goals.`,
+                priority: 'low'
+            });
+        } else if (completionRate > 70) {
+            insights.push({
+                type: 'completion_rate',
+                message: `Great job! Your ${completionRate.toFixed(1)}% completion rate is above average. Keep up the momentum!`,
                 priority: 'low'
             });
         }
 
-        if (completionTimeRanges.overMonth > completedTodos.length * 0.3) {
+        // Priority distribution insights
+        const highPriorityTasks = priorityPatterns.find(p => p.priority === 'HIGH');
+        const lowPriorityTasks = priorityPatterns.find(p => p.priority === 'LOW');
+
+        if (highPriorityTasks && lowPriorityTasks && highPriorityTasks._count.priority < lowPriorityTasks._count.priority) {
+            insights.push({
+                type: 'priority_balance',
+                message: `You have more low-priority tasks (${lowPriorityTasks._count.priority}) than high-priority ones (${highPriorityTasks._count.priority}). Focus on high-impact activities first.`,
+                priority: 'medium'
+            });
+        }
+
+        // Time management insights
+        if (completionTimeRanges.overMonth > completedTodos.length * 0.4) {
             insights.push({
                 type: 'completion_time',
-                message: 'You tend to take longer to complete tasks. Consider setting more realistic deadlines.',
+                message: `Many tasks (${completionTimeRanges.overMonth}) take over a month to complete. Consider breaking complex projects into weekly milestones.`,
+                priority: 'high'
+            });
+        } else if (completionTimeRanges.sameDay > completedTodos.length * 0.7) {
+            insights.push({
+                type: 'completion_time',
+                message: `You excel at completing tasks on the same day! This shows great focus and efficiency.`,
+                priority: 'low'
+            });
+        }
+
+        // Weekly pattern analysis
+        const weekendTasks = dayStats.filter(d => d.day === 0 || d.day === 6).reduce((sum, day) => sum + day.completed, 0);
+        const weekdayTasks = dayStats.filter(d => d.day !== 0 && d.day !== 6).reduce((sum, day) => sum + day.completed, 0);
+
+        if (weekendTasks > weekdayTasks * 0.8) {
+            insights.push({
+                type: 'work_life',
+                message: `You complete ${weekendTasks} tasks on weekends. Consider balancing work across the week to avoid burnout.`,
                 priority: 'medium'
+            });
+        }
+
+        // Productivity score insights
+        if (productivityScore < 40) {
+            insights.push({
+                type: 'productivity_score',
+                message: `Your productivity score is ${productivityScore}/100. Focus on completing more tasks consistently and aim for higher-point activities.`,
+                priority: 'high'
+            });
+        } else if (productivityScore > 80) {
+            insights.push({
+                type: 'productivity_score',
+                message: `Excellent productivity score of ${productivityScore}/100! You're performing at a high level.`,
+                priority: 'low'
             });
         }
 
