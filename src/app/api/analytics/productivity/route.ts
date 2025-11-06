@@ -130,6 +130,16 @@ export async function GET(request: NextRequest) {
             }, 0) / todosWithCompletionTime.length
             : 0;
 
+        // Calculate productivity score (0-100)
+        const completionRate = allTodos.length > 0 ? (completedTodos.length / allTodos.length) * 100 : 0;
+        const avgPointsPerDay = completedTodos.length > 0 ?
+            completedTodos.reduce((sum, todo) => sum + todo.points, 0) / days : 0;
+
+        const productivityScore = Math.min(100, Math.round(
+            (completionRate * 0.4) +
+            (Math.min(avgPointsPerDay, 50) * 0.6)
+        ));
+
         return NextResponse.json({
             period: `${days} days`,
             dailyStats,
@@ -142,7 +152,11 @@ export async function GET(request: NextRequest) {
             avgCompletionTime: Math.round(avgCompletionTime * 100) / 100,
             totalCompleted: completedTodos.length,
             totalCreated: allTodos.length,
-            overallCompletionRate: allTodos.length > 0 ? (completedTodos.length / allTodos.length) * 100 : 0
+            overallCompletionRate: completionRate,
+            completionRate,
+            totalTasks: allTodos.length,
+            completedTasks: completedTodos.length,
+            productivityScore
         });
 
     } catch (error) {
