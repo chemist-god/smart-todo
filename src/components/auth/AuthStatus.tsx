@@ -2,8 +2,21 @@
 
 import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
+import { cn } from "@/lib/utils";
 
-export default function AuthStatus() {
+type AuthStatusProps = {
+  size?: "sm" | "md" | "lg";
+  label?: string;
+  className?: string;
+};
+
+const sizes: Record<NonNullable<AuthStatusProps["size"]>, string> = {
+  sm: "h-9 px-4 text-sm",
+  md: "h-11 px-5 text-sm",
+  lg: "h-12 px-6 text-base sm:text-lg",
+};
+
+export default function AuthStatus({ size = "md", label = "Sign In", className }: AuthStatusProps) {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -14,9 +27,14 @@ export default function AuthStatus() {
     return (
       <button
         onClick={() => signIn("google")}
-        className="rounded bg-primary text-primary-foreground px-4 py-2 hover:bg-primary/90 transition-colors"
+        className={cn(
+          "inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground font-semibold shadow-sm",
+          "hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all",
+          sizes[size],
+          className
+        )}
       >
-        Sign In
+        {label}
       </button>
     );
   }
@@ -28,7 +46,12 @@ export default function AuthStatus() {
       </span>
       <button
         onClick={() => signOut()}
-        className="rounded border border-border px-3 py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+        className={cn(
+          "inline-flex items-center justify-center rounded-xl border border-border text-foreground font-semibold shadow-sm",
+          "hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all",
+          sizes[size],
+          className
+        )}
       >
         Sign out
       </button>
