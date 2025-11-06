@@ -34,6 +34,7 @@ export interface PatternData {
     priorityPatterns: Array<{
         priority: string;
         count: number;
+        avgPoints: number;
         completionRate: number;
     }>;
     completionTimeRanges: Array<{
