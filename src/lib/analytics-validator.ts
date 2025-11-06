@@ -78,23 +78,37 @@ export function validatePatternData(data: any): PatternData {
     return {
         peakHours: safeArray(data?.peakHours, []).map((item: any) => ({
             hour: safeNumber(item?.hour, 0),
-            productivity: safeNumber(item?.productivity, 0)
+            time: safeString(item?.time, `${item?.hour?.toString().padStart(2, '0') || '00'}:00`),
+            completed: safeNumber(item?.completed, 0),
+            points: safeNumber(item?.points, 0)
         })),
         dayPatterns: safeArray(data?.dayPatterns, []).map((item: any) => ({
-            day: safeString(item?.day, 'Unknown'),
+            day: safeNumber(item?.day, 0),
+            dayName: safeString(item?.dayName, 'Unknown'),
             completed: safeNumber(item?.completed, 0),
             created: safeNumber(item?.created, 0)
         })),
         priorityPatterns: safeArray(data?.priorityPatterns, []).map((item: any) => ({
             priority: safeString(item?.priority, 'Unknown'),
             count: safeNumber(item?.count, 0),
+            avgPoints: safeNumber(item?.avgPoints, 0),
             completionRate: safeNumber(item?.completionRate, 0)
         })),
         completionTimeRanges: safeArray(data?.completionTimeRanges, []).map((item: any) => ({
             range: safeString(item?.range, 'Unknown'),
             count: safeNumber(item?.count, 0)
         })),
-        mostProductiveDay: safeString(data?.mostProductiveDay, 'Monday'),
+        mostProductiveDay: data?.mostProductiveDay && typeof data.mostProductiveDay === 'object' ? {
+            day: safeNumber(data.mostProductiveDay.day, 1),
+            dayName: safeString(data.mostProductiveDay.dayName, 'Monday'),
+            completed: safeNumber(data.mostProductiveDay.completed, 0),
+            points: safeNumber(data.mostProductiveDay.points, 0)
+        } : {
+            day: 1,
+            dayName: 'Monday',
+            completed: 0,
+            points: 0
+        },
         insights: safeArray(data?.insights, []).map((item: any) => ({
             type: safeString(item?.type, 'info'),
             message: safeString(item?.message, '')
@@ -106,77 +120,4 @@ export function validatePatternData(data: any): PatternData {
     };
 }
 
-// Generate mock data for development/testing
-export function generateMockProductivityData(): ProductivityData {
-    const days = 30;
-    const dailyStats = [];
-
-    for (let i = 0; i < days; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - (days - 1 - i));
-        dailyStats.push({
-            date: date.toISOString().split('T')[0],
-            completed: Math.floor(Math.random() * 10) + 1,
-            created: Math.floor(Math.random() * 8) + 1,
-            points: Math.floor(Math.random() * 50) + 10
-        });
-    }
-
-    return {
-        dailyStats,
-        priorityBreakdown: [
-            { priority: 'HIGH', count: 15 },
-            { priority: 'MEDIUM', count: 25 },
-            { priority: 'LOW', count: 10 }
-        ],
-        completionRate: 75.5,
-        totalTasks: 50,
-        completedTasks: 38,
-        avgCompletionTime: 2.5,
-        productivityScore: 85,
-        overallCompletionRate: 76.0
-    };
-}
-
-export function generateMockPatternData(): PatternData {
-    const peakHours = [];
-    for (let hour = 0; hour < 24; hour++) {
-        peakHours.push({
-            hour,
-            productivity: Math.random() * 100
-        });
-    }
-
-    return {
-        peakHours,
-        dayPatterns: [
-            { day: 'Monday', completed: 8, created: 6 },
-            { day: 'Tuesday', completed: 12, created: 8 },
-            { day: 'Wednesday', completed: 10, created: 7 },
-            { day: 'Thursday', completed: 9, created: 9 },
-            { day: 'Friday', completed: 7, created: 5 },
-            { day: 'Saturday', completed: 4, created: 3 },
-            { day: 'Sunday', completed: 3, created: 2 }
-        ],
-        priorityPatterns: [
-            { priority: 'HIGH', count: 15, completionRate: 80 },
-            { priority: 'MEDIUM', count: 25, completionRate: 70 },
-            { priority: 'LOW', count: 10, completionRate: 60 }
-        ],
-        completionTimeRanges: [
-            { range: '0-1h', count: 20 },
-            { range: '1-2h', count: 15 },
-            { range: '2-4h', count: 10 },
-            { range: '4h+', count: 5 }
-        ],
-        mostProductiveDay: 'Tuesday',
-        insights: [
-            { type: 'success', message: 'Great progress this week!' },
-            { type: 'tip', message: 'You\'re most productive in the morning' }
-        ],
-        productivityScore: 85,
-        totalCompleted: 53,
-        totalCreated: 40,
-        completionRate: 76.5
-    };
-}
+// Safe data access utilities
