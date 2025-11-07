@@ -9,6 +9,12 @@ export interface ProductivityData {
         created: number;
         points: number;
     }>;
+    weeklyStats: Array<{
+        week: string;
+        completed: number;
+        created: number;
+        completionRate: number;
+    }>;
     priorityBreakdown: Array<{
         priority: string;
         count: number;
@@ -27,10 +33,13 @@ export interface ProductivityData {
 export interface PatternData {
     peakHours: Array<{
         hour: number;
-        productivity: number;
+        time: string;
+        completed: number;
+        points: number;
     }>;
     dayPatterns: Array<{
-        day: string;
+        day: number;
+        dayName: string;
         completed: number;
         created: number;
     }>;
