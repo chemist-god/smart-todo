@@ -9,6 +9,12 @@ export interface ProductivityData {
         created: number;
         points: number;
     }>;
+    weeklyStats: Array<{
+        week: string;
+        completed: number;
+        created: number;
+        completionRate: number;
+    }>;
     priorityBreakdown: Array<{
         priority: string;
         count: number;
@@ -16,24 +22,31 @@ export interface ProductivityData {
     completionRate: number;
     totalTasks: number;
     completedTasks: number;
-    averageCompletionTime: number;
+    avgCompletionTime: number;
     productivityScore: number;
     overallCompletionRate: number;
+    totalPointsEarned: number;
+    totalCompleted: number;
+    totalCreated: number;
 }
 
 export interface PatternData {
     peakHours: Array<{
         hour: number;
-        productivity: number;
+        time: string;
+        completed: number;
+        points: number;
     }>;
     dayPatterns: Array<{
-        day: string;
+        day: number;
+        dayName: string;
         completed: number;
         created: number;
     }>;
     priorityPatterns: Array<{
         priority: string;
         count: number;
+        avgPoints: number;
         completionRate: number;
     }>;
     completionTimeRanges: Array<{
@@ -49,6 +62,7 @@ export interface PatternData {
     insights: Array<{
         type: string;
         message: string;
+        priority: string;
     }>;
     productivityScore: number;
     totalCompleted: number;
@@ -65,6 +79,12 @@ export function validateProductivityData(data: any): ProductivityData {
             created: safeNumber(item?.created, 0),
             points: safeNumber(item?.points, 0)
         })),
+        weeklyStats: safeArray(data?.weeklyStats, []).map((item: any) => ({
+            week: safeString(item?.week, 'Week 1'),
+            completed: safeNumber(item?.completed, 0),
+            created: safeNumber(item?.created, 0),
+            completionRate: safeNumber(item?.completionRate, 0)
+        })),
         priorityBreakdown: safeArray(data?.priorityBreakdown, []).map((item: any) => ({
             priority: safeString(item?.priority, 'Unknown'),
             count: safeNumber(item?.count, 0)
@@ -72,9 +92,12 @@ export function validateProductivityData(data: any): ProductivityData {
         completionRate: safeNumber(data?.completionRate, 0),
         totalTasks: safeNumber(data?.totalTasks, 0),
         completedTasks: safeNumber(data?.completedTasks, 0),
-        averageCompletionTime: safeNumber(data?.avgCompletionTime, 0),
+        avgCompletionTime: safeNumber(data?.avgCompletionTime, 0),
         productivityScore: safeNumber(data?.productivityScore, 0),
-        overallCompletionRate: safeNumber(data?.overallCompletionRate, 0)
+        overallCompletionRate: safeNumber(data?.overallCompletionRate, 0),
+        totalPointsEarned: safeNumber(data?.totalPointsEarned, 0),
+        totalCompleted: safeNumber(data?.totalCompleted, 0),
+        totalCreated: safeNumber(data?.totalCreated, 0)
     };
 }
 
@@ -116,7 +139,8 @@ export function validatePatternData(data: any): PatternData {
         },
         insights: safeArray(data?.insights, []).map((item: any) => ({
             type: safeString(item?.type, 'info'),
-            message: safeString(item?.message, '')
+            message: safeString(item?.message, ''),
+            priority: safeString(item?.priority, 'medium')
         })),
         productivityScore: safeNumber(data?.productivityScore, 0),
         totalCompleted: safeNumber(data?.totalCompleted, 0),

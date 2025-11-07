@@ -4,48 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState } from 'react';
 import { usePatternAnalytics } from '@/hooks/useData';
 import { ClockIcon, CalendarIcon, ChartBarIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import { validatePatternData, type PatternData as ValidatedPatternData } from '@/lib/analytics-validator';
-
-interface PatternData {
-    period: string;
-    peakHours: Array<{
-        hour: number;
-        time: string;
-        completed: number;
-        points: number;
-    }>;
-    dayPatterns: Array<{
-        day: number;
-        dayName: string;
-        completed: number;
-        points: number;
-    }>;
-    mostProductiveDay: {
-        day: number;
-        dayName: string;
-        completed: number;
-        points: number;
-    };
-    priorityPatterns: Array<{
-        priority: string;
-        count: number;
-        avgPoints: number;
-        completionRate?: number;
-    }>;
-    completionTimeRanges: Array<{
-        range: string;
-        count: number;
-    }>;
-    productivityScore: number;
-    insights: Array<{
-        type: string;
-        message: string;
-        priority: string;
-    }>;
-    totalCompleted: number;
-    totalCreated: number;
-    completionRate: number;
-}
+import { validatePatternData, type PatternData } from '@/lib/analytics-validator';
 
 export default function PatternAnalysis() {
     const [period, setPeriod] = useState('30');
