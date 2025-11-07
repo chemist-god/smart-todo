@@ -3,37 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useState } from 'react';
 import { useProductivityAnalytics } from '@/hooks/useData';
-import { validateProductivityData, type ProductivityData as ValidatedProductivityData } from '@/lib/analytics-validator';
-
-interface ProductivityData {
-    period: string;
-    dailyStats: Array<{
-        date: string;
-        completed: number;
-        created: number;
-        points: number;
-        completionRate?: number;
-    }>;
-    weeklyStats: Array<{
-        week: string;
-        completed: number;
-        created: number;
-        completionRate: number;
-    }>;
-    priorityBreakdown: Array<{
-        priority: string;
-        count: number;
-    }>;
-    totalPointsEarned: number;
-    avgCompletionTime: number;
-    totalCompleted: number;
-    totalCreated: number;
-    overallCompletionRate: number;
-    completionRate: number;
-    totalTasks: number;
-    completedTasks: number;
-    productivityScore: number;
-}
+import { validateProductivityData, type ProductivityData } from '@/lib/analytics-validator';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
