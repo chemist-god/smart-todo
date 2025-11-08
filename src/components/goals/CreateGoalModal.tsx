@@ -2,6 +2,15 @@
 
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { CreateGoalData, GoalType } from '@/types/goals';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import { useToast } from '../ui/Toast';
 
 interface Milestone {
     title: string;
@@ -12,22 +21,24 @@ interface Milestone {
 interface CreateGoalModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (goalData: any) => void;
+    onSubmit: (goalData: CreateGoalData) => void;
 }
 
 export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoalModalProps) {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<Omit<CreateGoalData, 'milestones'> & { milestones: Milestone[] }>({
         title: '',
         description: '',
-        type: 'TASKS_COMPLETED',
+        type: 'TASKS_COMPLETED' as GoalType,
         target: 1,
         unit: 'tasks',
         startDate: new Date().toISOString().split('T')[0],
         endDate: '',
-        milestones: [] as Milestone[]
+        milestones: []
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { addToast } = useToast();
 
     const goalTypes = [
         { value: 'TASKS_COMPLETED', label: 'Tasks Completed', unit: 'tasks' },
@@ -45,7 +56,7 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
         }
     };
 
-    const handleTypeChange = (type: string) => {
+    const handleTypeChange = (type: GoalType) => {
         const selectedType = goalTypes.find(t => t.value === type);
         setFormData(prev => ({
             ...prev,
@@ -61,7 +72,7 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
         }));
     };
 
-    const updateMilestone = (index: number, field: string, value: any) => {
+    const updateMilestone = (index: number, field: keyof Milestone, value: any) => {
         setFormData(prev => ({
             ...prev,
             milestones: prev.milestones.map((milestone, i) =>
@@ -106,29 +117,51 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) {
+            addToast({
+                type: 'error',
+                title: 'Validation Error',
+                message: 'Please fix the errors in the form before submitting.'
+            });
             return;
         }
 
-        const goalData = {
-            ...formData,
-            startDate: new Date(formData.startDate).toISOString(),
-            endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
-            milestones: formData.milestones.filter(m => m.title.trim())
-        };
+        setIsSubmitting(true);
+        try {
+            const goalData: CreateGoalData = {
+                ...formData,
+                startDate: new Date(formData.startDate).toISOString(),
+                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+                milestones: formData.milestones.filter(m => m.title.trim())
+            };
 
-        onSubmit(goalData);
-        onClose();
+            await onSubmit(goalData);
+            addToast({
+                type: 'success',
+                title: 'Goal created',
+                message: 'Your new goal has been created successfully!'
+            });
+            onClose();
+        } catch (error) {
+            console.error('Error creating goal:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to create goal',
+                message: 'An error occurred while creating the goal. Please try again.'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const resetForm = () => {
         setFormData({
             title: '',
             description: '',
-            type: 'TASKS_COMPLETED',
+            type: 'TASKS_COMPLETED' as GoalType,
             target: 1,
             unit: 'tasks',
             startDate: new Date().toISOString().split('T')[0],
@@ -146,65 +179,68 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">Create New Goal</h2>
-                        <button
+                        <h2 className="text-2xl font-bold text-foreground">Create New Goal</h2>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={handleClose}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2"
                         >
-                            <XMarkIcon className="w-6 h-6" />
-                        </button>
+                            <XMarkIcon className="w-5 h-5" />
+                        </Button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Information */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Label htmlFor="title" className="text-sm font-medium mb-2">
                                     Title *
-                                </label>
-                                <input
+                                </Label>
+                                <Input
+                                    id="title"
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => handleInputChange('title', e.target.value)}
-                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                    className={cn(errors.title && "border-destructive")}
                                     placeholder="Enter goal title"
                                 />
                                 {errors.title && (
-                                    <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                                    <p className="text-destructive text-xs mt-1">{errors.title}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Label htmlFor="type" className="text-sm font-medium mb-2">
                                     Type *
-                                </label>
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => handleTypeChange(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    {goalTypes.map(type => (
-                                        <option key={type.value} value={type.value}>
-                                            {type.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                </Label>
+                                <Select value={formData.type} onValueChange={handleTypeChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select goal type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {goalTypes.map(type => (
+                                            <SelectItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Label htmlFor="description" className="text-sm font-medium mb-2">
                                 Description
-                            </label>
-                            <textarea
+                            </Label>
+                            <Textarea
+                                id="description"
                                 value={formData.description}
                                 onChange={(e) => handleInputChange('description', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows={3}
                                 placeholder="Enter goal description (optional)"
                             />
@@ -212,156 +248,165 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Label htmlFor="target" className="text-sm font-medium mb-2">
                                     Target *
-                                </label>
-                                <input
+                                </Label>
+                                <Input
+                                    id="target"
                                     type="number"
                                     value={formData.target}
                                     onChange={(e) => handleInputChange('target', parseInt(e.target.value) || 0)}
-                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.target ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                    className={cn(errors.target && "border-destructive")}
                                     min="1"
                                 />
                                 {errors.target && (
-                                    <p className="text-red-500 text-xs mt-1">{errors.target}</p>
+                                    <p className="text-destructive text-xs mt-1">{errors.target}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Label htmlFor="unit" className="text-sm font-medium mb-2">
                                     Unit
-                                </label>
-                                <input
+                                </Label>
+                                <Input
+                                    id="unit"
                                     type="text"
                                     value={formData.unit}
                                     onChange={(e) => handleInputChange('unit', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g., tasks, points, days"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Label htmlFor="startDate" className="text-sm font-medium mb-2">
                                     Start Date *
-                                </label>
-                                <input
+                                </Label>
+                                <Input
+                                    id="startDate"
                                     type="date"
                                     value={formData.startDate}
                                     onChange={(e) => handleInputChange('startDate', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Label htmlFor="endDate" className="text-sm font-medium mb-2">
                                 End Date
-                            </label>
-                            <input
+                            </Label>
+                            <Input
+                                id="endDate"
                                 type="date"
                                 value={formData.endDate}
                                 onChange={(e) => handleInputChange('endDate', e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.endDate ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                className={cn(errors.endDate && "border-destructive")}
                                 min={formData.startDate}
                             />
                             {errors.endDate && (
-                                <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>
+                                <p className="text-destructive text-xs mt-1">{errors.endDate}</p>
                             )}
                         </div>
 
                         {/* Milestones */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-medium text-gray-900">Milestones (Optional)</h3>
-                                <button
+                                <h3 className="text-lg font-semibold text-foreground">Milestones (Optional)</h3>
+                                <Button
                                     type="button"
+                                    variant="outline"
+                                    size="sm"
                                     onClick={addMilestone}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                                 >
                                     Add Milestone
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="space-y-4">
                                 {formData.milestones.map((milestone, index) => (
-                                    <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                                    <Card key={index} className="p-4">
                                         <div className="flex items-center justify-between mb-3">
-                                            <h4 className="font-medium text-gray-900">Milestone {index + 1}</h4>
-                                            <button
+                                            <h4 className="font-medium text-foreground">Milestone {index + 1}</h4>
+                                            <Button
                                                 type="button"
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => removeMilestone(index)}
-                                                className="text-red-600 hover:text-red-800 text-sm"
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                             >
                                                 Remove
-                                            </button>
+                                            </Button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <Label className="text-sm font-medium mb-1">
                                                     Title *
-                                                </label>
-                                                <input
+                                                </Label>
+                                                <Input
                                                     type="text"
                                                     value={milestone.title}
                                                     onChange={(e) => updateMilestone(index, 'title', e.target.value)}
-                                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors[`milestone_${index}_title`] ? 'border-red-500' : 'border-gray-300'
-                                                        }`}
+                                                    className={cn(errors[`milestone_${index}_title`] && "border-destructive")}
                                                     placeholder="Milestone title"
                                                 />
                                                 {errors[`milestone_${index}_title`] && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors[`milestone_${index}_title`]}</p>
+                                                    <p className="text-destructive text-xs mt-1">{errors[`milestone_${index}_title`]}</p>
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <Label className="text-sm font-medium mb-1">
                                                     Target *
-                                                </label>
-                                                <input
+                                                </Label>
+                                                <Input
                                                     type="number"
                                                     value={milestone.target}
                                                     onChange={(e) => updateMilestone(index, 'target', parseInt(e.target.value) || 0)}
-                                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors[`milestone_${index}_target`] ? 'border-red-500' : 'border-gray-300'
-                                                        }`}
+                                                    className={cn(errors[`milestone_${index}_target`] && "border-destructive")}
                                                     min="1"
                                                 />
                                                 {errors[`milestone_${index}_target`] && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors[`milestone_${index}_target`]}</p>
+                                                    <p className="text-destructive text-xs mt-1">{errors[`milestone_${index}_target`]}</p>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="mt-3">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <Label className="text-sm font-medium mb-1">
                                                 Description
-                                            </label>
-                                            <textarea
+                                            </Label>
+                                            <Textarea
                                                 value={milestone.description}
                                                 onChange={(e) => updateMilestone(index, 'description', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 rows={2}
                                                 placeholder="Milestone description (optional)"
                                             />
                                         </div>
-                                    </div>
+                                    </Card>
                                 ))}
                             </div>
                         </div>
 
                         {/* Actions */}
                         <div className="flex justify-end gap-3 pt-6 border-t">
-                            <button
+                            <Button
                                 type="button"
+                                variant="outline"
                                 onClick={handleClose}
-                                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                disabled={isSubmitting}
                             >
                                 Cancel
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="submit"
-                                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                disabled={isSubmitting}
                             >
-                                Create Goal
-                            </button>
+                                {isSubmitting ? (
+                                    <>
+                                        <LoadingSpinner size="sm" className="mr-2" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Goal'
+                                )}
+                            </Button>
                         </div>
                     </form>
                 </div>
