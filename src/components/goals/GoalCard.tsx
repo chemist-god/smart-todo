@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Goal, Milestone } from '@prisma/client';
+import { GoalWithProgress, GoalType } from '@/types/goals';
 import {
     CalendarIcon,
     ClockIcon,
@@ -15,14 +15,11 @@ import {
 import { format, isAfter, isBefore } from 'date-fns';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useToast } from '../ui/Toast';
-
-interface GoalWithProgress extends Goal {
-    progress: number;
-    completedMilestones: number;
-    totalMilestones: number;
-    isOverdue: boolean;
-    milestones: Milestone[];
-}
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface GoalCardProps {
     goal: GoalWithProgress;
@@ -44,19 +41,19 @@ export default function GoalCard({
     const [isUpdating, setIsUpdating] = useState(false);
     const { addToast } = useToast();
 
-    const getGoalTypeColor = (type: string) => {
+    const getGoalTypeVariant = (type: GoalType): "default" | "secondary" | "destructive" | "outline" => {
         switch (type) {
-            case 'TASKS_COMPLETED': return 'bg-blue-100 text-blue-800';
-            case 'POINTS_EARNED': return 'bg-green-100 text-green-800';
-            case 'STREAK_DAYS': return 'bg-purple-100 text-purple-800';
-            case 'NOTES_CREATED': return 'bg-yellow-100 text-yellow-800';
-            case 'ACHIEVEMENTS_UNLOCKED': return 'bg-pink-100 text-pink-800';
-            case 'CUSTOM': return 'bg-gray-100 text-gray-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'TASKS_COMPLETED': return 'default';
+            case 'POINTS_EARNED': return 'secondary';
+            case 'STREAK_DAYS': return 'outline';
+            case 'NOTES_CREATED': return 'secondary';
+            case 'ACHIEVEMENTS_UNLOCKED': return 'outline';
+            case 'CUSTOM': return 'default';
+            default: return 'default';
         }
     };
 
-    const getGoalTypeLabel = (type: string) => {
+    const getGoalTypeLabel = (type: GoalType): string => {
         switch (type) {
             case 'TASKS_COMPLETED': return 'Tasks Completed';
             case 'POINTS_EARNED': return 'Points Earned';
@@ -69,10 +66,10 @@ export default function GoalCard({
     };
 
     const getStatusColor = () => {
-        if (goal.isCompleted) return 'text-green-600';
-        if (goal.isOverdue) return 'text-red-600';
-        if (!goal.isActive) return 'text-gray-500';
-        return 'text-blue-600';
+        if (goal.isCompleted) return 'text-success';
+        if (goal.isOverdue) return 'text-destructive';
+        if (!goal.isActive) return 'text-muted-foreground';
+        return 'text-primary';
     };
 
     const getStatusIcon = () => {
@@ -121,74 +118,76 @@ export default function GoalCard({
     const daysRemaining = getDaysRemaining();
 
     return (
-        <div className={`bg-white rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md ${goal.isCompleted ? 'border-green-200 bg-green-50' :
-            goal.isOverdue ? 'border-red-200 bg-red-50' :
-                !goal.isActive ? 'border-gray-200 bg-gray-50' :
-                    'border-gray-200'
-            }`}>
-            <div className="p-6">
+        <Card className={cn(
+            "transition-all duration-200 hover:shadow-md",
+            goal.isCompleted && "border-success/20 bg-success/5",
+            goal.isOverdue && "border-destructive/20 bg-destructive/5",
+            !goal.isActive && "border-muted bg-muted/20"
+        )}>
+            <CardContent className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getGoalTypeColor(goal.type)}`}>
+                            <h3 className="text-lg font-semibold text-foreground">{goal.title}</h3>
+                            <Badge variant={getGoalTypeVariant(goal.type)}>
                                 {getGoalTypeLabel(goal.type)}
-                            </span>
+                            </Badge>
                         </div>
                         {goal.description && (
-                            <p className="text-gray-600 text-sm">{goal.description}</p>
+                            <p className="text-muted-foreground text-sm">{goal.description}</p>
                         )}
                     </div>
                     <div className="flex items-center gap-2">
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => onToggleActive(goal.id, !goal.isActive)}
-                            className={`p-2 rounded-lg transition-colors ${goal.isActive
-                                ? 'text-blue-600 hover:bg-blue-100'
-                                : 'text-gray-400 hover:bg-gray-100'
-                                }`}
+                            className={cn(
+                                "p-2",
+                                goal.isActive ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-muted"
+                            )}
                         >
-                            {goal.isActive ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
-                        </button>
-                        <button
+                            {goal.isActive ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => onEdit(goal)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
                         >
-                            <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button
+                            <PencilIcon className="w-4 h-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => onDelete(goal.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         >
-                            <TrashIcon className="w-5 h-5" />
-                        </button>
+                            <TrashIcon className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700">Progress</span>
-                        <span className={`text-sm font-medium ${getStatusColor()}`}>
+                        <span className="text-sm font-medium text-foreground">Progress</span>
+                        <span className={cn("text-sm font-medium", getStatusColor())}>
                             {goal.current} / {goal.target} {goal.unit}
                         </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className={`h-2 rounded-full transition-all duration-300 ${goal.isCompleted ? 'bg-green-500' :
-                                goal.isOverdue ? 'bg-red-500' :
-                                    'bg-blue-500'
-                                }`}
-                            style={{ width: `${Math.min(goal.progress, 100)}%` }}
-                        ></div>
-                    </div>
+                    <Progress
+                        value={goal.progress}
+                        className="w-full h-2"
+                    />
                     <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-gray-500">{goal.progress.toFixed(1)}% complete</span>
+                        <span className="text-xs text-muted-foreground">{goal.progress.toFixed(1)}% complete</span>
                         {goal.isCompleted && (
-                            <span className="text-xs text-green-600 font-medium">Completed!</span>
+                            <span className="text-xs text-success font-medium">Completed!</span>
                         )}
                         {goal.isOverdue && !goal.isCompleted && (
-                            <span className="text-xs text-red-600 font-medium">Overdue</span>
+                            <span className="text-xs text-destructive font-medium">Overdue</span>
                         )}
                     </div>
                 </div>
@@ -203,29 +202,30 @@ export default function GoalCard({
                                 onChange={(e) => setProgressInput(e.target.value)}
                                 min="0"
                                 max={goal.target}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="flex-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
                                 placeholder="Update progress"
                             />
-                            <button
+                            <Button
                                 onClick={handleProgressUpdate}
                                 disabled={isUpdating}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm flex items-center gap-2"
+                                size="sm"
+                                className="px-4"
                             >
                                 {isUpdating ? (
                                     <>
-                                        <LoadingSpinner size="sm" />
+                                        <LoadingSpinner size="sm" className="mr-2" />
                                         Updating...
                                     </>
                                 ) : (
                                     'Update'
                                 )}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
 
                 {/* Status and Dates */}
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                             {getStatusIcon()}
@@ -264,57 +264,55 @@ export default function GoalCard({
                 {/* Milestones */}
                 {goal.milestones.length > 0 && (
                     <div className="border-t pt-4">
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900"
+                            className="flex items-center justify-between w-full text-left text-sm font-medium text-foreground hover:text-primary"
                         >
                             <span>Milestones ({goal.completedMilestones}/{goal.totalMilestones})</span>
-                            <span className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                            <span className={cn("transform transition-transform", isExpanded ? 'rotate-180' : '')}>
                                 ▼
                             </span>
-                        </button>
+                        </Button>
                         {isExpanded && (
                             <div className="mt-3 space-y-2">
                                 {goal.milestones.map((milestone) => (
                                     <div
                                         key={milestone.id}
-                                        className={`p-3 rounded-lg border ${milestone.isCompleted
-                                            ? 'border-green-200 bg-green-50'
-                                            : 'border-gray-200 bg-gray-50'
-                                            }`}
+                                        className={cn(
+                                            "p-3 rounded-lg border",
+                                            milestone.isCompleted
+                                                ? 'border-success/20 bg-success/5'
+                                                : 'border-border bg-muted/20'
+                                        )}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h4 className="font-medium text-sm">{milestone.title}</h4>
+                                                <h4 className="font-medium text-sm text-foreground">{milestone.title}</h4>
                                                 {milestone.description && (
-                                                    <p className="text-xs text-gray-600 mt-1">{milestone.description}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-sm font-medium">
+                                                <div className="text-sm font-medium text-foreground">
                                                     {milestone.current} / {milestone.target}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-muted-foreground">
                                                     {milestone.isCompleted ? 'Completed' : 'In Progress'}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
-                                            <div
-                                                className={`h-1 rounded-full ${milestone.isCompleted ? 'bg-green-500' : 'bg-blue-500'
-                                                    }`}
-                                                style={{
-                                                    width: `${Math.min((milestone.current / milestone.target) * 100, 100)}%`
-                                                }}
-                                            ></div>
-                                        </div>
+                                        <Progress
+                                            value={(milestone.current / milestone.target) * 100}
+                                            className="mt-2 w-full h-1"
+                                        />
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 )}
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }
