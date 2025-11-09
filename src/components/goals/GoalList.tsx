@@ -1,109 +1,216 @@
 "use client";
 
-import { useState } from 'react';
-import { Goal, Milestone } from '@prisma/client';
+import { useState, useMemo } from 'react';
+import { GoalWithProgress, GoalStats, GoalFilter } from '@/types/goals';
 import { useGoals } from '@/hooks/useData';
 import GoalCard from './GoalCard';
 import CreateGoalModal from './CreateGoalModal';
-import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
-
-interface GoalWithProgress extends Goal {
-    progress: number;
-    completedMilestones: number;
-    totalMilestones: number;
-    isOverdue: boolean;
-    milestones: Milestone[];
-}
+import EditGoalModal from './EditGoalModal';
+import { PlusIcon, FunnelIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import { useToast } from '../ui/Toast';
 
 export default function GoalList() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingGoal, setEditingGoal] = useState<GoalWithProgress | null>(null);
+    const [filter, setFilter] = useState<GoalFilter['status']>('all');
     const [typeFilter, setTypeFilter] = useState<string>('all');
+    const [isLoadingAction, setIsLoadingAction] = useState(false);
+    const { addToast } = useToast();
 
     // Use enhanced hook with real-time updates
     const {
         goals,
-        isLoading: loading,
+        isLoading,
+        isError,
         addGoal,
         updateGoal,
         deleteGoal
     } = useGoals(filter, typeFilter);
 
     const handleCreateGoal = async (goalData: any) => {
+        setIsLoadingAction(true);
         try {
             await addGoal(goalData);
+            addToast({
+                type: 'success',
+                title: 'Goal created',
+                message: 'Your new goal has been created successfully!'
+            });
+            setIsCreateModalOpen(false);
         } catch (error) {
             console.error('Error creating goal:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to create goal',
+                message: 'Please try again or contact support if the issue persists.'
+            });
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
     const handleEditGoal = (goal: GoalWithProgress) => {
-        // TODO: Implement edit functionality
-        console.log('Edit goal:', goal);
+        setEditingGoal(goal);
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditGoalSubmit = async (goalId: string, goalData: UpdateGoalData) => {
+        setIsLoadingAction(true);
+        try {
+            await updateGoal(goalId, goalData);
+            addToast({
+                type: 'success',
+                title: 'Goal updated',
+                message: 'Your goal has been updated successfully!'
+            });
+            setIsEditModalOpen(false);
+            setEditingGoal(null);
+        } catch (error) {
+            console.error('Error updating goal:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to update goal',
+                message: 'Please try again or contact support if the issue persists.'
+            });
+        } finally {
+            setIsLoadingAction(false);
+        }
     };
 
     const handleDeleteGoal = async (goalId: string) => {
-        if (!confirm('Are you sure you want to delete this goal?')) {
-            return;
-        }
+        const confirmed = window.confirm('Are you sure you want to delete this goal? This action cannot be undone.');
+        if (!confirmed) return;
 
+        setIsLoadingAction(true);
         try {
             await deleteGoal(goalId);
+            addToast({
+                type: 'success',
+                title: 'Goal deleted',
+                message: 'The goal has been deleted successfully.'
+            });
         } catch (error) {
             console.error('Error deleting goal:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to delete goal',
+                message: 'Please try again or contact support if the issue persists.'
+            });
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
     const handleToggleActive = async (goalId: string, isActive: boolean) => {
+        setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { isActive });
+            addToast({
+                type: 'success',
+                title: isActive ? 'Goal activated' : 'Goal paused',
+                message: `The goal has been ${isActive ? 'activated' : 'paused'} successfully.`
+            });
         } catch (error) {
             console.error('Error updating goal:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to update goal',
+                message: 'Please try again or contact support if the issue persists.'
+            });
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
     const handleUpdateProgress = async (goalId: string, current: number) => {
+        setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { current });
+            addToast({
+                type: 'success',
+                title: 'Progress updated',
+                message: 'Your goal progress has been updated successfully!'
+            });
         } catch (error) {
             console.error('Error updating progress:', error);
+            addToast({
+                type: 'error',
+                title: 'Failed to update progress',
+                message: 'Please try again or contact support if the issue persists.'
+            });
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
-    const getGoalTypeOptions = () => {
+    const getGoalTypeOptions = useMemo(() => {
         const goalsArray = Array.isArray(goals) ? goals : [];
-        const types = [...new Set(goalsArray.map((goal: any) => goal.type))];
-        return types.map((type: any) => ({
+        const types = [...new Set(goalsArray.map(goal => goal.type))];
+        return types.map(type => ({
             value: type,
-            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: any) => l.toUpperCase())
+            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
         }));
-    };
+    }, [goals]);
 
-    const getStats = () => {
+    const stats: GoalStats = useMemo(() => {
         const goalsArray = Array.isArray(goals) ? goals : [];
-        const total = goalsArray.length;
-        const active = goalsArray.filter((g: any) => g.isActive && !g.isCompleted).length;
-        const completed = goalsArray.filter((g: any) => g.isCompleted).length;
-        const overdue = goalsArray.filter((g: any) => g.isOverdue).length;
+        return {
+            total: goalsArray.length,
+            active: goalsArray.filter(g => g.isActive && !g.isCompleted).length,
+            completed: goalsArray.filter(g => g.isCompleted).length,
+            overdue: goalsArray.filter(g => g.isOverdue).length
+        };
+    }, [goals]);
 
-        return { total, active, completed, overdue };
-    };
+    // Show error state if there's an error
+    if (isError) {
+        return (
+            <div className="space-y-6">
+                <Card className="border-destructive/20 bg-destructive/5">
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <ExclamationTriangleIcon className="w-6 h-6 text-destructive" />
+                            <div>
+                                <h3 className="font-semibold text-destructive">Failed to load goals</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    There was an error loading your goals. Please try refreshing the page.
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3"
+                            onClick={() => window.location.reload()}
+                        >
+                            Refresh Page
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
-    const stats = getStats();
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="space-y-6">
                 <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="h-20 bg-gray-200 rounded"></div>
+                            <div key={i} className="h-20 bg-muted rounded"></div>
                         ))}
                     </div>
                     <div className="space-y-4">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                            <div key={i} className="h-32 bg-muted rounded"></div>
                         ))}
                     </div>
                 </div>
@@ -114,98 +221,126 @@ export default function GoalList() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Goals</h1>
-                    <p className="text-gray-600">Track your productivity goals and milestones</p>
+                    <h1 className="text-2xl font-bold text-foreground">Goals</h1>
+                    <p className="text-muted-foreground">Track your productivity goals and milestones</p>
                 </div>
-                <button
+                <Button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isLoadingAction}
+                    className="w-full sm:w-auto"
                 >
-                    <PlusIcon className="w-5 h-5" />
-                    New Goal
-                </button>
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    {isLoadingAction ? (
+                        <>
+                            <LoadingSpinner size="sm" className="mr-2" />
+                            Creating...
+                        </>
+                    ) : (
+                        'New Goal'
+                    )}
+                </Button>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                    <div className="text-sm text-gray-600">Total Goals</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <div className="text-2xl font-bold text-blue-600">{stats.active}</div>
-                    <div className="text-sm text-gray-600">Active</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-                    <div className="text-sm text-gray-600">Completed</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
-                    <div className="text-sm text-gray-600">Overdue</div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+                        <div className="text-sm text-muted-foreground">Total Goals</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-primary">{stats.active}</div>
+                        <div className="text-sm text-muted-foreground">Active</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-success">{stats.completed}</div>
+                        <div className="text-sm text-muted-foreground">Completed</div>
+                    </CardContent>
+                </Card>
+                <Card className={stats.overdue > 0 ? "border-destructive/20 bg-destructive/5" : ""}>
+                    <CardContent className="p-4">
+                        <div className={cn(
+                            "text-2xl font-bold",
+                            stats.overdue > 0 ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                            {stats.overdue}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Overdue</div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center gap-2">
-                        <FunnelIcon className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-700">Filters:</span>
+            <Card>
+                <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex items-center gap-2">
+                            <FunnelIcon className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">Filters:</span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                            <Select value={filter} onValueChange={(value: GoalFilter['status']) => setFilter(value)}>
+                                <SelectTrigger className="w-full sm:w-40">
+                                    <SelectValue placeholder="All Goals" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Goals</SelectItem>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={typeFilter} onValueChange={setTypeFilter}>
+                                <SelectTrigger className="w-full sm:w-48">
+                                    <SelectValue placeholder="All Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    {getGoalTypeOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value as any)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                        <option value="all">All Goals</option>
-                        <option value="active">Active</option>
-                        <option value="completed">Completed</option>
-                    </select>
-
-                    <select
-                        value={typeFilter}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                        <option value="all">All Types</option>
-                        {getGoalTypeOptions().map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Goals List */}
             {(Array.isArray(goals) ? goals : []).length === 0 ? (
-                <div className="bg-white p-12 rounded-xl border border-gray-200 shadow-sm text-center">
-                    <div className="text-gray-400 mb-4">
-                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No goals found</h3>
-                    <p className="text-gray-500 mb-6">
-                        {filter === 'all'
-                            ? "Get started by creating your first goal!"
-                            : `No ${filter} goals found. Try adjusting your filters.`
-                        }
-                    </p>
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Create Your First Goal
-                    </button>
-                </div>
+                <Card className="text-center">
+                    <CardContent className="p-12">
+                        <div className="text-muted-foreground mb-4">
+                            <CheckCircleIcon className="w-16 h-16 mx-auto" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">No goals found</h3>
+                        <p className="text-muted-foreground mb-6">
+                            {filter === 'all'
+                                ? "Get started by creating your first goal!"
+                                : `No ${filter} goals found. Try adjusting your filters.`
+                            }
+                        </p>
+                        <Button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            disabled={isLoadingAction}
+                        >
+                            <PlusIcon className="w-4 h-4 mr-2" />
+                            Create Your First Goal
+                        </Button>
+                    </CardContent>
+                </Card>
             ) : (
                 <div className="space-y-4">
-                    {(Array.isArray(goals) ? goals : []).map((goal: any) => (
+                    {(Array.isArray(goals) ? goals : []).map((goal: GoalWithProgress) => (
                         <GoalCard
                             key={goal.id}
                             goal={goal}
@@ -223,6 +358,17 @@ export default function GoalList() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSubmit={handleCreateGoal}
+            />
+
+            {/* Edit Goal Modal */}
+            <EditGoalModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setEditingGoal(null);
+                }}
+                onSubmit={handleEditGoalSubmit}
+                goal={editingGoal}
             />
         </div>
     );
