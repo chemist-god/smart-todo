@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { GoalWithProgress, UpdateGoalData, GoalType } from '@/types/goals';
 import { cn } from '@/lib/utils';
@@ -90,7 +90,7 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!goal) return;
@@ -131,11 +131,11 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [goal, formData, addToast, onSubmit, onClose]);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         onClose();
-    };
+    }, [onClose]);
 
     if (!isOpen || !goal) return null;
 
@@ -256,11 +256,11 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span className="text-muted-foreground">Current:</span>
-                                    <span className="ml-2 font-medium">{goal.current} {goal.unit}</span>
+                                    <span className="ml-2 font-medium">{(goal.current ?? 0)} {goal.unit}</span>
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Progress:</span>
-                                    <span className="ml-2 font-medium">{goal.progress.toFixed(1)}%</span>
+                                    <span className="ml-2 font-medium">{(goal.progress ?? 0).toFixed(1)}%</span>
                                 </div>
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
