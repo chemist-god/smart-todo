@@ -37,7 +37,7 @@ export default function GoalCard({
     onUpdateProgress
 }: GoalCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [progressInput, setProgressInput] = useState(goal.current.toString());
+    const [progressInput, setProgressInput] = useState((goal.current ?? 0).toString());
     const [isUpdating, setIsUpdating] = useState(false);
     const { addToast } = useToast();
 
@@ -174,15 +174,15 @@ export default function GoalCard({
                     <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-foreground">Progress</span>
                         <span className={cn("text-sm font-medium", getStatusColor())}>
-                            {goal.current} / {goal.target} {goal.unit}
+                            {(goal.current ?? 0)} / {goal.target} {goal.unit}
                         </span>
                     </div>
                     <Progress
-                        value={goal.progress}
+                        value={goal.progress ?? 0}
                         className="w-full h-2"
                     />
                     <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-muted-foreground">{goal.progress.toFixed(1)}% complete</span>
+                        <span className="text-xs text-muted-foreground">{(goal.progress ?? 0).toFixed(1)}% complete</span>
                         {goal.isCompleted && (
                             <span className="text-xs text-success font-medium">Completed!</span>
                         )}
