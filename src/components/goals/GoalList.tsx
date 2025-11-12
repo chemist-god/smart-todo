@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { GoalWithProgress, GoalStats, GoalFilter } from '@/types/goals';
+import { useState, useMemo, useCallback } from 'react';
+import { GoalWithProgress, GoalStats, GoalFilter, UpdateGoalData } from '@/types/goals';
 import { useGoals } from '@/hooks/useData';
 import GoalCard from './GoalCard';
 import CreateGoalModal from './CreateGoalModal';
 import EditGoalModal from './EditGoalModal';
-import { PlusIcon, FunnelIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, FunnelIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,12 +56,12 @@ export default function GoalList() {
         }
     };
 
-    const handleEditGoal = (goal: GoalWithProgress) => {
+    const handleEditGoal = useCallback((goal: GoalWithProgress) => {
         setEditingGoal(goal);
         setIsEditModalOpen(true);
-    };
+    }, []);
 
-    const handleEditGoalSubmit = async (goalId: string, goalData: UpdateGoalData) => {
+    const handleEditGoalSubmit = useCallback(async (goalId: string, goalData: UpdateGoalData) => {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, goalData);
@@ -82,9 +82,9 @@ export default function GoalList() {
         } finally {
             setIsLoadingAction(false);
         }
-    };
+    }, [updateGoal, addToast]);
 
-    const handleDeleteGoal = async (goalId: string) => {
+    const handleDeleteGoal = useCallback(async (goalId: string) => {
         const confirmed = window.confirm('Are you sure you want to delete this goal? This action cannot be undone.');
         if (!confirmed) return;
 
@@ -106,9 +106,9 @@ export default function GoalList() {
         } finally {
             setIsLoadingAction(false);
         }
-    };
+    }, [deleteGoal, addToast]);
 
-    const handleToggleActive = async (goalId: string, isActive: boolean) => {
+    const handleToggleActive = useCallback(async (goalId: string, isActive: boolean) => {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { isActive });
@@ -127,9 +127,9 @@ export default function GoalList() {
         } finally {
             setIsLoadingAction(false);
         }
-    };
+    }, [updateGoal, addToast]);
 
-    const handleUpdateProgress = async (goalId: string, current: number) => {
+    const handleUpdateProgress = useCallback(async (goalId: string, current: number) => {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { current });
@@ -148,14 +148,14 @@ export default function GoalList() {
         } finally {
             setIsLoadingAction(false);
         }
-    };
+    }, [updateGoal, addToast]);
 
     const getGoalTypeOptions = useMemo(() => {
         const goalsArray = Array.isArray(goals) ? goals : [];
         const types = [...new Set(goalsArray.map(goal => goal.type))];
         return types.map(type => ({
             value: type,
-            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+            label: type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())
         }));
     }, [goals]);
 

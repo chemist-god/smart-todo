@@ -83,12 +83,13 @@ export async function GET(request: NextRequest) {
 
         // Calculate progress for each goal
         const goalsWithProgress = goals.map(goal => {
-            const progress = goal.target > 0 ? (goal.current / goal.target) * 100 : 0;
+            const progress = goal.target > 0 ? ((goal.current ?? 0) / goal.target) * 100 : 0;
             const completedMilestones = goal.milestones.filter(m => m.isCompleted).length;
             const totalMilestones = goal.milestones.length;
 
             return {
                 ...goal,
+                current: goal.current ?? 0, // Ensure current always has a value
                 progress: Math.min(100, Math.round(progress * 100) / 100),
                 completedMilestones,
                 totalMilestones,
