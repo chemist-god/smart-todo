@@ -105,19 +105,23 @@ export default function ProductivityChart() {
                             })}
                         />
                         <Line
-                            type="monotone"
-                            dataKey="completed"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={2}
-                            name="Completed"
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="created"
-                            stroke="hsl(var(--success))"
-                            strokeWidth={2}
-                            name="Created"
-                        />
+    type="monotone"
+    dataKey="completed"
+    stroke="hsl(var(--primary))"
+    strokeWidth={3}
+    dot={{ r: 4, stroke: 'hsl(var(--primary))', strokeWidth: 2, fill: 'white' }}
+    activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+    name="Completed"
+/>
+<Line
+    type="monotone"
+    dataKey="created"
+    stroke="hsl(var(--success))"
+    strokeWidth={2}
+    dot={{ r: 3, stroke: 'hsl(var(--success))', strokeWidth: 1, fill: 'white' }}
+    activeDot={{ r: 5, fill: 'hsl(var(--success))' }}
+    name="Created"
+/>
                     </LineChart>
                 </ResponsiveContainer>
             </div>
@@ -131,7 +135,24 @@ export default function ProductivityChart() {
                         <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
                         <YAxis stroke="hsl(var(--muted-foreground))" />
                         <Tooltip />
-                        <Bar dataKey="completed" fill="hsl(var(--primary))" name="Completed Tasks" />
+                        {safeData.weeklyStats.map((entry, idx) => (
+    <Bar
+        key={entry.week}
+        dataKey="completed"
+        name="Completed Tasks"
+        fill={[
+          'hsl(var(--primary))',
+          'hsl(var(--success))',
+          'hsl(var(--warning))',
+          'hsl(var(--info))',
+          'hsl(var(--destructive))',
+          'hsl(var(--secondary))',
+        ][idx % 6]}
+        radius={[8, 8, 0, 0]}
+        barSize={32}
+        isAnimationActive={true}
+    />
+))}
                     </BarChart>
                 </ResponsiveContainer>
             </div>
