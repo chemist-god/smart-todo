@@ -130,22 +130,24 @@ export default function WalletBalance({
                         <div className="absolute inset-0 rounded-xl bg-success-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                     </button>
 
-                    {/* Test Deposit Button - Only show in development */}
-                    {process.env.NODE_ENV !== 'production' && (
+                    {/* Test Deposit Button - Controlled by environment variable */}
+                    {(process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_ENABLE_TEST_FUNDS === 'true') && (
                         <button
                             onClick={handleAddTestFunds}
                             disabled={isAddingFunds}
                             className="group relative inline-flex items-center gap-2 px-4 py-2 bg-success-foreground/15 hover:bg-success-foreground/25 disabled:bg-success-foreground/5 text-success-foreground rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-success-foreground/20 disabled:opacity-50 touch-manipulation"
                         >
                             <PlusIcon className="w-4 h-4" />
-                            <span>{isAddingFunds ? 'Adding...' : 'Add Test Funds'}</span>
+                            <span>{isAddingFunds ? 'Adding...' : (process.env.NODE_ENV === 'production' ? 'Add Demo Funds' : 'Add Test Funds')}</span>
                             <div className="absolute inset-0 rounded-xl bg-success-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                         </button>
                     )}
                 </div>
 
-                {process.env.NODE_ENV !== 'production' && (
-                    <p className="text-success-foreground/60 text-xs mt-3 text-center sm:text-left">Development only - adds ₵100 for testing</p>
+                {(process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_ENABLE_TEST_FUNDS === 'true') && (
+                    <p className="text-success-foreground/60 text-xs mt-3 text-center sm:text-left">
+                        {process.env.NODE_ENV === 'production' ? 'Demo mode - adds ₵100 for testing' : 'Development only - adds ₵100 for testing'}
+                    </p>
                 )}
             </div>
 
