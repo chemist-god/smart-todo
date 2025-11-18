@@ -180,7 +180,7 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                             <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Earned</p>
-                            <p className="text-lg sm:text-xl font-bold text-success tabular-nums">Gh{data.totalEarned.toFixed(0)}</p>
+                            <p className="text-lg sm:text-xl font-bold text-success tabular-nums">₵{data.totalEarned.toFixed(0)}</p>
                         </div>
                     </div>
                 </div>
@@ -276,7 +276,7 @@ export default function StakeLeaderboard({ userId }: StakeLeaderboardProps) {
                                             ) : (
                                                 <>
                                                     <span className="text-muted-foreground/50">•</span>
-                                                    <span className="text-success font-medium tabular-nums">Gh{user.totalEarned.toFixed(0)}</span>
+                                                    <span className="text-success font-medium tabular-nums">₵{user.totalEarned.toFixed(0)}</span>
                                                 </>
                                             )}
                                         </div>
