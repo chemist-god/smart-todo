@@ -93,7 +93,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
         }
 
         if (joinAmount < 1) {
-            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least Gh1' });
+            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least ₵1' });
             return;
         }
 
@@ -112,7 +112,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
                 addToast({
                     type: 'success',
                     title: 'Joined Successfully!',
-                    message: `You've joined ${invitation?.inviterName}'s stake with Gh${joinAmount}`
+                    message: `You've joined ${invitation?.inviterName}'s stake with ₵${joinAmount}`
                 });
                 // Redirect to stakes page after successful join
                 setTimeout(() => {
@@ -215,7 +215,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span className="text-gray-600">Stake Amount:</span>
-                                    <span className="ml-2 font-semibold text-green-600">Gh{invitation.stakeAmount}</span>
+                                    <span className="ml-2 font-semibold text-green-600">₵{invitation.stakeAmount}</span>
                                 </div>
                                 <div>
                                     <span className="text-gray-600">Deadline:</span>
@@ -273,7 +273,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Your Stake Amount (GHS)
+                                        Your Stake Amount (₵)
                                     </label>
                                     <input
                                         type="number"
@@ -315,7 +315,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
                                     className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
                                 >
                                     {joining && <LoadingSpinner size="sm" className="mr-2" />}
-                                    Join Stake (Gh{joinAmount})
+                                    Join Stake (₵{joinAmount})
                                 </button>
                             </form>
                         )}
