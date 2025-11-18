@@ -6,7 +6,7 @@ import { z } from "zod";
 import crypto from "crypto";
 
 const joinStakeSchema = z.object({
-    amount: z.number().min(1, "Amount must be at least 1 GHS"),
+    amount: z.number().min(1, "Amount must be at least ₵1"),
     isSupporter: z.boolean().default(true)
 });
 
