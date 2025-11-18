@@ -34,7 +34,7 @@ export default function JoinStakeModal({ stake, isOpen, onClose, onSuccess }: Jo
         e.preventDefault();
 
         if (amount < 1) {
-            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least Gh1' });
+            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least ₵1' });
             return;
         }
 
@@ -55,7 +55,7 @@ export default function JoinStakeModal({ stake, isOpen, onClose, onSuccess }: Jo
                 addToast({
                     type: 'success',
                     title: 'Success',
-                    message: `Successfully joined stake with Gh${amount}!`
+                    message: `Successfully joined stake with ₵${amount}!`
                 });
                 onSuccess();
                 onClose();
@@ -122,7 +122,7 @@ export default function JoinStakeModal({ stake, isOpen, onClose, onSuccess }: Jo
                             {/* Aurora Amount Input */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-foreground">
-                                    Stake Amount (GHS)
+                                    Stake Amount (₵)
                                 </label>
                                 <input
                                     type="number"
