@@ -207,7 +207,7 @@ export default function StakeNotifications({ userId }: StakeNotificationsProps) 
                                     {/* Amount if present */}
                                     {notification.amount && (
                                         <p className="text-xs font-bold text-success tabular-nums">
-                                            Gh{notification.amount.toFixed(2)}
+                                            ₵{notification.amount.toFixed(2)}
                                         </p>
                                     )}
                                 </div>
