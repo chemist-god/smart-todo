@@ -13,8 +13,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Only allow in development environment or when test funds are explicitly enabled
-        if (process.env.NODE_ENV === 'production' && process.env.ENABLE_TEST_FUNDS !== 'true') {
-            return NextResponse.json({ error: "Test deposits not allowed in production" }, { status: 403 });
+        if (process.env.NODE_ENV === 'production' && 
+            process.env.ENABLE_TEST_FUNDS !== 'true' && 
+            process.env.NEXT_PUBLIC_ENABLE_TEST_FUNDS !== 'true') {
+            return NextResponse.json({ error: "Demo funds not available. Please contact support or try again later." }, { status: 403 });
         }
 
         const { amount = 100 } = await request.json(); // Default 100 GHS for testing
