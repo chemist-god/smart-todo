@@ -15,7 +15,7 @@ const completeStakeSchema = z.object({
 
 // Zod schema for joining a stake
 const joinStakeSchema = z.object({
-    amount: z.number().min(1, "Amount must be at least 1 GHS"),
+    amount: z.number().min(1, "Amount must be at least ₵1"),
     isSupporter: z.boolean().default(true),
 });
 
@@ -379,7 +379,7 @@ export async function DELETE(
             userId: user.id,
             type: 'STAKE_REFUND',
             amount: refundAmount,
-            description: `Stake cancelled - refund ${refundAmount} GHS`,
+            description: `Stake cancelled - refund ₵${refundAmount}`,
             referenceId: stake.id
         });
 
@@ -388,7 +388,7 @@ export async function DELETE(
             message: "Stake cancelled successfully",
             refund: {
                 amount: refundAmount,
-                description: `Refunded ${refundAmount} GHS`
+                description: `Refunded ₵${refundAmount}`
             }
         });
 
