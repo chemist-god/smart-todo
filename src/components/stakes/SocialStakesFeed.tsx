@@ -323,7 +323,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                         <div className="min-w-0 flex-1">
                             <p className="text-xs sm:text-sm font-medium text-muted-foreground">Support Pool</p>
                             <p className="text-lg sm:text-xl font-bold text-success tabular-nums">
-                                Gh{stakes.reduce((sum, stake) => sum + Number(stake.totalAmount), 0).toFixed(0)}
+                                ₵{stakes.reduce((sum, stake) => sum + Number(stake.totalAmount), 0).toFixed(0)}
                             </p>
                         </div>
                     </div>
@@ -428,7 +428,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                                     {/* Aurora Stats */}
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="text-center">
-                                            <div className="text-base font-bold text-success tabular-nums">Gh{Number(stake.totalAmount).toFixed(0)}</div>
+                                            <div className="text-base font-bold text-success tabular-nums">₵{Number(stake.totalAmount).toFixed(0)}</div>
                                             <div className="text-xs text-muted-foreground">Pool</div>
                                         </div>
                                         <div className="text-center">
