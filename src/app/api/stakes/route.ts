@@ -11,7 +11,7 @@ const createStakeSchema = z.object({
     title: z.string().min(1, "Title is required").max(200, "Title too long"),
     description: z.string().optional(),
     stakeType: z.enum(["SELF_STAKE", "SOCIAL_STAKE", "CHALLENGE_STAKE", "TEAM_STAKE", "CHARITY_STAKE"]),
-    amount: z.number().min(5, "Minimum stake amount is 5 GHS").max(1000, "Maximum stake amount is 1000 GHS"),
+    amount: z.number().min(5, "Minimum stake amount is ₵5").max(1000, "Maximum stake amount is ₵1000"),
     deadline: z.string().min(1, "Deadline is required"),
     taskId: z.string().optional(),
     proofRequired: z.boolean().default(true),
