@@ -112,7 +112,7 @@ export default function StakeAnalytics({ userId }: StakeAnalyticsProps) {
         },
         {
             name: 'Total Earned',
-            value: `Gh${data.totalEarned.toFixed(2)}`,
+            value: `₵${data.totalEarned.toFixed(2)}`,
             icon: CurrencyDollarIcon,
             color: 'text-yellow-600',
             bgColor: 'bg-yellow-100'
@@ -196,21 +196,21 @@ export default function StakeAnalytics({ userId }: StakeAnalyticsProps) {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Total Earned</span>
-                            <span className="font-semibold text-green-600">Gh{data.totalEarned.toFixed(2)}</span>
+                            <span className="font-semibold text-green-600">₵{data.totalEarned.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Total Lost</span>
-                            <span className="font-semibold text-red-600">Gh{data.totalLost.toFixed(2)}</span>
+                            <span className="font-semibold text-red-600">₵{data.totalLost.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Net Profit</span>
                             <span className={`font-semibold ${data.totalEarned - data.totalLost >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                Gh{(data.totalEarned - data.totalLost).toFixed(2)}
+                                ₵{(data.totalEarned - data.totalLost).toFixed(2)}
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Average Stake</span>
-                            <span className="font-semibold text-gray-900">Gh{data.averageStakeAmount.toFixed(2)}</span>
+                            <span className="font-semibold text-gray-900">₵{data.averageStakeAmount.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -233,7 +233,7 @@ export default function StakeAnalytics({ userId }: StakeAnalyticsProps) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm font-semibold text-gray-900">Gh{activity.amount.toFixed(2)}</p>
+                                    <p className="text-sm font-semibold text-gray-900">₵{activity.amount.toFixed(2)}</p>
                                     <p className="text-xs text-gray-500 capitalize">{activity.status.toLowerCase()}</p>
                                 </div>
                             </div>
