@@ -12,12 +12,44 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Only allow in development environment
-        if (process.env.NODE_ENV === 'production') {
+        // Only allow in development environment or when test funds are explicitly enabled
+        if (process.env.NODE_ENV === 'production' && process.env.ENABLE_TEST_FUNDS !== 'true') {
             return NextResponse.json({ error: "Test deposits not allowed in production" }, { status: 403 });
         }
 
         const { amount = 100 } = await request.json(); // Default 100 GHS for testing
+
+        // In production demo mode, add safeguards
+        if (process.env.NODE_ENV === 'production') {
+            // Check if user already received demo funds today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const todayDeposits = await prisma.walletTransaction.count({
+                where: {
+                    userId: user.id,
+                    type: "TEST_DEPOSIT",
+                    createdAt: {
+                        gte: today
+                    }
+                }
+            });
+
+            // Limit to 1 demo deposit per day in production
+            if (todayDeposits >= 1) {
+                return NextResponse.json({ 
+                    error: "Demo funds can only be added once per day. Please try again tomorrow." 
+                }, { status: 429 });
+            }
+
+            // Limit demo amount to 100 GHS in production
+            const maxDemoAmount = 100;
+            if (amount > maxDemoAmount) {
+                return NextResponse.json({ 
+                    error: `Demo amount cannot exceed Gh${maxDemoAmount}` 
+                }, { status: 400 });
+            }
+        }
 
         // Get or create user wallet
         let wallet = await prisma.userWallet.findUnique({
@@ -60,7 +92,7 @@ export async function POST(request: NextRequest) {
                 userId: user.id,
                 type: "TEST_DEPOSIT",
                 amount: amount,
-                description: `Test deposit of Gh${amount} for development`,
+                description: process.env.NODE_ENV === 'production' ? `Demo deposit of Gh${amount}` : `Test deposit of Gh${amount} for development`,
                 referenceId: `test-${Date.now()}`
             }
         });
