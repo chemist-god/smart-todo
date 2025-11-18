@@ -132,7 +132,7 @@ export class SocialShareService {
         }
 
         if (!message) {
-            message = `🔥 I'm staking Gh${shareData.amount} to ${shareData.title} by ${new Date(shareData.deadline).toLocaleDateString()}! Think I can do it? Join me and let's prove the doubters wrong! 💪`;
+            message = `🔥 I'm staking ₵${shareData.amount} to ${shareData.title} by ${new Date(shareData.deadline).toLocaleDateString()}! Think I can do it? Join me and let's prove the doubters wrong! 💪`;
         }
 
         const hashtags = this.generateHashtags(shareData);
@@ -159,7 +159,7 @@ export class SocialShareService {
 
         let shareUrl = '';
         const title = `Join ${shareData.inviterName}'s Stake: ${shareData.title}`;
-        const description = `Support ${shareData.inviterName} in completing their goal: ${shareData.title}. Stake: Gh${shareData.amount}`;
+        const description = `Support ${shareData.inviterName} in completing their goal: ${shareData.title}. Stake: ₵${shareData.amount}`;
 
         switch (platform.id) {
             case 'whatsapp':
@@ -315,7 +315,7 @@ export class SocialShareService {
 <div style="border: 2px solid #8B5CF6; border-radius: 12px; padding: 20px; max-width: 400px; font-family: Arial, sans-serif;">
     <h3 style="color: #8B5CF6; margin: 0 0 10px 0;">🔥 Stake Challenge</h3>
     <p style="margin: 0 0 15px 0; font-weight: bold;">${shareData.title}</p>
-    <p style="margin: 0 0 15px 0; color: #666;">Stake: <strong>Gh${shareData.amount}</strong> | Deadline: ${new Date(shareData.deadline).toLocaleDateString()}</p>
+    <p style="margin: 0 0 15px 0; color: #666;">Stake: <strong>₵${shareData.amount}</strong> | Deadline: ${new Date(shareData.deadline).toLocaleDateString()}</p>
     <a href="${inviteUrl}" style="background: #8B5CF6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
         Join & Support
     </a>
