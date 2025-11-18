@@ -50,11 +50,6 @@ export default function WalletBalance({
     };
 
     const handleAddTestFunds = async () => {
-        if (process.env.NODE_ENV === 'production') {
-            addToast({ type: 'error', title: 'Error', message: 'Test deposits not available in production' });
-            return;
-        }
-
         try {
             setIsAddingFunds(true);
             const response = await fetch('/api/wallet/test-deposit', {
@@ -69,10 +64,10 @@ export default function WalletBalance({
                 onBalanceUpdate?.();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || 'Failed to add test funds' });
+                addToast({ type: 'error', title: 'Error', message: error.error || 'Failed to add demo funds' });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'An error occurred while adding test funds' });
+            addToast({ type: 'error', title: 'Error', message: 'An error occurred while adding demo funds' });
         } finally {
             setIsAddingFunds(false);
         }
