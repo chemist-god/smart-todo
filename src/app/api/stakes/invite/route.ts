@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
                 stakeId: stake.id,
                 inviterId: user.id,
                 inviteeEmail: validatedData.email,
-                message: validatedData.message || `Join my stake: "${stake.title}" for Gh${Number(stake.userStake).toFixed(2)}`,
+                message: validatedData.message || `Join my stake: "${stake.title}" for ₵${Number(stake.userStake).toFixed(2)}`,
                 status: 'PENDING',
                 securityCode,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
