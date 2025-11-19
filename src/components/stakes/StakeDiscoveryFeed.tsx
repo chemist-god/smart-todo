@@ -308,7 +308,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
                             <div className="p-6">
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div className="text-center">
-                                        <div className="text-2xl font-bold text-purple-600">Gh{stake.totalAmount.toFixed(0)}</div>
+                                        <div className="text-2xl font-bold text-purple-600">₵{stake.totalAmount.toFixed(0)}</div>
                                         <div className="text-xs text-gray-500">Total Stake</div>
                                     </div>
                                     <div className="text-center">

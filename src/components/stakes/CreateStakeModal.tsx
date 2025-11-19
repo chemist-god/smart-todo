@@ -63,11 +63,11 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         }
 
         if (formData.amount < 5) {
-            newErrors.amount = "Minimum stake amount is 5 GHS";
+            newErrors.amount = "Minimum stake amount is ₵5";
         }
 
         if (formData.amount > 1000) {
-            newErrors.amount = "Maximum stake amount is 1000 GHS";
+            newErrors.amount = "Maximum stake amount is ₵1000";
         }
 
         if (!formData.deadline) {
@@ -110,7 +110,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
 
             if (response.ok) {
                 const data = await response.json();
-                addToast({ type: 'success', title: 'Success', message: `Stake created successfully! You staked Gh${formData.amount}` });
+                addToast({ type: 'success', title: 'Success', message: `Stake created successfully! You staked ₵${formData.amount}` });
                 onSuccess();
                 resetForm();
             } else {
@@ -309,7 +309,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                         {/* Amount */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Stake Amount (GHS) *
+                                Stake Amount (₵) *
                             </label>
                             <div className="flex items-center gap-2">
                                 <button
@@ -339,7 +339,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                             </div>
                             {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
                             <p className="mt-1 text-sm text-gray-600">
-                                Minimum: Gh5, Maximum: Gh1000
+                                Minimum: ₵5, Maximum: ₵1000
                             </p>
                         </div>
 

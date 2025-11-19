@@ -34,7 +34,7 @@ export default function WalletBalance({
     const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
-        return `Gh${amount.toFixed(2)}`;
+        return `₵${amount.toFixed(2)}`;
     };
 
     const getRankColor = (rank: number) => {

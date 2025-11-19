@@ -238,7 +238,7 @@ export class RewardCalculator {
             );
             totalReward += timeBonus;
             if (timeBonus > 0) {
-                additionalBonuses.push(`Time bonus: ${timeBonus.toFixed(2)} GHS`);
+                additionalBonuses.push(`Time bonus: ₵${timeBonus.toFixed(2)}`);
             }
         }
 
@@ -250,7 +250,7 @@ export class RewardCalculator {
             );
             totalReward += achievementBonus;
             if (achievementBonus > 0) {
-                additionalBonuses.push(`Achievement bonus: ${achievementBonus.toFixed(2)} GHS`);
+                additionalBonuses.push(`Achievement bonus: ₵${achievementBonus.toFixed(2)}`);
             }
         }
 

@@ -50,7 +50,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
-        return `Gh${amount.toFixed(2)}`;
+        return `₵${amount.toFixed(2)}`;
     };
 
     const formatTimeRemaining = (milliseconds: number) => {

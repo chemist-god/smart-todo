@@ -35,7 +35,7 @@ interface OverdueStakeActionsProps {
 export function OverdueStakeActions({ stake, onStakeUpdated }: OverdueStakeActionsProps) {
     const [showExtendedActions, setShowExtendedActions] = useState(false);
 
-    const formatCurrency = (amount: number) => `Gh${amount.toFixed(2)}`;
+    const formatCurrency = (amount: number) => `₵${amount.toFixed(2)}`;
 
     const getOverdueDuration = () => {
         const overdueMs = Math.abs(stake.timeRemaining);

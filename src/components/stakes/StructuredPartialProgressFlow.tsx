@@ -207,7 +207,7 @@ export function StructuredPartialProgressFlow({
                     </div>
                     <div className="flex justify-between">
                         <span>Original Penalty:</span>
-                        <span className="font-medium">Gh{totalAmount.toFixed(2)}</span>
+                        <span className="font-medium">₵{totalAmount.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -289,7 +289,7 @@ export function StructuredPartialProgressFlow({
                             <span className="text-sm font-medium text-blue-800">New Penalty</span>
                         </div>
                         <div className="text-lg font-bold text-blue-600">
-                            Gh{calculateNewPenalty(formData.completionPercentage).toFixed(2)}
+                            ₵{calculateNewPenalty(formData.completionPercentage).toFixed(2)}
                         </div>
                     </div>
                 </div>
@@ -470,7 +470,7 @@ export function StructuredPartialProgressFlow({
                         <div className="flex justify-between">
                             <span className="text-gray-600">New Penalty:</span>
                             <span className="font-medium text-blue-600">
-                                Gh{calculateNewPenalty(formData.completionPercentage).toFixed(2)}
+                                ₵{calculateNewPenalty(formData.completionPercentage).toFixed(2)}
                             </span>
                         </div>
                     </div>

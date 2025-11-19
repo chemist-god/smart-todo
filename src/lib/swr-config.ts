@@ -49,8 +49,8 @@ export const swrConfigs = {
     // For frequently changing data (todos, goals)
     dynamic: {
         ...swrConfig,
-        dedupingInterval: 60000, // 1 minute
-        refreshInterval: 15000, // 15 seconds
+        dedupingInterval: 30000, // 30 seconds (matches refreshInterval to avoid excessive requests)
+        refreshInterval: 30000, // 30 seconds (increased from 15)
     },
 
     // For relatively static data (user stats, achievements)

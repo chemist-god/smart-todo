@@ -131,7 +131,7 @@ export class WalletService {
             userId,
             type: 'STAKE_CREATED',
             amount: amount,
-            description: `Stake created for ${amount} GHS`,
+            description: `Stake created for ₵${amount}`,
             referenceId: stakeId
         });
 
@@ -158,7 +158,7 @@ export class WalletService {
             userId,
             type: 'STAKE_REWARD',
             amount: rewardAmount,
-            description: `Stake completed - earned ${rewardAmount} GHS`,
+            description: `Stake completed - earned ₵${rewardAmount}`,
             referenceId: stakeId
         });
 
@@ -183,7 +183,7 @@ export class WalletService {
             userId,
             type: 'STAKE_PENALTY',
             amount: penaltyAmount,
-            description: `Stake failed - penalty ${penaltyAmount} GHS`,
+            description: `Stake failed - penalty ₵${penaltyAmount}`,
             referenceId: stakeId
         });
 

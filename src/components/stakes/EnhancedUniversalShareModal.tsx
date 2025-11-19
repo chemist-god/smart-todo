@@ -229,7 +229,7 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
         if (selectedTemplate) {
             return MessageTemplateService.generateMessage(selectedTemplate, shareData);
         }
-        return `🔥 I'm staking Gh${shareData.amount} to ${shareData.title}! Think I can do it? Join me and let's prove the doubters wrong! 💪`;
+        return `🔥 I'm staking ₵${shareData.amount} to ${shareData.title}! Think I can do it? Join me and let's prove the doubters wrong! 💪`;
     };
 
     if (!isOpen) return null;

@@ -238,7 +238,7 @@ export function StructuredAppealFlow({
                     </div>
                     <div className="flex justify-between">
                         <span>Penalty Amount:</span>
-                        <span className="font-medium">Gh{totalAmount.toFixed(2)}</span>
+                        <span className="font-medium">₵{totalAmount.toFixed(2)}</span>
                     </div>
                 </div>
             </div>

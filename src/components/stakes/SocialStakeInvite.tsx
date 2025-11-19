@@ -44,7 +44,7 @@ export default function SocialStakeInvite({
                 body: JSON.stringify({
                     stakeId,
                     email: email.trim(),
-                    message: message.trim() || `Join my stake: "${stakeTitle}" for Gh${stakeAmount}`
+                    message: message.trim() || `Join my stake: "${stakeTitle}" for ₵${stakeAmount}`
                 }),
             });
 
@@ -79,7 +79,7 @@ export default function SocialStakeInvite({
     };
 
     const shareToSocial = async () => {
-        const shareText = `Join my stake: "${stakeTitle}" for Gh${stakeAmount}! Can you help me stay accountable? ${inviteLink}`;
+        const shareText = `Join my stake: "${stakeTitle}" for ₵${stakeAmount}! Can you help me stay accountable? ${inviteLink}`;
 
         if (navigator.share) {
             try {

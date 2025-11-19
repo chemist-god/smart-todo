@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Demo funds not available. Please contact support or try again later." }, { status: 403 });
         }
 
-        const { amount = 100 } = await request.json(); // Default 100 GHS for testing
+        const { amount = 100 } = await request.json(); // Default ₵100 for testing
 
         // In production demo mode, add safeguards
         if (process.env.NODE_ENV === 'production') {
@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
                 }, { status: 429 });
             }
 
-            // Limit demo amount to 100 GHS in production
+            // Limit demo amount to ₵100 in production
             const maxDemoAmount = 100;
             if (amount > maxDemoAmount) {
                 return NextResponse.json({ 
-                    error: `Demo amount cannot exceed Gh${maxDemoAmount}` 
+                    error: `Demo amount cannot exceed ₵${maxDemoAmount}` 
                 }, { status: 400 });
             }
         }
@@ -94,14 +94,14 @@ export async function POST(request: NextRequest) {
                 userId: user.id,
                 type: "TEST_DEPOSIT",
                 amount: amount,
-                description: process.env.NODE_ENV === 'production' ? `Demo deposit of Gh${amount}` : `Test deposit of Gh${amount} for development`,
+                description: process.env.NODE_ENV === 'production' ? `Demo deposit of ₵${amount}` : `Test deposit of ₵${amount} for development`,
                 referenceId: `test-${Date.now()}`
             }
         });
 
         return NextResponse.json({
             success: true,
-            message: `Test deposit of Gh${amount} successful`,
+            message: `Test deposit of ₵${amount} successful`,
             wallet: {
                 balance: newBalance,
                 totalEarned: newTotalEarned,
