@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
     try {
-        const { name, email, phone, password } = await request.json();
+        const { name, email, phone, password, inviteCode } = await request.json();
 
         // Validate required fields
         if (!email && !phone) {
@@ -43,15 +43,61 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await hash(password, 12);
 
-        // Create user
+        // Validate and process invite code if provided
+        let referredBy: string | null = null;
+        let invitationId: string | null = null;
+
+        if (inviteCode) {
+            const invitation = await prisma.platformInvitation.findUnique({
+                where: { inviteCode },
+                include: { inviter: { select: { id: true } } }
+            });
+
+            if (invitation && invitation.status === 'PENDING' && invitation.expiresAt > new Date()) {
+                // Check if invitation email/phone matches (if provided)
+                const emailMatches = !invitation.inviteeEmail || invitation.inviteeEmail === email;
+                const phoneMatches = !invitation.inviteePhone || invitation.inviteePhone === phone;
+
+                if (emailMatches && phoneMatches) {
+                    referredBy = invitation.inviterId;
+                    invitationId = invitation.id;
+                }
+            }
+        }
+
+        // Create user with referral info
         const user = await prisma.user.create({
             data: {
                 name,
                 email: email || null,
                 phone: phone || null,
                 password: hashedPassword,
+                referredBy: referredBy || null,
             },
         });
+
+        // If invitation was valid, accept it
+        if (invitationId && referredBy) {
+            await prisma.$transaction(async (tx) => {
+                // Accept invitation
+                await tx.platformInvitation.update({
+                    where: { id: invitationId! },
+                    data: {
+                        status: 'ACCEPTED',
+                        acceptedAt: new Date(),
+                        acceptedBy: user.id
+                    }
+                });
+
+                // Increment inviter's referral count
+                await tx.user.update({
+                    where: { id: referredBy! },
+                    data: {
+                        referralCount: { increment: 1 }
+                    }
+                });
+            });
+        }
 
         // Generate verification token
         const token = randomBytes(32).toString("hex");
@@ -96,6 +142,7 @@ export async function POST(request: NextRequest) {
             verificationRequired: true,
             emailSent: !!email,
             smsSent: !!phone,
+            invitationAccepted: !!invitationId,
         });
     } catch (error) {
         console.error("Registration error:", error);

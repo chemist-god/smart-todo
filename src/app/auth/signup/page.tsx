@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,18 @@ export default function SignUpPage() {
   const [usePhone, setUsePhone] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Extract invite code from URL
+  useEffect(() => {
+    const code = searchParams.get('inviteCode');
+    if (code) {
+      setInviteCode(code);
+    }
+  }, [searchParams]);
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { score: 0, label: "", color: "" };
@@ -64,15 +74,21 @@ export default function SignUpPage() {
           email: usePhone ? undefined : email,
           phone: usePhone ? phone : undefined,
           password,
+          inviteCode: inviteCode || undefined, // Include invite code if present
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Account created successfully! Please check your email/phone for verification.");
+        const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
+        if (data.invitationAccepted) {
+          setSuccess("Account created successfully! Your invitation has been accepted. Please check your email/phone for verification.");
+        } else {
+          setSuccess("Account created successfully! Please check your email/phone for verification.");
+        }
         setTimeout(() => {
-          router.push("/auth/verify-request");
+          router.push(redirectUrl);
         }, 2000);
       } else {
         setError(data.error || "An error occurred");

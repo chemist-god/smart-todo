@@ -5,6 +5,7 @@ import { z } from "zod";
 import { handleApiError, ValidationError, NotFoundError } from "@/lib/error-handler";
 import { WalletService } from "@/lib/wallet-service";
 import { RewardCalculator } from "@/lib/reward-calculator";
+import crypto from "crypto";
 
 // Zod schema for stake creation
 const createStakeSchema = z.object({
@@ -217,6 +218,32 @@ export async function POST(request: NextRequest) {
             }
         });
 
+        // Pre-generate public invitation for SOCIAL_STAKE (enterprise-grade approach)
+        let publicInvitation = null;
+        if (validatedData.stakeType === 'SOCIAL_STAKE') {
+            const securityCode = crypto.randomBytes(6).toString('hex').toUpperCase();
+            try {
+                publicInvitation = await prisma.stakeInvitation.create({
+                    data: {
+                        stakeId: stake.id,
+                        inviterId: user.id,
+                        inviteeEmail: 'public@share.com', // Placeholder for public shares
+                        message: `Join my stake: "${validatedData.title}" for ₵${validatedData.amount}`,
+                        status: 'PENDING',
+                        securityCode,
+                        expiresAt: new Date(deadline.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days after deadline
+                    },
+                    select: {
+                        id: true,
+                        securityCode: true
+                    }
+                });
+            } catch (error) {
+                // Log error but don't fail stake creation
+                console.error('Error creating public invitation:', error);
+            }
+        }
+
         // Calculate additional fields
         const currentTime = new Date();
         const timeRemaining = stake.deadline.getTime() - currentTime.getTime();
@@ -238,6 +265,8 @@ export async function POST(request: NextRequest) {
                 progress: Math.round(progress),
                 participantCount: 0,
                 totalParticipants: 1,
+                // Include securityCode for SOCIAL_STAKE shares
+                securityCode: publicInvitation?.securityCode || null,
             },
             wallet: {
                 balance: Number(updatedWallet.balance),

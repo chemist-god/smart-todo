@@ -179,7 +179,10 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
 
     const generateQRCode = async () => {
         try {
-            const inviteUrl = `${window.location.origin}/stakes/invite/${shareData.stakeId}`;
+            // Use securityCode if available (more secure), otherwise fallback to stakeId
+            const inviteUrl = shareData.securityCode
+                ? `${window.location.origin}/invite/${shareData.securityCode}`
+                : `${window.location.origin}/stakes/invite/${shareData.stakeId}`;
             const qrCodeDataUrl = await QRCode.toDataURL(inviteUrl, {
                 width: 256,
                 margin: 2,
@@ -408,12 +411,19 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
-                                                value={`${window.location.origin}/stakes/invite/${shareData.stakeId}`}
+                                                value={shareData.securityCode
+                                                    ? `${window.location.origin}/invite/${shareData.securityCode}`
+                                                    : `${window.location.origin}/stakes/invite/${shareData.stakeId}`}
                                                 readOnly
                                                 className="flex-1 px-3 py-2 bg-muted border border-border rounded-lg text-xs text-muted-foreground"
                                             />
                                             <button
-                                                onClick={() => handleCopy(`${window.location.origin}/stakes/invite/${shareData.stakeId}`, 'direct-link')}
+                                                onClick={() => handleCopy(
+                                                    shareData.securityCode
+                                                        ? `${window.location.origin}/invite/${shareData.securityCode}`
+                                                        : `${window.location.origin}/stakes/invite/${shareData.stakeId}`,
+                                                    'direct-link'
+                                                )}
                                                 className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                                             >
                                                 {copiedItems.has('direct-link') ? (
@@ -430,10 +440,17 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                 <div className="bg-card/40 backdrop-blur-sm border border-border/30 rounded-2xl p-4">
                                     <h4 className="font-semibold text-foreground mb-3 text-sm">Embed Code</h4>
                                     <div className="bg-muted p-3 rounded-xl font-mono text-xs overflow-x-auto text-muted-foreground">
-                                        {`<iframe src="${window.location.origin}/stakes/invite/${shareData.stakeId}" width="400" height="600" frameborder="0"></iframe>`}
+                                        {`<iframe src="${shareData.securityCode
+                                            ? `${window.location.origin}/invite/${shareData.securityCode}`
+                                            : `${window.location.origin}/stakes/invite/${shareData.stakeId}`}" width="400" height="600" frameborder="0"></iframe>`}
                                     </div>
                                     <button
-                                        onClick={() => handleCopy(`<iframe src="${window.location.origin}/stakes/invite/${shareData.stakeId}" width="400" height="600" frameborder="0"></iframe>`, 'embed-code')}
+                                        onClick={() => handleCopy(
+                                            `<iframe src="${shareData.securityCode
+                                                ? `${window.location.origin}/invite/${shareData.securityCode}`
+                                                : `${window.location.origin}/stakes/invite/${shareData.stakeId}`}" width="400" height="600" frameborder="0"></iframe>`,
+                                            'embed-code'
+                                        )}
                                         className="mt-3 px-3 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
                                     >
                                         {copiedItems.has('embed-code') ? (

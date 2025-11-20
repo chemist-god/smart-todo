@@ -43,9 +43,29 @@ export default function EnhancedSocialShare({
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+    const [securityCode, setSecurityCode] = useState<string | null>(null);
+    const [shareUrl, setShareUrl] = useState<string>(`${window.location.origin}/stakes/invite/${stakeId}`);
     const { addToast } = useToast();
 
-    const inviteLink = `${window.location.origin}/stakes/invite/${stakeId}`;
+    // Fetch securityCode for this stake
+    useEffect(() => {
+        const fetchShareUrl = async () => {
+            try {
+                const response = await fetch(`/api/stakes/${stakeId}/share`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.shareUrl) {
+                        setShareUrl(data.shareUrl);
+                        setSecurityCode(data.securityCode);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching share URL:', error);
+                // Fallback to stakeId URL if fetch fails
+            }
+        };
+        fetchShareUrl();
+    }, [stakeId]);
 
     useEffect(() => {
         // Load templates based on category and difficulty
@@ -172,14 +192,14 @@ export default function EnhancedSocialShare({
 
     const shareToSocial = async () => {
         const message = customMessage || generateMessage();
-        const shareText = `${message}\n\n${inviteLink}`;
+        const shareText = `${message}\n\n${shareUrl}`;
 
         if (navigator.share) {
             try {
                 await navigator.share({
                     title: `Join My Stake: ${stakeTitle}`,
                     text: shareText,
-                    url: inviteLink
+                    url: shareUrl
                 });
             } catch (error) {
                 // User cancelled sharing
@@ -291,7 +311,7 @@ export default function EnhancedSocialShare({
                                         {currentMessage}
                                     </p>
                                     <div className="mt-2 text-xs text-gray-500">
-                                        {inviteLink}
+                                        {shareUrl}
                                     </div>
                                 </div>
                             </div>
@@ -362,7 +382,8 @@ export default function EnhancedSocialShare({
                     inviterName: 'You', // This would come from user context
                     inviterImage: undefined,
                     templateId: selectedTemplate?.id,
-                    customMessage: customMessage || undefined
+                    customMessage: customMessage || undefined,
+                    securityCode: securityCode || undefined // Pass securityCode for better URLs
                 }}
             />
         </>

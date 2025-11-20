@@ -30,6 +30,7 @@ export interface StakeShareData {
     inviterImage?: string;
     templateId?: string;
     customMessage?: string;
+    securityCode?: string; // Optional securityCode for better URLs
 }
 
 export class SocialShareService {
@@ -113,7 +114,10 @@ export class SocialShareService {
      */
     static generateShareLinks(shareData: StakeShareData): ShareLink[] {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const inviteUrl = `${baseUrl}/stakes/invite/${shareData.stakeId}`;
+        // Use securityCode if available (more secure), otherwise fallback to stakeId
+        const inviteUrl = shareData.securityCode
+            ? `${baseUrl}/invite/${shareData.securityCode}`
+            : `${baseUrl}/stakes/invite/${shareData.stakeId}`;
 
         // Generate message
         let message = shareData.customMessage;
@@ -301,7 +305,9 @@ export class SocialShareService {
      */
     static generateQRCodeData(shareData: StakeShareData): string {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        return `${baseUrl}/stakes/invite/${shareData.stakeId}`;
+        return shareData.securityCode
+            ? `${baseUrl}/invite/${shareData.securityCode}`
+            : `${baseUrl}/stakes/invite/${shareData.stakeId}`;
     }
 
     /**
@@ -309,7 +315,9 @@ export class SocialShareService {
      */
     static generateEmbedCode(shareData: StakeShareData): string {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const inviteUrl = `${baseUrl}/stakes/invite/${shareData.stakeId}`;
+        const inviteUrl = shareData.securityCode
+            ? `${baseUrl}/invite/${shareData.securityCode}`
+            : `${baseUrl}/stakes/invite/${shareData.stakeId}`;
 
         return `
 <div style="border: 2px solid #8B5CF6; border-radius: 12px; padding: 20px; max-width: 400px; font-family: Arial, sans-serif;">
