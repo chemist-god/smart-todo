@@ -22,16 +22,20 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        // Get platform invitations
-        const [platformInvitations, stakeInvitations] = await Promise.all([
+        // Get platform invitations with acceptance counts
+        const [platformInvitations, stakeInvitations, platformAcceptances] = await Promise.all([
             prisma.platformInvitation.findMany({
                 where: { inviterId: user.id },
                 select: {
                     id: true,
                     status: true,
                     createdAt: true,
-                    acceptedAt: true,
-                    viewCount: true
+                    viewCount: true,
+                    _count: {
+                        select: {
+                            acceptances: true
+                        }
+                    }
                 }
             }),
             prisma.stakeInvitation.findMany({
@@ -43,12 +47,20 @@ export async function GET(request: NextRequest) {
                     acceptedAt: true,
                     viewCount: true
                 }
+            }),
+            // Get total acceptance count for all platform invitations
+            prisma.platformInvitationAcceptance.count({
+                where: {
+                    invitation: {
+                        inviterId: user.id
+                    }
+                }
             })
         ]);
 
         // Calculate statistics
         const totalPlatformInvitations = platformInvitations.length;
-        const acceptedPlatformInvitations = platformInvitations.filter(i => i.status === 'ACCEPTED').length;
+        const acceptedPlatformInvitations = platformAcceptances; // Use actual acceptance count
         const pendingPlatformInvitations = platformInvitations.filter(i => i.status === 'PENDING').length;
         const totalPlatformViews = platformInvitations.reduce((sum, i) => sum + i.viewCount, 0);
 
