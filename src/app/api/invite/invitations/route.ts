@@ -25,12 +25,22 @@ export async function GET(request: NextRequest) {
             const invitations = await prisma.platformInvitation.findMany({
                 where: { inviterId: user.id },
                 include: {
-                    acceptedUser: {
+                    acceptances: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    image: true
+                                }
+                            }
+                        },
+                        orderBy: { acceptedAt: 'desc' }
+                    },
+                    _count: {
                         select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            image: true
+                            acceptances: true
                         }
                     }
                 },
@@ -47,15 +57,16 @@ export async function GET(request: NextRequest) {
                     inviteePhone: inv.inviteePhone,
                     status: inv.status,
                     createdAt: inv.createdAt,
-                    acceptedAt: inv.acceptedAt,
                     expiresAt: inv.expiresAt,
                     viewCount: inv.viewCount,
-                    acceptedBy: inv.acceptedUser ? {
-                        id: inv.acceptedUser.id,
-                        name: inv.acceptedUser.name,
-                        email: inv.acceptedUser.email,
-                        image: inv.acceptedUser.image
-                    } : null
+                    acceptanceCount: inv._count.acceptances,
+                    acceptedBy: inv.acceptances.map(acc => ({
+                        id: acc.user.id,
+                        name: acc.user.name,
+                        email: acc.user.email,
+                        image: acc.user.image,
+                        acceptedAt: acc.acceptedAt
+                    }))
                 }))
             });
         } else {
