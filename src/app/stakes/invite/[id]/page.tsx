@@ -11,11 +11,19 @@ export default async function StakeInvitePage({ params }: PageProps) {
     const { id } = await params;
 
     try {
-        // First, try to find by invitation ID
+        // First, try to find by securityCode (the code might be a securityCode)
         let invitation = await prisma.stakeInvitation.findUnique({
-            where: { id },
+            where: { securityCode: id },
             select: { securityCode: true }
         });
+
+        // If not found by securityCode, try by invitation ID
+        if (!invitation) {
+            invitation = await prisma.stakeInvitation.findUnique({
+                where: { id },
+                select: { securityCode: true }
+            });
+        }
 
         // If not found by invitation ID, try to find by stakeId
         if (!invitation) {
