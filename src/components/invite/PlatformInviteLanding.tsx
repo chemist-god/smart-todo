@@ -76,10 +76,8 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
                     message: data.message || `You've joined via ${invitation.inviterName}'s invitation!`
                 });
 
-                // Redirect to dashboard after 2 seconds
-                setTimeout(() => {
-                    router.push('/dashboard?welcome=true');
-                }, 2000);
+                // Redirect to welcome page after accepting
+                router.push(`/welcome?accepted=true&inviterName=${encodeURIComponent(invitation.inviterName)}`);
             } else {
                 addToast({
                     type: 'error',
@@ -128,8 +126,9 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
     }
 
     const isExpired = new Date(invitation.expiresAt) < new Date();
-    const canAccept = invitation.status === 'PENDING' && !isExpired;
-    const isAccepted = invitation.status === 'ACCEPTED';
+    const canAccept = invitation.status === 'PENDING' && !isExpired && !invitation.userHasAccepted;
+    const userHasAccepted = invitation.userHasAccepted || false;
+    const acceptanceCount = invitation.acceptanceCount || 0;
     const isLoggedIn = !!session;
 
     return (
@@ -199,23 +198,54 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
                             </ul>
                         </div>
 
+                        {/* Acceptance Stats */}
+                        {acceptanceCount > 0 && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-semibold text-blue-800">
+                                            {acceptanceCount} {acceptanceCount === 1 ? 'person has' : 'people have'} accepted this invitation
+                                        </h4>
+                                        <p className="text-blue-700 text-sm mt-1">
+                                            Join {acceptanceCount === 1 ? 'them' : 'them'} and start achieving your goals!
+                                        </p>
+                                    </div>
+                                    <CheckCircleIcon className="h-8 w-8 text-blue-600" />
+                                </div>
+                            </div>
+                        )}
+
                         {/* Status Messages */}
                         {!canAccept && (
                             <div className="mb-6">
                                 {isExpired ? (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center">
-                                        <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-3" />
-                                        <div>
-                                            <h4 className="font-semibold text-yellow-800">Invitation Expired</h4>
-                                            <p className="text-yellow-700 text-sm">This invitation has expired and can no longer be used.</p>
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <div className="flex items-start">
+                                            <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-yellow-800">Invitation Expired</h4>
+                                                <p className="text-yellow-700 text-sm mt-1">This invitation has expired and can no longer be used.</p>
+                                            </div>
                                         </div>
                                     </div>
-                                ) : isAccepted ? (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
-                                        <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3" />
-                                        <div>
-                                            <h4 className="font-semibold text-green-800">Already Accepted</h4>
-                                            <p className="text-green-700 text-sm">This invitation has already been accepted.</p>
+                                ) : userHasAccepted ? (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div className="flex items-start">
+                                            <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-green-800">You've Already Accepted!</h4>
+                                                <p className="text-green-700 text-sm mt-1">
+                                                    Great! You've already joined via {invitation.inviterName}'s invitation.
+                                                </p>
+                                                {isLoggedIn && (
+                                                    <button
+                                                        onClick={() => router.push('/dashboard')}
+                                                        className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                                                    >
+                                                        Go to Dashboard
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
