@@ -80,18 +80,23 @@ export default function SignUpPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
-        if (data.invitationAccepted) {
-          setSuccess("Account created successfully! Your invitation has been accepted. Please check your email/phone for verification.");
+      if (response.ok && data.success) {
+        if (data.invitationAccepted && data.redirectUrl) {
+          // If invitation was accepted, redirect to welcome page
+          setSuccess(data.message || "Account created successfully! Redirecting to welcome page...");
+          setTimeout(() => {
+            router.push(data.redirectUrl);
+          }, 1500);
         } else {
-          setSuccess("Account created successfully! Please check your email/phone for verification.");
+          // Normal signup flow
+          const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
+          setSuccess(data.message || "Account created successfully! Please check your email/phone for verification.");
+          setTimeout(() => {
+            router.push(redirectUrl);
+          }, 2000);
         }
-        setTimeout(() => {
-          router.push(redirectUrl);
-        }, 2000);
       } else {
-        setError(data.error || "An error occurred");
+        setError(data.error || "An error occurred. Please try again.");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
