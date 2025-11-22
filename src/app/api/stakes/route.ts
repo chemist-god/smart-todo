@@ -5,6 +5,7 @@ import { z } from "zod";
 import { handleApiError, ValidationError, NotFoundError } from "@/lib/error-handler";
 import { WalletService } from "@/lib/wallet-service";
 import { RewardCalculator } from "@/lib/reward-calculator";
+import { PUBLIC_SHARE_EMAIL } from "@/lib/constants";
 import crypto from "crypto";
 
 // Zod schema for stake creation
@@ -227,7 +228,7 @@ export async function POST(request: NextRequest) {
                     data: {
                         stakeId: stake.id,
                         inviterId: user.id,
-                        inviteeEmail: 'public@share.com', // Placeholder for public shares
+                        inviteeEmail: PUBLIC_SHARE_EMAIL,
                         message: `Join my stake: "${validatedData.title}" for ₵${validatedData.amount}`,
                         status: 'PENDING',
                         securityCode,

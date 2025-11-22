@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { handleApiError, NotFoundError, ValidationError } from "@/lib/error-handler";
+import { PUBLIC_SHARE_EMAIL } from "@/lib/constants";
 
 // GET /api/stakes/[id]/share - Get shareable link with securityCode
 export async function GET(
@@ -36,7 +37,7 @@ export async function GET(
             where: {
                 stakeId: id,
                 inviterId: user.id,
-                inviteeEmail: 'public@share.com',
+                inviteeEmail: PUBLIC_SHARE_EMAIL,
                 status: 'PENDING'
             },
             orderBy: { createdAt: 'desc' }
@@ -51,7 +52,7 @@ export async function GET(
                 data: {
                     stakeId: id,
                     inviterId: user.id,
-                    inviteeEmail: 'public@share.com',
+                    inviteeEmail: PUBLIC_SHARE_EMAIL,
                     message: `Join my stake: "${stake.title}" for ₵${Number(stake.userStake).toFixed(2)}`,
                     status: 'PENDING',
                     securityCode,
