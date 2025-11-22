@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -40,17 +40,7 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
     const [accepting, setAccepting] = useState(false);
     const { addToast } = useToast();
 
-    // Auto-accept if user is logged in and has autoAccept param
-    useEffect(() => {
-        if (typeof window !== "undefined" && session && invitation?.status === 'PENDING') {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get("autoAccept") === "1" && !accepting) {
-                handleAccept();
-            }
-        }
-    }, [session, invitation]);
-
-    const handleAccept = async () => {
+    const handleAccept = useCallback(async () => {
         if (!invitation) return;
 
         // If not logged in, redirect to signup/login with invite code preserved
@@ -96,7 +86,17 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
         } finally {
             setAccepting(false);
         }
-    };
+    }, [invitation, session, router, addToast]);
+
+    // Auto-accept if user is logged in and has autoAccept param
+    useEffect(() => {
+        if (typeof window !== "undefined" && session && invitation?.status === 'PENDING') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("autoAccept") === "1" && !accepting) {
+                handleAccept();
+            }
+        }
+    }, [session, invitation, handleAccept, accepting]);
 
     if (error) {
         return (
