@@ -85,14 +85,18 @@ export async function POST(request: NextRequest) {
         const { inviteeEmail, inviteePhone, shareMethod } = body;
 
         // Get or create user's referral code
-        const userData = await prisma.user.findUnique({
+        let userData = await prisma.user.findUnique({
             where: { id: user.id },
             select: { referralCode: true, name: true }
         });
 
-        if (!userData?.referralCode) {
+        if (!userData) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        if (!userData.referralCode) {
             // Generate referral code if doesn't exist
-            const username = userData?.name?.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8) || 'USER';
+            const username = userData.name?.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8) || 'USER';
             const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
             const inviteCode = `${username}-${randomPart}`;
             
@@ -137,7 +141,7 @@ export async function POST(request: NextRequest) {
         const invitation = await prisma.platformInvitation.create({
             data: {
                 inviterId: user.id,
-                inviteCode: userData.referralCode,
+                inviteCode: userData.referralCode!,
                 inviteeEmail: inviteeEmail || null,
                 inviteePhone: inviteePhone || null,
                 shareMethod: shareMethod || 'LINK',
