@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { CheckCircle, Mail, Smartphone, User, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -22,8 +22,18 @@ export default function SignUpPage() {
   const [usePhone, setUsePhone] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Extract invite code from URL
+  useEffect(() => {
+    const code = searchParams.get('inviteCode');
+    if (code) {
+      setInviteCode(code);
+    }
+  }, [searchParams]);
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { score: 0, label: "", color: "" };
@@ -64,18 +74,29 @@ export default function SignUpPage() {
           email: usePhone ? undefined : email,
           phone: usePhone ? phone : undefined,
           password,
+          inviteCode: inviteCode || undefined, // Include invite code if present
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setSuccess("Account created successfully! Please check your email/phone for verification.");
-        setTimeout(() => {
-          router.push("/auth/verify-request");
-        }, 2000);
+      if (response.ok && data.success) {
+        if (data.invitationAccepted && data.redirectUrl) {
+          // If invitation was accepted, redirect to welcome page
+          setSuccess(data.message || "Account created successfully! Redirecting to welcome page...");
+          setTimeout(() => {
+            router.push(data.redirectUrl);
+          }, 1500);
+        } else {
+          // Normal signup flow
+          const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
+          setSuccess(data.message || "Account created successfully! Please check your email/phone for verification.");
+          setTimeout(() => {
+            router.push(redirectUrl);
+          }, 2000);
+        }
       } else {
-        setError(data.error || "An error occurred");
+        setError(data.error || "An error occurred. Please try again.");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -303,5 +324,25 @@ export default function SignUpPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="glass shadow-strong border-0 bg-card/50 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner className="w-8 h-8" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }

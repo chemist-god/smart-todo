@@ -49,6 +49,14 @@ model User {
   
   // Timer sessions
   timerSessions   TimerSession[]
+  
+  // Platform invitation relations
+  platformInvitations PlatformInvitation[]              @relation("PlatformInvitations")
+  acceptedInvitations PlatformInvitationAcceptance[]    @relation("AcceptedInvitations")
+  referralCode        String?                           @unique // User's unique referral code
+  referredBy          String?                           // User ID who referred them
+  referralCount       Int                               @default(0) // How many users they've referred
+  referralRewards     Decimal                           @default(0) // Total rewards from referrals
 }
 
 model Account {
@@ -658,6 +666,13 @@ enum InvitationStatus {
   EXPIRED
 }
 
+enum PlatformInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
 enum AppealStatus {
   PENDING
   APPROVED
@@ -707,4 +722,48 @@ model StakeInvitation {
   @@index([stakeId])
   @@index([status])
   @@index([securityCode])
+}
+
+// Platform-level invitations (for inviting users to join the platform)
+model PlatformInvitation {
+  id              String                          @id @default(cuid())
+  inviterId       String                          // John's user ID
+  inviteCode      String                          @unique // Unique code (e.g., "JOHN-ABC123") - can be accepted by multiple users
+  inviteeEmail   String?                         // Optional: if John knows specific invitee's email
+  inviteePhone    String?                         // Optional: if John knows specific invitee's phone
+  status          PlatformInvitationStatus        @default(PENDING) // PENDING until first acceptance, then stays PENDING for more
+  expiresAt       DateTime
+  createdAt       DateTime                        @default(now())
+  
+  // Analytics
+  viewCount       Int                             @default(0)
+  lastViewedAt    DateTime?
+  shareMethod     String?                         // 'LINK', 'EMAIL', 'SMS', 'SOCIAL'
+  
+  inviter         User                            @relation("PlatformInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  acceptances     PlatformInvitationAcceptance[]  @relation("InvitationAcceptances")
+  
+  @@index([inviteCode])
+  @@index([inviterId])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([inviteeEmail])
+  @@index([inviteePhone])
+}
+
+// Track individual acceptances - allows multiple users to accept same invitation
+model PlatformInvitationAcceptance {
+  id              String                  @id @default(cuid())
+  invitationId    String                  // PlatformInvitation ID
+  userId          String                  // User who accepted
+  acceptedAt      DateTime                @default(now())
+  
+  invitation      PlatformInvitation      @relation("InvitationAcceptances", fields: [invitationId], references: [id], onDelete: Cascade)
+  user            User                    @relation("AcceptedInvitations", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Ensure one user can only accept once per invitation
+  @@unique([invitationId, userId])
+  @@index([invitationId])
+  @@index([userId])
+  @@index([acceptedAt])
 }

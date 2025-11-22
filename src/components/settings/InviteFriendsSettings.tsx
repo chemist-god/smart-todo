@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import QRCode from "qrcode";
+import InvitationManagement from "./InvitationManagement";
 
 interface InviteData {
     inviteCode: string;
@@ -85,17 +86,17 @@ export default function InviteFriendsSettings() {
 
     const fetchStats = async () => {
         try {
-            // TODO: Create API endpoint for referral stats
-            // For now, using placeholder data
-            const response = await fetch('/api/invite/code');
+            const response = await fetch('/api/invite/stats');
             if (response.ok) {
-                // This would come from a dedicated stats endpoint
-                setStats({
-                    referralCount: 0,
-                    referralRewards: 0,
-                    pendingInvitations: 0,
-                    acceptedInvitations: 0
-                });
+                const data = await response.json();
+                if (data.success && data.stats) {
+                    setStats({
+                        referralCount: data.stats.referralCount || 0,
+                        referralRewards: data.stats.referralRewards || 0,
+                        pendingInvitations: data.stats.overall?.totalPending || 0,
+                        acceptedInvitations: data.stats.overall?.totalAccepted || 0
+                    });
+                }
             }
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -330,6 +331,19 @@ export default function InviteFriendsSettings() {
                             Copy Link
                         </Button>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Invitation Management */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Invitations</CardTitle>
+                    <CardDescription>
+                        Manage all your sent invitations
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <InvitationManagement />
                 </CardContent>
             </Card>
 
