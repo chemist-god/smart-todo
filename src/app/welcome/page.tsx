@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { CheckCircleIcon, SparklesIcon, ChartBarIcon, GiftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-export default function WelcomePage() {
+function WelcomeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
@@ -155,6 +155,18 @@ export default function WelcomePage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function WelcomePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10">
+                <LoadingSpinner size="lg" />
+            </div>
+        }>
+            <WelcomeContent />
+        </Suspense>
     );
 }
 
