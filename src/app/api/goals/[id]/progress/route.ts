@@ -12,7 +12,7 @@ const updateProgressSchema = z.object({
 // PUT /api/goals/[id]/progress - Update goal progress
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -20,13 +20,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { current, isCompleted } = updateProgressSchema.parse(body);
 
     // Check if goal exists and belongs to user
     const goal = await prisma.goal.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
       include: {
@@ -40,7 +41,7 @@ export async function PUT(
 
     // Update goal progress
     const updatedGoal = await prisma.goal.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         current,
         isCompleted: isCompleted || current >= goal.target,
@@ -91,13 +92,14 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { increment } = z.object({ increment: z.number().min(1) }).parse(body);
 
     // Check if goal exists and belongs to user
     const goal = await prisma.goal.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -109,7 +111,7 @@ export async function POST(
     // Update goal progress by increment
     const newCurrent = Math.min(goal.current + increment, goal.target);
     const updatedGoal = await prisma.goal.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         current: newCurrent,
         isCompleted: newCurrent >= goal.target,
