@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { NotFoundError } from "@/lib/error-handler";
+import { PUBLIC_SHARE_EMAIL } from "@/lib/constants";
 import crypto from "crypto";
 
 interface PageProps {
@@ -54,7 +55,7 @@ export default async function StakeInvitePage({ params }: PageProps) {
                     data: {
                         stakeId: stake.id,
                         inviterId: stake.userId,
-                        inviteeEmail: 'public@share.com', // Placeholder for public shares
+                        inviteeEmail: PUBLIC_SHARE_EMAIL,
                         message: `Join this stake challenge!`,
                         status: 'PENDING',
                         securityCode,
