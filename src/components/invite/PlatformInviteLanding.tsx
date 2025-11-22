@@ -24,6 +24,8 @@ interface PlatformInvitation {
     expiresAt: string;
     createdAt: string;
     viewCount: number;
+    acceptanceCount?: number;
+    userHasAccepted?: boolean;
 }
 
 interface PlatformInviteLandingProps {
