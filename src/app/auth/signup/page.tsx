@@ -326,3 +326,23 @@ function SignUpForm() {
     </div>
   );
 }
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="glass shadow-strong border-0 bg-card/50 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner className="w-8 h-8" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
+  );
+}
