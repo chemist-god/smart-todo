@@ -132,9 +132,24 @@ export function useGoals(status: string = 'all', type: string = 'all') {
         refreshGoals: () => mutate(),
         // Helper to add a new goal optimistically
         addGoal: async (newGoal: any) => {
-            // Optimistic update
-            mutate((currentGoals: any) => [...(currentGoals || []), newGoal], false);
-
+            // Create optimistic goal with temporary ID
+            const optimisticGoal = {
+                ...newGoal,
+                id: `temp-${Date.now()}`,
+                progress: 0,
+                current: 0,
+                isCompleted: false,
+                isActive: true,
+                milestones: newGoal.milestones || [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                // Ensure type is included, default to TASKS_COMPLETED if not provided
+                type: newGoal.type || 'TASKS_COMPLETED',
+            };
+            
+            // Optimistic update - show immediately
+            mutate((currentGoals: any) => [...(currentGoals || []), optimisticGoal], false);
+            
             try {
                 const response = await fetch('/api/goals', {
                     method: 'POST',
@@ -142,13 +157,25 @@ export function useGoals(status: string = 'all', type: string = 'all') {
                     body: JSON.stringify(newGoal),
                 });
 
-                if (response.ok) {
-                    mutate();
-                } else {
-                    mutate();
+                if (!response.ok) {
+                    throw new Error('Failed to create goal');
                 }
+
+                const createdGoal = await response.json();
+                
+                // Replace optimistic goal with real one
+                mutate((currentGoals: any) => 
+                    currentGoals?.map((goal: any) => 
+                        goal.id === optimisticGoal.id ? createdGoal : goal
+                    ), false
+                );
+                
+                return createdGoal;
             } catch (error) {
-                mutate();
+                // Remove optimistic goal on error
+                mutate((currentGoals: any) => 
+                    currentGoals?.filter((goal: any) => goal.id !== optimisticGoal.id)
+                , false);
                 throw error;
             }
         },
