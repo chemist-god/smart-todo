@@ -12,7 +12,7 @@ const updateProgressSchema = z.object({
 // PUT /api/goals/[id]/progress - Update goal progress
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -20,7 +20,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { current, isCompleted } = updateProgressSchema.parse(body);
 
@@ -84,7 +84,7 @@ export async function PUT(
 // POST /api/goals/[id]/progress - Add progress increment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -92,7 +92,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { increment } = z.object({ increment: z.number().min(1) }).parse(body);
 
