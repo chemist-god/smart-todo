@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import Sidebar from "./Sidebar";
 import AuthStatus from "../auth/AuthStatus";
 import SWRProvider from "../providers/SWRProvider";
-import RealtimeStatus from "../ui/RealtimeStatus";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import { ToastProvider } from "../ui/Toast";
 
@@ -64,7 +63,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                 {children}
                             </div>
                         </main>
-                        <RealtimeStatus />
                     </div>
                 </SWRProvider>
             </ToastProvider>
