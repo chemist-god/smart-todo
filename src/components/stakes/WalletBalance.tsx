@@ -101,7 +101,9 @@ export default function WalletBalance({
                             </p>
                         </div>
                         <p className="text-success-foreground/70 text-sm font-medium">
-                            Monthly Earnings: <span className="font-semibold">{formatCurrency(monthlyEarnings)}</span>
+                            Monthly Earnings: <span className="font-semibold">
+                                {isBalanceVisible ? formatCurrency(monthlyEarnings) : '₵•••••'}
+                            </span>
                         </p>
                     </div>
                     <div className="flex flex-row sm:flex-col gap-4 sm:gap-3 sm:text-right">
@@ -173,7 +175,9 @@ export default function WalletBalance({
                             <div className="p-2 rounded-xl bg-success/10 w-fit mx-auto mb-3 group-hover:bg-success/20 transition-colors duration-300">
                                 <ArrowTrendingUpIcon className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                             </div>
-                            <p className="text-lg sm:text-2xl font-bold text-success tabular-nums">{formatCurrency(totalEarned)}</p>
+                            <p className="text-lg sm:text-2xl font-bold text-success tabular-nums">
+                                {isBalanceVisible ? formatCurrency(totalEarned) : '₵•••••'}
+                            </p>
                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Earned</p>
                         </div>
 
@@ -182,7 +186,9 @@ export default function WalletBalance({
                             <div className="p-2 rounded-xl bg-destructive/10 w-fit mx-auto mb-3 group-hover:bg-destructive/20 transition-colors duration-300">
                                 <ArrowTrendingDownIcon className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
                             </div>
-                            <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums">{formatCurrency(totalLost)}</p>
+                            <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums">
+                                {isBalanceVisible ? formatCurrency(totalLost) : '₵•••••'}
+                            </p>
                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Lost</p>
                         </div>
 
@@ -191,7 +197,9 @@ export default function WalletBalance({
                             <div className="p-2 rounded-xl bg-info/10 w-fit mx-auto mb-3 group-hover:bg-info/20 transition-colors duration-300">
                                 <WalletIcon className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
                             </div>
-                            <p className="text-lg sm:text-2xl font-bold text-info tabular-nums">{formatCurrency(totalStaked)}</p>
+                            <p className="text-lg sm:text-2xl font-bold text-info tabular-nums">
+                                {isBalanceVisible ? formatCurrency(totalStaked) : '₵•••••'}
+                            </p>
                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">Total Staked</p>
                         </div>
 
@@ -231,20 +239,20 @@ export default function WalletBalance({
                         <div className="space-y-3">
                             <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
                                 <span className="text-sm font-medium text-muted-foreground">Net Profit/Loss</span>
-                                <span className={`text-sm font-bold tabular-nums ${totalEarned - totalLost >= 0 ? 'text-success' : 'text-destructive'}`}>
-                                    {totalEarned - totalLost >= 0 ? '+' : ''}{formatCurrency(totalEarned - totalLost)}
+                                <span className={`text-sm font-bold tabular-nums ${isBalanceVisible ? (totalEarned - totalLost >= 0 ? 'text-success' : 'text-destructive') : 'text-muted'}`}>
+                                    {isBalanceVisible ? `${totalEarned - totalLost >= 0 ? '+' : ''}${formatCurrency(totalEarned - totalLost)}` : '₵•••••'}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
                                 <span className="text-sm font-medium text-muted-foreground">ROI</span>
-                                <span className={`text-sm font-bold tabular-nums ${totalStaked > 0 ? (totalEarned - totalLost) / totalStaked >= 0 ? 'text-success' : 'text-destructive' : 'text-muted-foreground'}`}>
-                                    {totalStaked > 0 ? `${(((totalEarned - totalLost) / totalStaked) * 100).toFixed(1)}%` : 'N/A'}
+                                <span className={`text-sm font-bold tabular-nums ${isBalanceVisible ? (totalStaked > 0 ? ((totalEarned - totalLost) / totalStaked >= 0 ? 'text-success' : 'text-destructive') : 'text-muted-foreground') : 'text-muted'}`}>
+                                    {isBalanceVisible ? (totalStaked > 0 ? `${(((totalEarned - totalLost) / totalStaked) * 100).toFixed(1)}%` : 'N/A') : '•••%'}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 backdrop-blur-sm border border-border/30">
                                 <span className="text-sm font-medium text-muted-foreground">Average Stake</span>
-                                <span className="text-sm font-bold text-foreground tabular-nums">
-                                    {formatCurrency(totalStaked / Math.max(1, totalEarned + totalLost))}
+                                <span className="text-sm font-bold tabular-nums">
+                                    {isBalanceVisible ? formatCurrency(totalStaked / Math.max(1, totalEarned + totalLost)) : '₵•••••'}
                                 </span>
                             </div>
                         </div>
