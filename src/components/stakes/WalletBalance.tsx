@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { WalletIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, TrophyIcon, StarIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { WalletIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, TrophyIcon, StarIcon, PlusIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useToast } from "@/components/ui/Toast";
 
 interface WalletBalanceProps {
@@ -31,6 +31,7 @@ export default function WalletBalance({
 }: WalletBalanceProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isAddingFunds, setIsAddingFunds] = useState(false);
+    const [isBalanceVisible, setIsBalanceVisible] = useState(true);
     const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
@@ -80,8 +81,25 @@ export default function WalletBalance({
                 <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-success/5 backdrop-blur-3xl"></div>
                 <div className="relative flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                     <div className="space-y-2 sm:space-y-3">
-                        <p className="text-success-foreground/80 text-sm sm:text-base font-medium">Available Balance</p>
-                        <p className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight tabular-nums">{formatCurrency(balance)}</p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-success-foreground/80 text-sm sm:text-base font-medium">Available Balance</p>
+                            <button 
+                                onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+                                className="p-1.5 rounded-full hover:bg-success-foreground/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-foreground/30"
+                                aria-label={isBalanceVisible ? 'Hide balance' : 'Show balance'}
+                            >
+                                {isBalanceVisible ? (
+                                    <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success-foreground/70 hover:text-success-foreground transition-colors" />
+                                ) : (
+                                    <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success-foreground/70 hover:text-success-foreground transition-colors" />
+                                )}
+                            </button>
+                        </div>
+                        <div className="flex items-center">
+                            <p className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight tabular-nums">
+                                {isBalanceVisible ? formatCurrency(balance) : '•••••'}
+                            </p>
+                        </div>
                         <p className="text-success-foreground/70 text-sm font-medium">
                             Monthly Earnings: <span className="font-semibold">{formatCurrency(monthlyEarnings)}</span>
                         </p>
