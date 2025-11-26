@@ -37,8 +37,9 @@ export default function LoadingSpinner({
                         <div
                             className={cn(
                                 'relative flex items-center justify-center transform-gpu',
-                                'motion-safe:animate-[spin_2s_cubic-bezier(0.4,0.0,0.2,1)_infinite]',
-                                'transition-all duration-700',
+                                'motion-safe:animate-[spin_1.8s_cubic-bezier(0.4,0.0,0.2,1)_infinite]',
+                                'will-change:transform',
+                                'backface-visibility:hidden',
                                 sizeClasses[size]
                             )}
                         >
@@ -142,20 +143,18 @@ export default function LoadingSpinner({
                                     />
                                 </g>
 
-                                {/* Floating particles */}
-                                {[...Array(8)].map((_, i) => (
+                                {/* Optimized floating particles */}
+                                {[...Array(6)].map((_, i) => (
                                     <circle
                                         key={i}
-                                        cx={200 + Math.cos((i * 45 * Math.PI) / 180) * 90}
-                                        cy={200 + Math.sin((i * 45 * Math.PI) / 180) * 90}
-                                        r="4"
+                                        cx={200 + Math.cos((i * 60 * Math.PI) / 180) * 90}
+                                        cy={200 + Math.sin((i * 60 * Math.PI) / 180) * 90}
+                                        r="3"
                                         fill="var(--primary)"
-                                        className="opacity-0 animate-pulse dark:fill-primary-foreground"
+                                        className="opacity-0 dark:fill-primary-foreground"
                                         style={{
-                                            animationDelay: `${i * 0.1}s`,
-                                            animationDuration: '2s',
-                                            animationIterationCount: 'infinite',
-                                            animationTimingFunction: 'ease-in-out',
+                                            willChange: 'transform, opacity',
+                                            animation: `pulse 1.2s ease-in-out infinite ${i * 0.15}s`,
                                         }}
                                     />
                                 ))}
@@ -163,7 +162,7 @@ export default function LoadingSpinner({
                         </div>
                         
                         {/* Ground shadow with Aurora theme colors */}
-                        <div className="absolute -bottom-2 left-1/2 w-3/4 h-3 bg-primary/10 dark:bg-primary-foreground/10 blur-md rounded-full -translate-x-1/2 scale-90" />
+                        <div className="absolute -bottom-2 left-1/2 w-3/4 h-2.5 bg-primary/10 dark:bg-primary-foreground/10 blur-sm rounded-full -translate-x-1/2 scale-90 transition-all duration-300" />
                     </div>
                 </div>
                 
@@ -177,9 +176,13 @@ export default function LoadingSpinner({
             <style jsx global>{`
                 @keyframes float {
                     0%, 100% { 
-                        transform: translateY(0) rotate(0deg); 
+                        transform: translate3d(0, 0, 0) rotate(0deg);
+                        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
                     }
                     50% { 
+                        transform: translate3d(0, -8px, 0) rotate(1deg);
+                        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                    }
                         transform: translateY(-8px) rotate(2deg);
                         filter: drop-shadow(0 10px 8px var(--primary)/0.1);
                     }
@@ -197,11 +200,25 @@ export default function LoadingSpinner({
                         opacity: 0.8;
                     }
                 }
+                @keyframes pulse {
+                    0%, 100% { 
+                        opacity: 0.3;
+                        transform: scale(0.8);
+                    }
+                    50% { 
+                        opacity: 0.8;
+                        transform: scale(1.1);
+                    }
+                }
+
                 .animate-float {
-                    animation: float 3s ease-in-out infinite;
+                    animation: float 2.5s ease-in-out infinite;
+                    will-change: transform;
+                    backface-visibility: hidden;
                 }
                 .animate-dash {
-                    animation: dash 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                    animation: dash 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                    will-change: stroke-dashoffset;
                 }
             `}</style>
         </div>
