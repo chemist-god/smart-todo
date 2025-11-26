@@ -31,7 +31,14 @@ export default function WalletBalance({
 }: WalletBalanceProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isAddingFunds, setIsAddingFunds] = useState(false);
-    const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+    const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
+        // Initialize from localStorage if available, default to true
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('balanceVisibility');
+            return saved !== null ? saved === 'true' : true;
+        }
+        return true;
+    });
     const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
@@ -84,7 +91,14 @@ export default function WalletBalance({
                         <div className="flex items-center gap-3">
                             <p className="text-success-foreground/80 text-sm sm:text-base font-medium">Available Balance</p>
                             <button 
-                                onClick={() => setIsBalanceVisible(!isBalanceVisible)}
+                                onClick={() => {
+                                    const newVisibility = !isBalanceVisible;
+                                    setIsBalanceVisible(newVisibility);
+                                    // Save preference to localStorage
+                                    if (typeof window !== 'undefined') {
+                                        localStorage.setItem('balanceVisibility', String(newVisibility));
+                                    }
+                                }}
                                 className="p-1.5 rounded-full hover:bg-success-foreground/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-foreground/30"
                                 aria-label={isBalanceVisible ? 'Hide balance' : 'Show balance'}
                             >
