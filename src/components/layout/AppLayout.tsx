@@ -6,6 +6,7 @@ import AuthStatus from "../auth/AuthStatus";
 import SWRProvider from "../providers/SWRProvider";
 import ErrorBoundary from "../ui/ErrorBoundary";
 import { ToastProvider } from "../ui/Toast";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -18,10 +19,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10">
                 <div className="text-center space-y-4">
-                    <div className="relative">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
-                        <div className="absolute inset-0 animate-pulse rounded-full bg-primary/10"></div>
-                    </div>
+                    <LoadingSpinner size="xl" />
                     <div className="space-y-2">
                         <p className="text-lg font-semibold text-foreground">Loading Smart Todo</p>
                         <p className="text-sm text-muted-foreground">Preparing your productivity workspace...</p>
