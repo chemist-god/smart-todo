@@ -37,7 +37,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
         // In production, actually send the email via Resend
         const resendClient = getResendClient();
         const data = await resendClient.emails.send({
-            from: 'Smart Todo <onboarding@resend.dev>', // Use your verified domain later
+            from: 'Smart Todo <auth@soulledger.app>',
             to: [to],
             subject: subject,
             html: html,
