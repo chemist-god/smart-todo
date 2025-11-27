@@ -18,14 +18,16 @@ function VerifyRequestContent() {
   const [success, setSuccess] = useState("");
   const [devToken, setDevToken] = useState("");
   const [copied, setCopied] = useState(false);
+  const [identifier, setIdentifier] = useState<string | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check for token in URL params (for development)
+  // Check for token and identifier in URL params
   useEffect(() => {
     const urlToken = searchParams.get('token');
     const urlType = searchParams.get('type');
+    const urlIdentifier = searchParams.get('identifier');
 
     if (urlToken) {
       setToken(urlToken);
@@ -34,6 +36,10 @@ function VerifyRequestContent() {
 
     if (urlType) {
       setType(urlType);
+    }
+
+    if (urlIdentifier) {
+      setIdentifier(urlIdentifier);
     }
   }, [searchParams]);
 
@@ -74,6 +80,39 @@ function VerifyRequestContent() {
     setError("");
     setSuccess("");
 
+    // Get identifier from URL params or use token to look it up
+    let resendIdentifier = identifier;
+
+    // If no identifier in URL but we have a token, try to get identifier from token
+    if (!resendIdentifier && token) {
+      try {
+        const lookupResponse = await fetch("/api/auth/get-identifier-from-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        if (lookupResponse.ok) {
+          const lookupData = await lookupResponse.json();
+          resendIdentifier = lookupData.identifier;
+          // Also update type if provided
+          if (lookupData.type) {
+            setType(lookupData.type);
+          }
+        }
+      } catch (err) {
+        // Silently fail - we'll show error below if identifier is still missing
+      }
+    }
+
+    if (!resendIdentifier) {
+      setError("Unable to resend verification code. Please use the link from your email/phone message, or contact support.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
@@ -81,7 +120,7 @@ function VerifyRequestContent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: "your-email@example.com", // This should come from the registration flow
+          identifier: resendIdentifier,
           type,
         }),
       });
@@ -89,7 +128,12 @@ function VerifyRequestContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Verification token sent successfully!");
+        setSuccess("Verification token sent successfully! Please check your " + (type === "EMAIL_VERIFICATION" ? "email" : "phone") + ".");
+        // Update token if new one is provided (dev mode only)
+        if (data.token) {
+          setToken(data.token);
+          setDevToken(data.token);
+        }
       } else {
         setError(data.error || "Failed to resend verification");
       }
