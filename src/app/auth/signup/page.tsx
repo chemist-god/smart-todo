@@ -81,6 +81,14 @@ function SignUpForm() {
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // Store identifier in sessionStorage for resend functionality
+        // This is more secure than server-side lookup
+        const identifierToStore = usePhone ? phone : email;
+        if (identifierToStore) {
+          sessionStorage.setItem('verification_identifier', identifierToStore);
+          sessionStorage.setItem('verification_type', usePhone ? 'PHONE_VERIFICATION' : 'EMAIL_VERIFICATION');
+        }
+
         if (data.invitationAccepted && data.redirectUrl) {
           // If invitation was accepted, redirect to welcome page
           setSuccess(data.message || "Account created successfully! Redirecting to welcome page...");
@@ -88,8 +96,8 @@ function SignUpForm() {
             router.push(data.redirectUrl);
           }, 1500);
         } else {
-          // Normal signup flow
-          const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
+          // Normal signup flow - use redirectUrl from API which includes identifier
+          const redirectUrl = data.redirectUrl || searchParams.get('redirect') || "/auth/verify-request";
           setSuccess(data.message || "Account created successfully! Please check your email/phone for verification.");
           setTimeout(() => {
             router.push(redirectUrl);
