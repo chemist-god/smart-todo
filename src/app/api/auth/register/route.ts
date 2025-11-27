@@ -197,17 +197,26 @@ export async function POST(request: NextRequest) {
 
             if (!emailResult.success) {
                 console.error('Failed to send verification email:', emailResult.error);
+                // Don't fail registration if email fails - user can request resend
             }
         }
 
         // TODO: Implement SMS sending for phone verification
         if (phone) {
             // SMS implementation will be added later
-            console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            // For now, log the token in development mode
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`📱 PHONE VERIFICATION TOKEN for ${phone}:`, token);
+                console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            }
         }
 
         // Build redirect URL if invitation was accepted
         let redirectUrl = '/auth/verify-request';
+        // Pass identifier in URL for resend functionality
+        const identifierParam = email || phone!;
+        redirectUrl += `?identifier=${encodeURIComponent(identifierParam)}&type=${email ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION'}`;
+
         if (invitationAccepted && inviterName) {
             redirectUrl = `/welcome?accepted=true&inviterName=${encodeURIComponent(inviterName)}`;
         }
