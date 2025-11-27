@@ -23,7 +23,7 @@ function VerifyRequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check for token and identifier in URL params
+  // Check for token and identifier in URL params or sessionStorage
   useEffect(() => {
     const urlToken = searchParams.get('token');
     const urlType = searchParams.get('type');
@@ -38,8 +38,21 @@ function VerifyRequestContent() {
       setType(urlType);
     }
 
+    // Priority: URL params > sessionStorage
     if (urlIdentifier) {
       setIdentifier(urlIdentifier);
+    } else {
+      // Fallback to sessionStorage (set during registration)
+      const storedIdentifier = sessionStorage.getItem('verification_identifier');
+      const storedType = sessionStorage.getItem('verification_type');
+
+      if (storedIdentifier) {
+        setIdentifier(storedIdentifier);
+      }
+
+      if (storedType && !urlType) {
+        setType(storedType);
+      }
     }
   }, [searchParams]);
 
@@ -61,6 +74,10 @@ function VerifyRequestContent() {
       const data = await response.json();
 
       if (response.ok) {
+        // Clear sessionStorage after successful verification
+        sessionStorage.removeItem('verification_identifier');
+        sessionStorage.removeItem('verification_type');
+
         setSuccess("Account verified successfully! You can now sign in.");
         setTimeout(() => {
           router.push("/auth/signin");
@@ -80,35 +97,15 @@ function VerifyRequestContent() {
     setError("");
     setSuccess("");
 
-    // Get identifier from URL params or use token to look it up
-    let resendIdentifier = identifier;
+    // Get identifier from URL params, sessionStorage, or state
+    // Priority: URL params > sessionStorage > state
+    let resendIdentifier = identifier ||
+      searchParams.get('identifier') ||
+      sessionStorage.getItem('verification_identifier');
 
-    // If no identifier in URL but we have a token, try to get identifier from token
-    if (!resendIdentifier && token) {
-      try {
-        const lookupResponse = await fetch("/api/auth/get-identifier-from-token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token }),
-        });
-
-        if (lookupResponse.ok) {
-          const lookupData = await lookupResponse.json();
-          resendIdentifier = lookupData.identifier;
-          // Also update type if provided
-          if (lookupData.type) {
-            setType(lookupData.type);
-          }
-        }
-      } catch (err) {
-        // Silently fail - we'll show error below if identifier is still missing
-      }
-    }
-
+    // If still no identifier, user must use the link from their email/phone
     if (!resendIdentifier) {
-      setError("Unable to resend verification code. Please use the link from your email/phone message, or contact support.");
+      setError("Unable to resend verification code. Please use the verification link from your email/phone message, or contact support.");
       setIsLoading(false);
       return;
     }
