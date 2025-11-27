@@ -25,6 +25,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Ensure userId exists
+        if (!verificationToken.userId) {
+            return NextResponse.json(
+                { error: "Invalid verification token: missing user association" },
+                { status: 400 }
+            );
+        }
+
         // Check if token is expired
         if (verificationToken.expires < new Date()) {
             await prisma.verificationToken.delete({
@@ -53,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
 
         await prisma.user.update({
-            where: { id: verificationToken.userId! },
+            where: { id: verificationToken.userId },
             data: updateData,
         });
 

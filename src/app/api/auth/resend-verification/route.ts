@@ -92,13 +92,20 @@ export async function POST(request: NextRequest) {
         // TODO: Implement SMS sending for phone verification
         if (type === "PHONE_VERIFICATION") {
             // SMS implementation will be added later
-            console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            // For now, log the token in development mode
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`📱 PHONE VERIFICATION TOKEN (RESEND) for ${identifier}:`, token);
+                console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            }
+            // In production, this should return an error or be handled differently
+            // For now, we'll return success but note that SMS wasn't actually sent
         }
 
         return NextResponse.json({
             message: "Verification token sent successfully",
             emailSent: type === "EMAIL_VERIFICATION",
             smsSent: type === "PHONE_VERIFICATION",
+            token: process.env.NODE_ENV === 'development' ? token : undefined, // Only return token in dev mode
         });
     } catch (error) {
         console.error("Resend verification error:", error);

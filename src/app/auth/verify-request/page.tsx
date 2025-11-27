@@ -18,14 +18,16 @@ function VerifyRequestContent() {
   const [success, setSuccess] = useState("");
   const [devToken, setDevToken] = useState("");
   const [copied, setCopied] = useState(false);
+  const [identifier, setIdentifier] = useState<string | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check for token in URL params (for development)
+  // Check for token and identifier in URL params or sessionStorage
   useEffect(() => {
     const urlToken = searchParams.get('token');
     const urlType = searchParams.get('type');
+    const urlIdentifier = searchParams.get('identifier');
 
     if (urlToken) {
       setToken(urlToken);
@@ -34,6 +36,23 @@ function VerifyRequestContent() {
 
     if (urlType) {
       setType(urlType);
+    }
+
+    // Priority: URL params > sessionStorage
+    if (urlIdentifier) {
+      setIdentifier(urlIdentifier);
+    } else {
+      // Fallback to sessionStorage (set during registration)
+      const storedIdentifier = sessionStorage.getItem('verification_identifier');
+      const storedType = sessionStorage.getItem('verification_type');
+
+      if (storedIdentifier) {
+        setIdentifier(storedIdentifier);
+      }
+
+      if (storedType && !urlType) {
+        setType(storedType);
+      }
     }
   }, [searchParams]);
 
@@ -55,6 +74,10 @@ function VerifyRequestContent() {
       const data = await response.json();
 
       if (response.ok) {
+        // Clear sessionStorage after successful verification
+        sessionStorage.removeItem('verification_identifier');
+        sessionStorage.removeItem('verification_type');
+
         setSuccess("Account verified successfully! You can now sign in.");
         setTimeout(() => {
           router.push("/auth/signin");
@@ -74,6 +97,19 @@ function VerifyRequestContent() {
     setError("");
     setSuccess("");
 
+    // Get identifier from URL params, sessionStorage, or state
+    // Priority: URL params > sessionStorage > state
+    let resendIdentifier = identifier ||
+      searchParams.get('identifier') ||
+      sessionStorage.getItem('verification_identifier');
+
+    // If still no identifier, user must use the link from their email/phone
+    if (!resendIdentifier) {
+      setError("Unable to resend verification code. Please use the verification link from your email/phone message, or contact support.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
@@ -81,7 +117,7 @@ function VerifyRequestContent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: "your-email@example.com", // This should come from the registration flow
+          identifier: resendIdentifier,
           type,
         }),
       });
@@ -89,7 +125,12 @@ function VerifyRequestContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Verification token sent successfully!");
+        setSuccess(`Verification token sent successfully! Please check your ${type === "EMAIL_VERIFICATION" ? "email" : "phone"}.`);
+        // Update token if new one is provided (dev mode only)
+        if (data.token) {
+          setToken(data.token);
+          setDevToken(data.token);
+        }
       } else {
         setError(data.error || "Failed to resend verification");
       }
