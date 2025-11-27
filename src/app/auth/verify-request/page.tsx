@@ -128,7 +128,7 @@ function VerifyRequestContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Verification token sent successfully! Please check your " + (type === "EMAIL_VERIFICATION" ? "email" : "phone") + ".");
+        setSuccess(`Verification token sent successfully! Please check your ${type === "EMAIL_VERIFICATION" ? "email" : "phone"}.`);
         // Update token if new one is provided (dev mode only)
         if (data.token) {
           setToken(data.token);
