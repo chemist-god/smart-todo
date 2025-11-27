@@ -208,6 +208,12 @@ export async function POST(request: NextRequest) {
             if (process.env.NODE_ENV === 'development') {
                 console.log(`📱 PHONE VERIFICATION TOKEN for ${phone}:`, token);
                 console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            } else {
+                // In production, return an error since SMS is not yet implemented
+                return NextResponse.json(
+                    { error: "Phone verification is not yet implemented" },
+                    { status: 501 } // Not Implemented
+                );
             }
         }
 
