@@ -211,15 +211,28 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Build redirect URL if invitation was accepted
-        let redirectUrl = '/auth/verify-request';
-        // Pass identifier in URL for resend functionality
+        // Build redirect URL with verification parameters
+        // Always include identifier and type for resend functionality
         const identifierParam = email || phone!;
-        redirectUrl += `?identifier=${encodeURIComponent(identifierParam)}&type=${email ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION'}`;
+        const verificationType = email ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION';
 
+        // Build base URL and query parameters
+        const baseUrl = invitationAccepted && inviterName
+            ? '/welcome'
+            : '/auth/verify-request';
+
+        const urlParams = new URLSearchParams({
+            identifier: identifierParam,
+            type: verificationType,
+        });
+
+        // Add invitation-specific parameters if applicable
         if (invitationAccepted && inviterName) {
-            redirectUrl = `/welcome?accepted=true&inviterName=${encodeURIComponent(inviterName)}`;
+            urlParams.set('accepted', 'true');
+            urlParams.set('inviterName', inviterName);
         }
+
+        const redirectUrl = `${baseUrl}?${urlParams.toString()}`;
 
         return NextResponse.json({
             success: true,
