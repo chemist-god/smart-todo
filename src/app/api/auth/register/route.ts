@@ -23,6 +23,19 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Determine identifier safely (at least one is guaranteed by validation above)
+        // Using explicit check instead of non-null assertion for type safety
+        const identifier: string = email || phone || "";
+        if (!identifier) {
+            // This should never happen due to validation above, but provides runtime safety
+            return NextResponse.json(
+                { error: "Email or phone number is required" },
+                { status: 400 }
+            );
+        }
+
+        const verificationType = email ? "EMAIL_VERIFICATION" : "PHONE_VERIFICATION";
+
         // Check if user already exists
         const existingUser = await prisma.user.findFirst({
             where: {
@@ -175,16 +188,15 @@ export async function POST(request: NextRequest) {
 
         await prisma.verificationToken.create({
             data: {
-                identifier: email || phone!,
+                identifier,
                 token,
-                type: email ? "EMAIL_VERIFICATION" : "PHONE_VERIFICATION",
+                type: verificationType,
                 expires,
                 userId: user.id,
             },
         });
 
         // Send verification email/SMS
-        const identifier = email || phone!;
 
         // Send email for email verification
         if (email) {
@@ -213,8 +225,6 @@ export async function POST(request: NextRequest) {
 
         // Build redirect URL with verification parameters
         // Always include identifier and type for resend functionality
-        const identifierParam = email || phone!;
-        const verificationType = email ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION';
 
         // Build base URL and query parameters
         const baseUrl = invitationAccepted && inviterName
@@ -222,7 +232,7 @@ export async function POST(request: NextRequest) {
             : '/auth/verify-request';
 
         const urlParams = new URLSearchParams({
-            identifier: identifierParam,
+            identifier,
             type: verificationType,
         });
 
