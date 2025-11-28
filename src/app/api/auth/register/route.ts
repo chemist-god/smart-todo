@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         if (email) {
             const emailResult = await sendEmail({
                 to: email,
-                subject: "Verify Your Smart Todo Account",
+                subject: "Verify Your SoulLedger Account",
                 html: generateVerificationEmailHtml(token, 'email', email),
                 text: generateVerificationEmailText(token, 'email', email),
             });
