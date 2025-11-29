@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import { fetcher } from "@/lib/fetcher";
 import {
     CheckCircleIcon,
@@ -37,6 +38,7 @@ interface Stats {
 }
 
 export default function DashboardPage() {
+    const { data: session } = useSession();
     const [stats, setStats] = useState<Stats>({
         totalPoints: 0,
         level: 1,
@@ -53,6 +55,12 @@ export default function DashboardPage() {
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Extract first name from user's name
+    const firstName = useMemo(() => {
+        if (!session?.user?.name) return null;
+        return session.user.name.split(' ')[0];
+    }, [session?.user?.name]);
 
     const { data, error, mutate } = useSWR<Stats>("/api/stats", fetcher, {
         refreshInterval: 30000,
@@ -199,9 +207,20 @@ export default function DashboardPage() {
                     {/* Welcome Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         <div className="space-y-1.5 sm:space-y-2">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                                    Welcome back! 👋
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                                    <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                                        Welcome back
+                                    </span>
+                                    {firstName && (
+                                        <>
+                                            <span className="text-foreground mx-1.5 sm:mx-2">,</span>
+                                            <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
+                                                {firstName}
+                                            </span>
+                                        </>
+                                    )}
+                                    <span className="ml-1.5 sm:ml-2" role="img" aria-label="wave">👋</span>
                                 </h1>
                                 <SparklesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary animate-pulse flex-shrink-0" />
                             </div>
