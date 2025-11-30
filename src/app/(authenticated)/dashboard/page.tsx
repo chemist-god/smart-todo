@@ -235,9 +235,8 @@ export default function DashboardPage() {
                             size="sm"
                             className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/80 hover:border-primary/20 transition-all duration-300 text-xs sm:text-sm"
                         >
-                            <ArrowPathIcon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2", refreshing && "animate-spin")} />
+                            <ArrowPathIcon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", refreshing && "animate-spin", "sm:mr-2")} />
                             <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-                            <span className="sm:hidden">{refreshing ? '...' : '↻'}</span>
                         </Button>
                     </div>
 
