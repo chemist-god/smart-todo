@@ -24,8 +24,11 @@ export async function GET(request: NextRequest) {
         });
 
         const todoNotifications = todos
-            .filter(todo => !todo.completed && todo.dueDate)
+            .filter(todo => !todo.completed && todo.dueDate !== null)
             .map(todo => {
+                // TypeScript guard: we know dueDate is not null from filter above
+                if (!todo.dueDate) return null;
+
                 const dueDate = new Date(todo.dueDate);
                 const now = new Date();
                 const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -45,7 +48,7 @@ export async function GET(request: NextRequest) {
                 }
                 return null;
             })
-            .filter(Boolean);
+            .filter((notification): notification is NonNullable<typeof notification> => notification !== null);
 
         // Get achievements
         const achievements = await prisma.userAchievement.findMany({
