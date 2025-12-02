@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 // PUT /api/notifications/[id] - Mark notification as read
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -12,11 +12,12 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const { read } = await request.json();
 
         // In a real app, you'd update the notification in the database
         // For now, we'll just return success
-        return NextResponse.json({ success: true, read });
+        return NextResponse.json({ success: true, read, id });
     } catch (error) {
         console.error("Error updating notification:", error);
         return NextResponse.json(
@@ -29,7 +30,7 @@ export async function PUT(
 // DELETE /api/notifications/[id] - Delete notification
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -37,9 +38,11 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
+
         // In a real app, you'd delete the notification from the database
         // For now, we'll just return success
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, id });
     } catch (error) {
         console.error("Error deleting notification:", error);
         return NextResponse.json(
