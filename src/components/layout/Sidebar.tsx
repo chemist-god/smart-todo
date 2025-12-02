@@ -12,7 +12,6 @@ import {
     DocumentTextIcon,
     UserIcon,
     TrophyIcon,
-    ArrowRightOnRectangleIcon,
     CalendarIcon,
     ChartBarIcon,
     FlagIcon,
@@ -64,6 +63,10 @@ export default function Sidebar() {
     const [isMobileCollapsed, setIsMobileCollapsed] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
+    // Detect OS for keyboard shortcut display
+    const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const keyboardShortcut = isMac ? '⌘F' : 'Ctrl+F';
+
     // Handle keyboard shortcut for search
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,6 +78,14 @@ export default function Sidebar() {
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
+
+    // Filter navigation based on search query
+    const filteredNavigation = navigation.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const filteredBottomNavigation = bottomNavigation.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const sidebarWidth = isCollapsed ? 'w-16' : 'w-72';
     const mobileSidebarWidth = isMobileCollapsed ? 'w-16' : 'w-72';
@@ -88,6 +99,8 @@ export default function Sidebar() {
                     variant="outline"
                     size="sm"
                     className="bg-card/80 backdrop-blur-sm border-border/50"
+                    aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isMobileOpen}
                 >
                     {isMobileOpen ? (
                         <XMarkIcon className="w-4 h-4" />
@@ -133,7 +146,7 @@ export default function Sidebar() {
                             </h1>
                         )}
                     </div>
-                    
+
                     {/* Desktop collapse toggle */}
                     <div className="hidden lg:flex items-center gap-2">
                         <Button
@@ -141,6 +154,8 @@ export default function Sidebar() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-muted/50"
+                            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                            aria-expanded={!isCollapsed}
                         >
                             {isCollapsed ? (
                                 <ChevronRightIcon className="w-4 h-4" />
@@ -157,6 +172,8 @@ export default function Sidebar() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-muted/50"
+                            aria-label={isMobileCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                            aria-expanded={!isMobileCollapsed}
                         >
                             {isMobileCollapsed ? (
                                 <ChevronRightIcon className="w-4 h-4" />
@@ -169,6 +186,7 @@ export default function Sidebar() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
+                            aria-label="Close menu"
                         >
                             <XMarkIcon className="w-4 h-4" />
                         </Button>
@@ -186,10 +204,11 @@ export default function Sidebar() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10 pr-12 h-9 bg-muted/30 border-border/50 focus:bg-background"
+                                aria-label="Search navigation"
                             />
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                                 <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5">
-                                    ⌘F
+                                    {keyboardShortcut}
                                 </Badge>
                             </div>
                         </div>
@@ -197,83 +216,96 @@ export default function Sidebar() {
                 )}
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    {navigation.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                onClick={() => setIsMobileOpen(false)}
-                                className={cn(
-                                    "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
-                                    "hover:bg-muted/50 hover:scale-[1.02]",
-                                    isActive
-                                        ? 'bg-primary/10 text-primary border border-primary/20'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                    (isCollapsed || isMobileCollapsed) && 'justify-center px-2'
-                                )}
-                                title={(isCollapsed || isMobileCollapsed) ? item.name : undefined}
-                            >
-                                <item.icon className="w-5 h-5 flex-shrink-0" />
-                                {(!isCollapsed && !isMobileCollapsed) && (
-                                    <>
-                                        <span className="truncate">{item.name}</span>
-                                        {item.badge && (
-                                            <Badge 
-                                                variant={item.badge === "New" ? "default" : "secondary"}
-                                                className={cn(
-                                                    "ml-auto text-xs h-5 px-1.5",
-                                                    item.badge === "New" && "bg-primary text-primary-foreground",
-                                                    item.badge !== "New" && "bg-muted text-muted-foreground"
-                                                )}
-                                            >
-                                                {item.badge}
-                                            </Badge>
-                                        )}
-                                    </>
-                                )}
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Main navigation">
+                    {filteredNavigation.length > 0 ? (
+                        filteredNavigation.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className={cn(
+                                        "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                                        "hover:bg-muted/50 hover:scale-[1.02]",
+                                        isActive
+                                            ? 'bg-primary/10 text-primary border border-primary/20'
+                                            : 'text-muted-foreground hover:text-foreground',
+                                        (isCollapsed || isMobileCollapsed) && 'justify-center px-2'
+                                    )}
+                                    title={(isCollapsed || isMobileCollapsed) ? item.name : undefined}
+                                    aria-current={isActive ? "page" : undefined}
+                                >
+                                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                                    {(!isCollapsed && !isMobileCollapsed) && (
+                                        <>
+                                            <span className="truncate">{item.name}</span>
+                                            {item.badge && (
+                                                <Badge
+                                                    variant={item.badge === "New" ? "default" : "secondary"}
+                                                    className={cn(
+                                                        "ml-auto text-xs h-5 px-1.5",
+                                                        item.badge === "New" && "bg-primary text-primary-foreground",
+                                                        item.badge !== "New" && "bg-muted text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {item.badge}
+                                                </Badge>
+                                            )}
+                                        </>
+                                    )}
+                                </Link>
+                            );
+                        })
+                    ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground text-center">
+                            No results found
+                        </div>
+                    )}
                 </nav>
 
                 {/* Bottom Navigation */}
-                <div className="px-3 py-4 border-t border-border/50 space-y-1">
-                    {bottomNavigation.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                onClick={() => setIsMobileOpen(false)}
-                                className={cn(
-                                    "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
-                                    "hover:bg-muted/50 hover:scale-[1.02]",
-                                    isActive
-                                        ? 'bg-primary/10 text-primary border border-primary/20'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                    (isCollapsed || isMobileCollapsed) && 'justify-center px-2'
-                                )}
-                                title={(isCollapsed || isMobileCollapsed) ? item.name : undefined}
-                            >
-                                <item.icon className="w-5 h-5 flex-shrink-0" />
-                                {(!isCollapsed && !isMobileCollapsed) && (
-                                    <>
-                                        <span className="truncate">{item.name}</span>
-                                        {item.badge && (
-                                            <Badge 
-                                                variant="destructive"
-                                                className="ml-auto text-xs h-5 px-1.5 bg-destructive text-destructive-foreground"
-                                            >
-                                                {item.badge}
-                                            </Badge>
-                                        )}
-                                    </>
-                                )}
-                            </Link>
-                        );
-                    })}
+                <div className="px-3 py-4 border-t border-border/50 space-y-1" aria-label="Secondary navigation">
+                    {filteredBottomNavigation.length > 0 ? (
+                        filteredBottomNavigation.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className={cn(
+                                        "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                                        "hover:bg-muted/50 hover:scale-[1.02]",
+                                        isActive
+                                            ? 'bg-primary/10 text-primary border border-primary/20'
+                                            : 'text-muted-foreground hover:text-foreground',
+                                        (isCollapsed || isMobileCollapsed) && 'justify-center px-2'
+                                    )}
+                                    title={(isCollapsed || isMobileCollapsed) ? item.name : undefined}
+                                >
+                                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                                    {(!isCollapsed && !isMobileCollapsed) && (
+                                        <>
+                                            <span className="truncate">{item.name}</span>
+                                            {item.badge && (
+                                                <Badge
+                                                    variant="destructive"
+                                                    className="ml-auto text-xs h-5 px-1.5 bg-destructive text-destructive-foreground"
+                                                >
+                                                    {item.badge}
+                                                </Badge>
+                                            )}
+                                        </>
+                                    )}
+                                </Link>
+                            );
+                        })
+                    ) : searchQuery ? (
+                        <div className="px-3 py-2 text-sm text-muted-foreground text-center">
+                            No results found
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* User Profile Section */}
@@ -288,14 +320,19 @@ export default function Sidebar() {
                                     "w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200",
                                     "hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/20",
                                     isCollapsed || isMobileCollapsed ? 'justify-center' : 'justify-between',
-                                )}>
+                                )}
+                                    aria-label="User menu"
+                                    aria-haspopup="true"
+                                >
                                     <div className="flex items-center gap-3">
                                         <div className="flex-shrink-0">
                                             {session.user.image ? (
-                                                <img
+                                                <Image
                                                     className="h-8 w-8 rounded-full ring-2 ring-primary/20"
                                                     src={session.user.image}
                                                     alt={session.user.name || "User"}
+                                                    width={32}
+                                                    height={32}
                                                 />
                                             ) : (
                                                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
@@ -303,7 +340,7 @@ export default function Sidebar() {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {(!isCollapsed && !isMobileCollapsed) && (
                                             <div className="text-left">
                                                 <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
@@ -311,9 +348,9 @@ export default function Sidebar() {
                                                 </p>
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-8 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
-                                                            style={{ width: `${Math.min(100, ((stats?.totalPoints ?? 0) % 1000) / 10)}%` }}
+                                                        <div
+                                                            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-300"
+                                                            style={{ width: `${Math.min(100, ((stats?.totalPoints ?? 0) % 100))}%` }}
                                                         />
                                                     </div>
                                                     <span className="text-xs text-muted-foreground">
@@ -323,22 +360,24 @@ export default function Sidebar() {
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     {(!isCollapsed && !isMobileCollapsed) && (
-                                        <ChevronDownIcon className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-200" />
+                                        <ChevronDownIcon className="w-4 h-4 text-muted-foreground transition-colors duration-200" />
                                     )}
                                 </button>
                             </DropdownMenuTrigger>
-                            
+
                             <DropdownMenuContent className="w-56 p-2 border-border/50 bg-card/95 backdrop-blur-sm" align="end" sideOffset={10}>
                                 <div className="px-2 py-1.5">
                                     <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
                                         <div className="flex-shrink-0">
                                             {session.user.image ? (
-                                                <img
+                                                <Image
                                                     className="h-10 w-10 rounded-full ring-2 ring-primary/20"
                                                     src={session.user.image}
                                                     alt={session.user.name || "User"}
+                                                    width={40}
+                                                    height={40}
                                                 />
                                             ) : (
                                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
@@ -356,7 +395,7 @@ export default function Sidebar() {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <DropdownMenuItem asChild>
                                     <Link href="/profile" className="cursor-pointer">
                                         <UserCircleIcon className="mr-2 h-4 w-4" />
@@ -369,7 +408,7 @@ export default function Sidebar() {
                                         <span>Settings</span>
                                     </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                     className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
                                     onClick={() => signOut()}
                                 >

@@ -225,7 +225,7 @@ export default function DashboardPage() {
                                 <SparklesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary animate-pulse flex-shrink-0" />
                             </div>
                             <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium">
-                                Here's your productivity overview for today
+                                Here&apos;s your productivity overview for today
                             </p>
                         </div>
                         <Button
@@ -235,9 +235,8 @@ export default function DashboardPage() {
                             size="sm"
                             className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/80 hover:border-primary/20 transition-all duration-300 text-xs sm:text-sm"
                         >
-                            <ArrowPathIcon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2", refreshing && "animate-spin")} />
+                            <ArrowPathIcon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", refreshing && "animate-spin", "sm:mr-2")} />
                             <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-                            <span className="sm:hidden">{refreshing ? '...' : '↻'}</span>
                         </Button>
                     </div>
 
@@ -279,9 +278,9 @@ export default function DashboardPage() {
                         <div className="lg:col-span-2">
                             <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
                                 <div className="p-3 sm:p-4 md:p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-primary/10">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                                         <div className="flex items-center gap-2 sm:gap-3">
-                                            <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                                            <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg flex-shrink-0">
                                                 <LightBulbIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                             </div>
                                             <div>

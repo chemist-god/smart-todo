@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { fetcher } from "@/lib/fetcher";
 import NoteItem from "./NoteItem";
 import EditNoteModal from "./EditNoteModal";
 import ViewNoteModal from "./ViewNoteModal";
-import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { FunnelIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface Note {
     id: string;
@@ -23,21 +23,51 @@ interface NoteListProps {
 export default function NoteList({ onNoteChange }: NoteListProps) {
     const [filter, setFilter] = useState<"all" | "GENERAL" | "BIBLE_STUDY" | "CONFERENCE" | "SONG" | "QUOTE" | "REFLECTION">("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [editingNote, setEditingNote] = useState<Note | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [viewingNote, setViewingNote] = useState<Note | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const { mutate: globalMutate } = useSWRConfig();
 
     const notesCacheKeyMatcher = (key: string) => typeof key === "string" && key.startsWith("/api/notes");
 
+    // Debounce search query to reduce API calls
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 300); // 300ms debounce delay
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Keyboard shortcuts for search
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Focus search on Ctrl/Cmd + K
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+            // Clear search on Escape when search is focused
+            if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
+                setSearchQuery("");
+                searchInputRef.current?.blur();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     const queryKey = useMemo(() => {
         const params = new URLSearchParams();
         if (filter !== "all") params.append("filter", filter);
-        if (searchQuery) params.append("search", searchQuery);
+        if (debouncedSearchQuery.trim()) params.append("search", debouncedSearchQuery.trim());
         return `/api/notes?${params.toString()}`;
-    }, [filter, searchQuery]);
+    }, [filter, debouncedSearchQuery]);
 
     const { data: notes, isLoading, mutate } = useSWR<Note[]>(queryKey, fetcher, { revalidateOnFocus: true, refreshInterval: 30000 });
 
@@ -96,16 +126,22 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
         setIsEditModalOpen(false);
     };
 
+    const handleClearSearch = () => {
+        setSearchQuery("");
+        searchInputRef.current?.focus();
+    };
+
+    // Since API handles filtering and search, we can use notes directly
+    // Only apply client-side filter if needed for additional safety
     const filteredNotes = useMemo(() => {
         if (!notes) return [];
+        // API already handles filtering and search, but we keep this as a safety net
+        // and to ensure filter consistency on the client side
         return notes.filter((note) => {
             const matchesFilter = filter === "all" || note.type === filter;
-            const matchesSearch = searchQuery === "" ||
-                note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                note.content.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesFilter && matchesSearch;
+            return matchesFilter;
         });
-    }, [notes, filter, searchQuery]);
+    }, [notes, filter]);
 
     const noteTypes = [
         { value: "all", label: "All Notes", color: "bg-muted text-muted-foreground border-border/50", activeColor: "bg-primary/10 text-primary border-primary/20" },
@@ -153,14 +189,31 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     {/* Search */}
                     <div className="relative flex-1 max-w-md">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${searchQuery ? 'text-primary' : 'text-muted-foreground'
+                            }`} />
                         <input
+                            ref={searchInputRef}
                             type="text"
-                            placeholder="Search notes..."
+                            placeholder="Search notes... (Ctrl+K)"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-input bg-background rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm sm:text-base transition-all duration-200"
+                            className="w-full pl-10 pr-10 py-2 sm:py-3 border border-input bg-background rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm sm:text-base transition-all duration-200"
+                            aria-label="Search notes"
                         />
+                        {searchQuery !== debouncedSearchQuery ? (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                            </div>
+                        ) : searchQuery ? (
+                            <button
+                                onClick={handleClearSearch}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-all duration-200"
+                                aria-label="Clear search"
+                                type="button"
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                            </button>
+                        ) : null}
                     </div>
 
                     {/* Type Filters */}
@@ -174,11 +227,10 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                                 <button
                                     key={type.value}
                                     onClick={() => setFilter(type.value as typeof filter)}
-                                    className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg border transition-all duration-200 ${
-                                        filter === type.value
+                                    className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg border transition-all duration-200 ${filter === type.value
                                             ? type.activeColor + " font-medium shadow-sm"
                                             : type.color + " hover:opacity-80 hover:shadow-sm"
-                                    }`}
+                                        }`}
                                 >
                                     {type.label}
                                 </button>
@@ -199,14 +251,14 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                         </div>
                         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1 sm:mb-2">No notes found</h3>
                         <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4 px-4">
-                            {filter === "all" && searchQuery === ""
+                            {filter === "all" && debouncedSearchQuery === ""
                                 ? "Create your first note to start capturing your thoughts and insights!"
-                                : searchQuery !== ""
-                                    ? `No notes found matching "${searchQuery}"`
+                                : debouncedSearchQuery !== ""
+                                    ? `No notes found matching "${debouncedSearchQuery}"`
                                     : `No ${filter.toLowerCase().replace('_', ' ')} notes found.`
                             }
                         </p>
-                        {filter === "all" && searchQuery === "" && (
+                        {filter === "all" && debouncedSearchQuery === "" && (
                             <button className="inline-flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-primary-foreground transition-all duration-200 text-sm sm:text-base font-medium">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
