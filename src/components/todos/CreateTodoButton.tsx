@@ -466,8 +466,8 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
                                                             onClick={() => handleInputChange('priority', option.value)}
                                                             disabled={isSubmitting}
                                                             className={`group relative inline-flex items-center gap-2 px-3.5 py-2 rounded-full border transition-all duration-200 disabled:opacity-50 active:scale-95 ${isSelected
-                                                                    ? `${option.selectedBg} ${option.selectedBorder} ${option.textColor} border-2 shadow-sm ring-2 ${option.ringColor} ring-offset-1 ring-offset-background`
-                                                                    : `${option.bgColor} ${option.borderColor} ${option.textColor} border hover:shadow-sm`
+                                                                ? `${option.selectedBg} ${option.selectedBorder} ${option.textColor} border-2 shadow-sm ring-2 ${option.ringColor} ring-offset-1 ring-offset-background`
+                                                                : `${option.bgColor} ${option.borderColor} ${option.textColor} border hover:shadow-sm`
                                                                 } ${option.value === 'LOW' && !isSelected ? 'hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:border-emerald-300 dark:hover:border-emerald-700' :
                                                                     option.value === 'MEDIUM' && !isSelected ? 'hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700' :
                                                                         option.value === 'HIGH' && !isSelected ? 'hover:bg-rose-100 dark:hover:bg-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700' : ''
