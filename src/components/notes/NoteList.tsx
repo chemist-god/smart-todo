@@ -189,9 +189,8 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     {/* Search */}
                     <div className="relative flex-1 max-w-md">
-                        <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${
-                            searchQuery ? 'text-primary' : 'text-muted-foreground'
-                        }`} />
+                        <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${searchQuery ? 'text-primary' : 'text-muted-foreground'
+                            }`} />
                         <input
                             ref={searchInputRef}
                             type="text"
@@ -228,11 +227,10 @@ export default function NoteList({ onNoteChange }: NoteListProps) {
                                 <button
                                     key={type.value}
                                     onClick={() => setFilter(type.value as typeof filter)}
-                                    className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg border transition-all duration-200 ${
-                                        filter === type.value
+                                    className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg border transition-all duration-200 ${filter === type.value
                                             ? type.activeColor + " font-medium shadow-sm"
                                             : type.color + " hover:opacity-80 hover:shadow-sm"
-                                    }`}
+                                        }`}
                                 >
                                     {type.label}
                                 </button>
