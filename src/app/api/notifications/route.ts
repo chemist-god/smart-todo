@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         ];
 
         // Sort by timestamp (newest first)
-        allNotifications.sort((a, b) => 
+        allNotifications.sort((a, b) =>
             new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
 
