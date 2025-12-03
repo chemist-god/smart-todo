@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
         });
 
         const todoNotifications = todos
-            .filter(todo => !todo.completed && todo.dueDate)
+            .filter((todo): todo is typeof todo & { dueDate: Date } => {
+                return !todo.completed && todo.dueDate !== null;
+            })
             .map(todo => {
                 const dueDate = new Date(todo.dueDate);
                 const now = new Date();
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
                 }
                 return null;
             })
-            .filter(Boolean);
+            .filter((notification): notification is NonNullable<typeof notification> => notification !== null);
 
         // Get achievements
         const achievements = await prisma.userAchievement.findMany({
