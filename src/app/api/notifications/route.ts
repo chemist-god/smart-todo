@@ -24,11 +24,10 @@ export async function GET(request: NextRequest) {
         });
 
         const todoNotifications = todos
-            .filter(todo => !todo.completed && todo.dueDate !== null)
+            .filter((todo): todo is typeof todo & { dueDate: Date } => {
+                return !todo.completed && todo.dueDate !== null;
+            })
             .map(todo => {
-                // TypeScript guard: we know dueDate is not null from filter above
-                if (!todo.dueDate) return null;
-
                 const dueDate = new Date(todo.dueDate);
                 const now = new Date();
                 const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
