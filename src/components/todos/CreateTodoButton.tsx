@@ -27,24 +27,30 @@ interface ValidationErrors {
     general?: string;
 }
 
-// Sanitization helper
+// Sanitization helper - only removes dangerous characters, preserves spaces
 const sanitizeInput = (input: string): string => {
+    // Only remove potentially dangerous characters, preserve all spaces
+    return input.replace(/[<>]/g, '');
+};
+
+// Sanitization for validation (trims for validation purposes only)
+const sanitizeForValidation = (input: string): string => {
     return input.trim().replace(/[<>]/g, '');
 };
 
 // Live validation helpers
 const validateTitle = (title: string): string | undefined => {
-    const sanitized = sanitizeInput(title);
+    const sanitized = sanitizeForValidation(title);
     if (!sanitized) return "Task title is required";
     if (sanitized.length < 3) return "Title must be at least 3 characters";
-    if (sanitized.length > 255) return "Title must be less than 255 characters";
+    if (title.length > 255) return "Title must be less than 255 characters";
     return undefined;
 };
 
 const validateDescription = (description: string): string | undefined => {
     if (!description) return undefined;
-    const sanitized = sanitizeInput(description);
-    if (sanitized.length > 1000) return "Description must be less than 1000 characters";
+    const sanitized = sanitizeForValidation(description);
+    if (description.length > 1000) return "Description must be less than 1000 characters";
     return undefined;
 };
 
@@ -201,11 +207,12 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
     }, []);
 
     const handleInputChange = useCallback((field: string, value: any) => {
-        // Sanitize text inputs
+        // For text inputs, only remove dangerous characters, preserve all spaces while typing
         if (typeof value === 'string' && (field === 'title' || field === 'description')) {
-            value = sanitizeInput(value);
+            // Only remove potentially dangerous characters, keep all spaces including trailing ones
+            value = value.replace(/[<>]/g, '');
         }
-
+        
         setFormData(prev => ({ ...prev, [field]: value }));
     }, []);
 
@@ -243,9 +250,12 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
         setIsSubmitting(true);
 
         try {
-            // Prepare data for submission
+            // Prepare data for submission - trim whitespace only on submit
             const submitData = {
                 ...formData,
+                // Trim title and description on submit for clean data
+                title: formData.title.trim(),
+                description: formData.description.trim(),
                 // Combine date and time for API submission
                 scheduledStartTime: combineDateTime(formData.dueDate, formData.scheduledStartTime),
                 scheduledEndTime: combineDateTime(formData.dueDate, formData.scheduledEndTime),
