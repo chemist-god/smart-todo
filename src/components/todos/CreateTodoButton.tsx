@@ -127,6 +127,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'schedule' | 'advanced'>('basic');
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
     const [formData, setFormData] = useState({
         title: "",
@@ -143,32 +144,36 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
         breakDuration: "",
     });
 
-    // Live validation with sanitization
+    // Live validation with sanitization - only show errors for touched fields
     useEffect(() => {
         const errors: ValidationErrors = {};
 
-        // Validate title
-        const titleError = validateTitle(formData.title);
-        if (titleError) errors.title = titleError;
+        // Validate title - only show error if field has been touched
+        if (touchedFields.has('title')) {
+            const titleError = validateTitle(formData.title);
+            if (titleError) errors.title = titleError;
+        }
 
-        // Validate description
-        const descError = validateDescription(formData.description);
-        if (descError) errors.description = descError;
+        // Validate description - only show error if field has been touched
+        if (touchedFields.has('description')) {
+            const descError = validateDescription(formData.description);
+            if (descError) errors.description = descError;
+        }
 
-        // Validate date
-        if (formData.dueDate) {
+        // Validate date - only show error if field has been touched
+        if (touchedFields.has('dueDate') && formData.dueDate) {
             const dateError = validateDate(formData.dueDate);
             if (dateError) errors.dueDate = dateError;
         }
 
-        // Validate duration
-        if (formData.estimatedDuration) {
+        // Validate duration - only show error if field has been touched
+        if (touchedFields.has('estimatedDuration') && formData.estimatedDuration) {
             const durationError = validateDuration(formData.estimatedDuration);
             if (durationError) errors.estimatedDuration = durationError;
         }
 
         setValidationErrors(errors);
-    }, [formData.title, formData.description, formData.dueDate, formData.estimatedDuration]);
+    }, [formData.title, formData.description, formData.dueDate, formData.estimatedDuration, touchedFields]);
 
     const validateAll = useCallback(() => {
         const errors: ValidationErrors = {};
@@ -207,6 +212,11 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
     }, []);
 
     const handleInputChange = useCallback((field: string, value: any) => {
+        // Mark field as touched when user starts typing
+        if (!touchedFields.has(field)) {
+            setTouchedFields(prev => new Set(prev).add(field));
+        }
+
         // For text inputs, only remove dangerous characters, preserve all spaces while typing
         if (typeof value === 'string' && (field === 'title' || field === 'description')) {
             // Only remove potentially dangerous characters, keep all spaces including trailing ones
@@ -214,7 +224,14 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
         }
         
         setFormData(prev => ({ ...prev, [field]: value }));
-    }, []);
+    }, [touchedFields]);
+
+    const handleFieldBlur = useCallback((field: string) => {
+        // Mark field as touched when user leaves the field
+        if (!touchedFields.has(field)) {
+            setTouchedFields(prev => new Set(prev).add(field));
+        }
+    }, [touchedFields]);
 
     const resetForm = useCallback(() => {
         setFormData({
@@ -232,6 +249,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
             breakDuration: "",
         });
         setValidationErrors({});
+        setTouchedFields(new Set());
         setActiveTab('basic');
     }, []);
 
@@ -240,8 +258,28 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
 
         if (isSubmitting) return;
 
-        // Validate all fields
-        if (!validateAll()) {
+        // Mark all fields as touched before validation so errors show on submit
+        setTouchedFields(new Set(['title', 'description', 'dueDate', 'estimatedDuration']));
+
+        // Validate all fields (validateAll always validates, but errors only show for touched fields)
+        // We need to validate and show all errors on submit
+        const errors: ValidationErrors = {};
+        const titleError = validateTitle(formData.title);
+        if (titleError) errors.title = titleError;
+        const descError = validateDescription(formData.description);
+        if (descError) errors.description = descError;
+        if (formData.dueDate) {
+            const dateError = validateDate(formData.dueDate);
+            if (dateError) errors.dueDate = dateError;
+        }
+        if (formData.estimatedDuration) {
+            const durationError = validateDuration(formData.estimatedDuration);
+            if (durationError) errors.estimatedDuration = durationError;
+        }
+
+        setValidationErrors(errors);
+
+        if (Object.keys(errors).length > 0) {
             setActiveTab('basic'); // Go to first tab with errors
             toast.error("Please fix the errors below", "Some fields need your attention", 4000);
             return;
@@ -403,6 +441,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
                                                     id="title"
                                                     value={formData.title}
                                                     onChange={(e) => handleInputChange('title', e.target.value)}
+                                                    onBlur={() => handleFieldBlur('title')}
                                                     disabled={isSubmitting}
                                                     className={`w-full px-4 py-3 sm:py-3.5 bg-background border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 disabled:opacity-50 text-sm sm:text-base placeholder:text-muted-foreground/50 ${validationErrors.title ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : 'border-border'
                                                         }`}
@@ -438,6 +477,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
                                                     id="description"
                                                     value={formData.description}
                                                     onChange={(e) => handleInputChange('description', e.target.value)}
+                                                    onBlur={() => handleFieldBlur('description')}
                                                     rows={4}
                                                     disabled={isSubmitting}
                                                     className={`w-full px-4 py-3 bg-background border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 disabled:opacity-50 resize-none placeholder:text-muted-foreground/50 text-sm sm:text-base ${validationErrors.description ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : 'border-border'
@@ -518,6 +558,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
                                                         timeZone: formData.timeZone,
                                                     }}
                                                     onChange={(value) => {
+                                                        handleFieldBlur('dueDate');
                                                         setFormData(prev => ({
                                                             ...prev,
                                                             dueDate: value.date || "",
@@ -555,6 +596,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
                                                         id="estimatedDuration"
                                                         value={formData.estimatedDuration}
                                                         onChange={(e) => handleInputChange('estimatedDuration', e.target.value)}
+                                                        onBlur={() => handleFieldBlur('estimatedDuration')}
                                                         min="1"
                                                         max="480"
                                                         disabled={isSubmitting}
