@@ -32,6 +32,14 @@ export const {
                 { phone: credentials.phone as string },
               ],
             },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              username: true,
+              password: true,
+            },
           });
 
           if (!user) {
@@ -51,6 +59,7 @@ export const {
             email: user.email,
             name: user.name,
             image: user.image,
+            username: user.username,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -74,12 +83,18 @@ export const {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         session.user.id = token.sub!;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        session.user.username = token.username;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        token.username = user.username;
       }
       return token;
     },
