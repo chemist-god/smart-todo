@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,20 +90,30 @@ function SignUpForm() {
           sessionStorage.setItem('verification_type', usePhone ? 'PHONE_VERIFICATION' : 'EMAIL_VERIFICATION');
         }
 
-        if (data.invitationAccepted && data.redirectUrl) {
-          // If invitation was accepted, redirect to welcome page
-          setSuccess(data.message || "Account created successfully! Redirecting to welcome page...");
+        // Automatically sign in the user after successful registration
+        const signInResult = await signIn("credentials", {
+          email: usePhone ? undefined : email,
+          phone: usePhone ? phone : undefined,
+          password: password,
+          redirect: false,
+        });
+
+        if (signInResult?.error) {
+          // If sign-in fails, still redirect but user will need to sign in manually
+          console.error("Auto sign-in failed:", signInResult.error);
+          setError("Account created but sign-in failed. Please sign in manually.");
           setTimeout(() => {
-            router.push(data.redirectUrl);
-          }, 1500);
-        } else {
-          // Normal signup flow - use redirectUrl from API which includes identifier
-          const redirectUrl = data.redirectUrl || searchParams.get('redirect') || "/auth/verify-request";
-          setSuccess(data.message || "Account created successfully! Please check your email/phone for verification.");
-          setTimeout(() => {
-            router.push(redirectUrl);
+            router.push("/auth/signin");
           }, 2000);
+          return;
         }
+
+        // Redirect to username setup (which will then redirect to verification/welcome)
+        const redirectUrl = data.redirectUrl || searchParams.get('redirect') || "/auth/setup-username";
+        setSuccess(data.message || "Account created successfully! Let's set up your username...");
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 1500);
       } else {
         setError(data.error || "An error occurred. Please try again.");
       }

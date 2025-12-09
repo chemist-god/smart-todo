@@ -223,15 +223,17 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Build redirect URL with verification parameters
+        // Build redirect URL - first to username setup, then to verification/welcome
         // Always include identifier and type for resend functionality
 
-        // Build base URL and query parameters
-        const baseUrl = invitationAccepted && inviterName
+        // Determine final destination after username setup
+        const finalDestination = invitationAccepted && inviterName
             ? '/welcome'
             : '/auth/verify-request';
 
+        // Build URL params for username setup page
         const urlParams = new URLSearchParams({
+            redirect: finalDestination,
             identifier,
             type: verificationType,
         });
@@ -242,7 +244,8 @@ export async function POST(request: NextRequest) {
             urlParams.set('inviterName', inviterName);
         }
 
-        const redirectUrl = `${baseUrl}?${urlParams.toString()}`;
+        // Redirect to username setup first, which will then redirect to final destination
+        const redirectUrl = `/auth/setup-username?${urlParams.toString()}`;
 
         return NextResponse.json({
             success: true,
