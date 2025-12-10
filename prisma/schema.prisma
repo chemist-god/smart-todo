@@ -16,6 +16,7 @@ model User {
   phoneVerified DateTime?
   image         String?
   password      String?   // For email/password auth
+  username      String?   @unique // User's unique username (case-insensitive)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

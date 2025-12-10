@@ -105,23 +105,23 @@ export default function ProductivityChart() {
                             })}
                         />
                         <Line
-    type="monotone"
-    dataKey="completed"
-    stroke="hsl(var(--primary))"
-    strokeWidth={3}
-    dot={{ r: 4, stroke: 'hsl(var(--primary))', strokeWidth: 2, fill: 'white' }}
-    activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
-    name="Completed"
-/>
-<Line
-    type="monotone"
-    dataKey="created"
-    stroke="hsl(var(--success))"
-    strokeWidth={2}
-    dot={{ r: 3, stroke: 'hsl(var(--success))', strokeWidth: 1, fill: 'white' }}
-    activeDot={{ r: 5, fill: 'hsl(var(--success))' }}
-    name="Created"
-/>
+                            type="monotone"
+                            dataKey="completed"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={3}
+                            dot={{ r: 4, stroke: 'hsl(var(--primary))', strokeWidth: 2, fill: 'white' }}
+                            activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+                            name="Completed"
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="created"
+                            stroke="hsl(var(--success))"
+                            strokeWidth={2}
+                            dot={{ r: 3, stroke: 'hsl(var(--success))', strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 5, fill: 'hsl(var(--success))' }}
+                            name="Created"
+                        />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
@@ -136,23 +136,23 @@ export default function ProductivityChart() {
                         <YAxis stroke="hsl(var(--muted-foreground))" />
                         <Tooltip />
                         {safeData.weeklyStats.map((entry, idx) => (
-    <Bar
-        key={entry.week}
-        dataKey="completed"
-        name="Completed Tasks"
-        fill={[
-          'hsl(var(--primary))',
-          'hsl(var(--success))',
-          'hsl(var(--warning))',
-          'hsl(var(--info))',
-          'hsl(var(--destructive))',
-          'hsl(var(--secondary))',
-        ][idx % 6]}
-        radius={[8, 8, 0, 0]}
-        barSize={32}
-        isAnimationActive={true}
-    />
-))}
+                            <Bar
+                                key={entry.week}
+                                dataKey="completed"
+                                name="Completed Tasks"
+                                fill={[
+                                    'hsl(var(--primary))',
+                                    'hsl(var(--success))',
+                                    'hsl(var(--warning))',
+                                    'hsl(var(--info))',
+                                    'hsl(var(--destructive))',
+                                    'hsl(var(--secondary))',
+                                ][idx % 6]}
+                                radius={[8, 8, 0, 0]}
+                                barSize={32}
+                                isAnimationActive={true}
+                            />
+                        ))}
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -169,7 +169,7 @@ export default function ProductivityChart() {
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    label={({ priority, count }) => `${priority}: ${count}`}
+                                    label={(props: any) => `${props.priority}: ${props.count}`}
                                     outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="count"

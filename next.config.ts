@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Temporary: unblock production build while we fix lint errors
-    ignoreDuringBuilds: true,
-  },
+  // ESLint configuration is now managed in eslint.config.mjs
+  // In Next.js 16, eslint options are no longer part of NextConfig
 };
 
 export default nextConfig;
