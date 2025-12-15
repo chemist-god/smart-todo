@@ -5,6 +5,10 @@ import { z } from "zod";
 import { handleApiError, ValidationError, NotFoundError } from "@/lib/error-handler";
 import { WalletService } from "@/lib/wallet-service";
 import { RewardCalculator } from "@/lib/reward-calculator";
+import {
+    parseDeadlineToUTC,
+    validateDeadlineRange,
+} from "@/lib/timezone-utils";
 import crypto from "crypto";
 
 // Zod schema for stake creation
@@ -157,122 +161,162 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const validatedData = createStakeSchema.parse(body);
 
-        // Validate deadline
-        const deadline = new Date(validatedData.deadline);
-        const now = new Date();
-        const minDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
-        const maxDeadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
-
-        if (deadline < minDeadline) {
-            throw new ValidationError("Deadline must be at least 24 hours from now");
+        // Parse and validate deadline with timezone handling
+        let deadline: Date;
+        try {
+            deadline = parseDeadlineToUTC(validatedData.deadline);
+        } catch (error) {
+            throw new ValidationError(
+                error instanceof Error ? error.message : "Invalid deadline format"
+            );
         }
 
-        if (deadline > maxDeadline) {
-            throw new ValidationError("Deadline cannot be more than 30 days from now");
+        // Validate deadline range
+        const deadlineValidation = validateDeadlineRange(deadline);
+        if (!deadlineValidation.isValid) {
+            throw new ValidationError(deadlineValidation.error || "Invalid deadline");
         }
 
-        // Process stake creation through wallet service
-        const updatedWallet = await WalletService.processStakeCreation(
-            user.id,
-            validatedData.amount,
-            'temp' // Will be updated after stake creation
-        );
+        // Execute all operations within a single transaction for atomicity
+        // This ensures that if any step fails, all changes are rolled back
+        const result = await prisma.$transaction(async (tx) => {
+            // Step 1: Process wallet deduction within transaction
+            // This will throw if insufficient balance, causing transaction rollback
+            const updatedWallet = await WalletService.processStakeCreationInTransaction(
+                tx,
+                user.id,
+                validatedData.amount,
+                'temp' // Will be updated after stake creation
+            );
 
-        // Create the stake
-        const stake = await prisma.stake.create({
-            data: {
-                title: validatedData.title,
-                description: validatedData.description,
-                stakeType: validatedData.stakeType,
-                status: 'ACTIVE',
-                totalAmount: validatedData.amount,
-                userStake: validatedData.amount,
-                friendStakes: 0,
-                penaltyAmount: RewardCalculator.calculatePenaltyAmount(validatedData.amount, validatedData.stakeType),
-                deadline,
-                taskId: validatedData.taskId,
-                userId: user.id,
-                category: validatedData.category || 'personal',
-                difficulty: validatedData.difficulty || 'MEDIUM',
-                tags: validatedData.tags && validatedData.tags.length > 0 ? validatedData.tags.join(', ') : null,
-                popularity: 0,
-                viewCount: 0,
-                joinCount: 0,
-                shareCount: 0,
-            },
-            include: {
-                participants: true,
-                rewards: true,
-                penalties: true
+            // Step 2: Create the stake within transaction
+            const stake = await tx.stake.create({
+                data: {
+                    title: validatedData.title,
+                    description: validatedData.description,
+                    stakeType: validatedData.stakeType,
+                    status: 'ACTIVE',
+                    totalAmount: validatedData.amount,
+                    userStake: validatedData.amount,
+                    friendStakes: 0,
+                    penaltyAmount: RewardCalculator.calculatePenaltyAmount(
+                        validatedData.amount,
+                        validatedData.stakeType
+                    ),
+                    deadline,
+                    taskId: validatedData.taskId,
+                    userId: user.id,
+                    category: validatedData.category || 'personal',
+                    difficulty: validatedData.difficulty || 'MEDIUM',
+                    tags: validatedData.tags && validatedData.tags.length > 0
+                        ? validatedData.tags.join(', ')
+                        : null,
+                    popularity: 0,
+                    viewCount: 0,
+                    joinCount: 0,
+                    shareCount: 0,
+                },
+                include: {
+                    participants: true,
+                    rewards: true,
+                    penalties: true
+                }
+            });
+
+            // Step 3: Update the transaction reference with actual stake ID
+            const updateResult = await tx.walletTransaction.updateMany({
+                where: {
+                    walletId: updatedWallet.id,
+                    referenceId: 'temp'
+                },
+                data: {
+                    referenceId: stake.id
+                }
+            });
+
+            // Verify that the transaction was updated
+            // This prevents silent failures where the transaction isn't linked
+            if (updateResult.count === 0) {
+                throw new Error(
+                    "Failed to link wallet transaction to stake. " +
+                    "This should not happen - transaction may have been created outside of this flow."
+                );
             }
+
+            // Step 4: Pre-generate public invitation for SOCIAL_STAKE (if applicable)
+            // This is done within the transaction but errors are handled gracefully
+            let publicInvitation = null;
+            if (validatedData.stakeType === 'SOCIAL_STAKE') {
+                try {
+                    const securityCode = crypto.randomBytes(6).toString('hex').toUpperCase();
+                    publicInvitation = await tx.stakeInvitation.create({
+                        data: {
+                            stakeId: stake.id,
+                            inviterId: user.id,
+                            inviteeEmail: 'public@share.com', // Placeholder for public shares
+                            message: `Join my stake: "${validatedData.title}" for ₵${validatedData.amount}`,
+                            status: 'PENDING',
+                            securityCode,
+                            expiresAt: new Date(deadline.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days after deadline
+                        },
+                        select: {
+                            id: true,
+                            securityCode: true
+                        }
+                    });
+                } catch (error) {
+                    // Log error but don't fail the transaction
+                    // Invitation creation is not critical for stake creation
+                    console.error('Error creating public invitation within transaction:', error);
+                    // Continue without invitation - user can create it later
+                }
+            }
+
+            return {
+                stake,
+                wallet: updatedWallet,
+                publicInvitation
+            };
         });
 
-        // Update the transaction with the actual stake ID
-        await prisma.walletTransaction.updateMany({
-            where: {
-                walletId: updatedWallet.id,
-                referenceId: 'temp'
-            },
-            data: {
-                referenceId: stake.id
-            }
-        });
-
-        // Pre-generate public invitation for SOCIAL_STAKE (enterprise-grade approach)
-        let publicInvitation = null;
-        if (validatedData.stakeType === 'SOCIAL_STAKE') {
-            const securityCode = crypto.randomBytes(6).toString('hex').toUpperCase();
-            try {
-                publicInvitation = await prisma.stakeInvitation.create({
-                    data: {
-                        stakeId: stake.id,
-                        inviterId: user.id,
-                        inviteeEmail: 'public@share.com', // Placeholder for public shares
-                        message: `Join my stake: "${validatedData.title}" for ₵${validatedData.amount}`,
-                        status: 'PENDING',
-                        securityCode,
-                        expiresAt: new Date(deadline.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days after deadline
-                    },
-                    select: {
-                        id: true,
-                        securityCode: true
-                    }
-                });
-            } catch (error) {
-                // Log error but don't fail stake creation
-                console.error('Error creating public invitation:', error);
-            }
-        }
-
-        // Calculate additional fields
+        // Calculate additional fields for response
         const currentTime = new Date();
-        const timeRemaining = stake.deadline.getTime() - currentTime.getTime();
-        const progress = timeRemaining > 0 ?
-            Math.max(0, Math.min(100, ((stake.deadline.getTime() - currentTime.getTime()) / (stake.deadline.getTime() - stake.createdAt.getTime())) * 100)) : 0;
+        const timeRemaining = result.stake.deadline.getTime() - currentTime.getTime();
+        const progress = timeRemaining > 0
+            ? Math.max(
+                0,
+                Math.min(
+                    100,
+                    ((result.stake.deadline.getTime() - currentTime.getTime()) /
+                        (result.stake.deadline.getTime() - result.stake.createdAt.getTime())) *
+                    100
+                )
+            )
+            : 0;
 
         return NextResponse.json({
             success: true,
             stake: {
-                ...stake,
-                totalAmount: Number(stake.totalAmount),
-                userStake: Number(stake.userStake),
-                friendStakes: Number(stake.friendStakes),
-                penaltyAmount: Number(stake.penaltyAmount),
-                rewardAmount: Number(stake.rewardAmount),
-                penaltyPool: Number(stake.penaltyPool),
+                ...result.stake,
+                totalAmount: Number(result.stake.totalAmount),
+                userStake: Number(result.stake.userStake),
+                friendStakes: Number(result.stake.friendStakes),
+                penaltyAmount: Number(result.stake.penaltyAmount),
+                rewardAmount: Number(result.stake.rewardAmount),
+                penaltyPool: Number(result.stake.penaltyPool),
                 timeRemaining: Math.max(0, timeRemaining),
                 isOverdue: false,
                 progress: Math.round(progress),
                 participantCount: 0,
                 totalParticipants: 1,
                 // Include securityCode for SOCIAL_STAKE shares
-                securityCode: publicInvitation?.securityCode || null,
+                securityCode: result.publicInvitation?.securityCode || null,
             },
             wallet: {
-                balance: Number(updatedWallet.balance),
-                totalEarned: Number(updatedWallet.totalEarned),
-                totalLost: Number(updatedWallet.totalLost),
-                totalStaked: Number(updatedWallet.totalStaked),
+                balance: Number(result.wallet.balance),
+                totalEarned: Number(result.wallet.totalEarned),
+                totalLost: Number(result.wallet.totalLost),
+                totalStaked: Number(result.wallet.totalStaked),
             }
         });
 
