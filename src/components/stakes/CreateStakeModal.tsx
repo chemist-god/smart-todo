@@ -5,6 +5,12 @@ import { XMarkIcon, PlusIcon, MinusIcon, LinkIcon } from "@heroicons/react/24/ou
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import TodoSelection from "./TodoSelection";
+import {
+    getMinDeadlineString,
+    getMaxDeadlineString,
+    convertDateToDeadline,
+    formatDeadlineFromUTC,
+} from "@/lib/timezone-utils";
 
 interface CreateStakeModalProps {
     isOpen: boolean;
@@ -43,14 +49,30 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         setSelectedTodo(todo);
         if (todo) {
             // Pre-fill form with todo data
+            let deadlineString = "";
+
+            // If todo has a due date, convert it to a proper deadline
+            // Set to end of day (23:59:59) in user's local timezone
+            if (todo.dueDate) {
+                try {
+                    // Convert date-only string to proper deadline (end of day)
+                    const deadlineDate = convertDateToDeadline(todo.dueDate);
+                    // Format for datetime-local input
+                    deadlineString = formatDeadlineFromUTC(deadlineDate);
+                } catch (error) {
+                    console.error("Error converting todo due date to deadline:", error);
+                    // Fallback to empty string if conversion fails
+                    deadlineString = "";
+                }
+            }
+
             setFormData(prev => ({
                 ...prev,
                 title: todo.title,
                 description: todo.description || "",
                 taskId: todo.id,
                 category: "personal", // Default category since todos don't have category
-                // Set deadline based on todo due date if available
-                deadline: todo.dueDate ? new Date(todo.dueDate).toISOString().split('T')[0] : prev.deadline,
+                deadline: deadlineString || prev.deadline,
             }));
         }
     };
@@ -73,17 +95,29 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
         if (!formData.deadline) {
             newErrors.deadline = "Deadline is required";
         } else {
-            const deadline = new Date(formData.deadline);
-            const now = new Date();
-            const minDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
-            const maxDeadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+            try {
+                // Parse deadline string (datetime-local format) to Date
+                // The string is in user's local timezone
+                const deadline = new Date(formData.deadline);
 
-            if (deadline < minDeadline) {
-                newErrors.deadline = "Deadline must be at least 24 hours from now";
-            }
+                // Validate the date is valid
+                if (isNaN(deadline.getTime())) {
+                    newErrors.deadline = "Invalid deadline format";
+                } else {
+                    const now = new Date();
+                    const minDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+                    const maxDeadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-            if (deadline > maxDeadline) {
-                newErrors.deadline = "Deadline cannot be more than 30 days from now";
+                    if (deadline < minDeadline) {
+                        newErrors.deadline = "Deadline must be at least 24 hours from now";
+                    }
+
+                    if (deadline > maxDeadline) {
+                        newErrors.deadline = "Deadline cannot be more than 30 days from now";
+                    }
+                }
+            } catch (error) {
+                newErrors.deadline = "Invalid deadline format";
             }
         }
 
@@ -230,163 +264,163 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                                 </div>
                             </div>
 
-                        {/* Todo Selection */}
-                        <div className="border-t border-gray-200 pt-6">
-                            <TodoSelection
-                                onTodoSelect={handleTodoSelect}
-                                selectedTodo={selectedTodo}
-                            />
-                        </div>
-
-                        {/* Category and Difficulty */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category
-                                </label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => handleInputChange('category', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                >
-                                    <option value="personal">Personal Development</option>
-                                    <option value="fitness">Fitness & Health</option>
-                                    <option value="work">Work & Career</option>
-                                    <option value="learning">Learning & Skills</option>
-                                    <option value="creative">Creative Projects</option>
-                                    <option value="social">Social & Relationships</option>
-                                    <option value="financial">Financial Goals</option>
-                                </select>
+                            {/* Todo Selection */}
+                            <div className="border-t border-gray-200 pt-6">
+                                <TodoSelection
+                                    onTodoSelect={handleTodoSelect}
+                                    selectedTodo={selectedTodo}
+                                />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Difficulty
-                                </label>
-                                <select
-                                    value={formData.difficulty}
-                                    onChange={(e) => handleInputChange('difficulty', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                >
-                                    <option value="EASY">Easy</option>
-                                    <option value="MEDIUM">Medium</option>
-                                    <option value="HARD">Hard</option>
-                                    <option value="EXTREME">Extreme</option>
-                                </select>
+                            {/* Category and Difficulty */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Category
+                                    </label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => handleInputChange('category', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                        <option value="personal">Personal Development</option>
+                                        <option value="fitness">Fitness & Health</option>
+                                        <option value="work">Work & Career</option>
+                                        <option value="learning">Learning & Skills</option>
+                                        <option value="creative">Creative Projects</option>
+                                        <option value="social">Social & Relationships</option>
+                                        <option value="financial">Financial Goals</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Difficulty
+                                    </label>
+                                    <select
+                                        value={formData.difficulty}
+                                        onChange={(e) => handleInputChange('difficulty', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                        <option value="EASY">Easy</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HARD">Hard</option>
+                                        <option value="EXTREME">Extreme</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Title */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Task Title *
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => handleInputChange('title', e.target.value)}
-                                placeholder="e.g., Complete React project"
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                            />
-                            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
-                        </div>
-
-                        {/* Description */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
-                            </label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => handleInputChange('description', e.target.value)}
-                                placeholder="Describe what you need to accomplish..."
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        {/* Amount */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Stake Amount (₵) *
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => handleInputChange('amount', Math.max(5, formData.amount - 5))}
-                                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                                >
-                                    <MinusIcon className="w-4 h-4" />
-                                </button>
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Task Title *
+                                </label>
                                 <input
-                                    type="number"
-                                    value={formData.amount}
-                                    onChange={(e) => handleInputChange('amount', parseInt(e.target.value) || 0)}
-                                    min="5"
-                                    max="1000"
-                                    step="5"
-                                    className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.amount ? 'border-red-500' : 'border-gray-300'
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => handleInputChange('title', e.target.value)}
+                                    placeholder="e.g., Complete React project"
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => handleInputChange('amount', Math.min(1000, formData.amount + 5))}
-                                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                                >
-                                    <PlusIcon className="w-4 h-4" />
-                                </button>
+                                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
                             </div>
-                            {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
-                            <p className="mt-1 text-sm text-gray-600">
-                                Minimum: ₵5, Maximum: ₵1000
-                            </p>
-                        </div>
 
-                        {/* Deadline */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Deadline *
-                            </label>
-                            <input
-                                type="datetime-local"
-                                value={formData.deadline}
-                                onChange={(e) => handleInputChange('deadline', e.target.value)}
-                                min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
-                                max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.deadline ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                            />
-                            {errors.deadline && <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>}
-                        </div>
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Description
+                                </label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => handleInputChange('description', e.target.value)}
+                                    placeholder="Describe what you need to accomplish..."
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            </div>
 
-                        {/* Social Settings */}
-                        {formData.stakeType === 'SOCIAL_STAKE' && (
+                            {/* Amount */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Stake Amount (₵) *
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInputChange('amount', Math.max(5, formData.amount - 5))}
+                                        className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        <MinusIcon className="w-4 h-4" />
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={formData.amount}
+                                        onChange={(e) => handleInputChange('amount', parseInt(e.target.value) || 0)}
+                                        min="5"
+                                        max="1000"
+                                        step="5"
+                                        className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.amount ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInputChange('amount', Math.min(1000, formData.amount + 5))}
+                                        className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        <PlusIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Minimum: ₵5, Maximum: ₵1000
+                                </p>
+                            </div>
+
+                            {/* Deadline */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Deadline *
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    value={formData.deadline}
+                                    onChange={(e) => handleInputChange('deadline', e.target.value)}
+                                    min={getMinDeadlineString(24)}
+                                    max={getMaxDeadlineString(30)}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.deadline ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                />
+                                {errors.deadline && <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>}
+                            </div>
+
+                            {/* Social Settings */}
+                            {formData.stakeType === 'SOCIAL_STAKE' && (
+                                <div className="space-y-3">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.allowFriends}
+                                            onChange={(e) => handleInputChange('allowFriends', e.target.checked)}
+                                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">Allow friends to join this stake</span>
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Proof Requirements */}
                             <div className="space-y-3">
                                 <label className="flex items-center">
                                     <input
                                         type="checkbox"
-                                        checked={formData.allowFriends}
-                                        onChange={(e) => handleInputChange('allowFriends', e.target.checked)}
+                                        checked={formData.proofRequired}
+                                        onChange={(e) => handleInputChange('proofRequired', e.target.checked)}
                                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                                     />
-                                    <span className="ml-2 text-sm text-gray-700">Allow friends to join this stake</span>
+                                    <span className="ml-2 text-sm text-gray-700">Require proof of completion</span>
                                 </label>
                             </div>
-                        )}
-
-                        {/* Proof Requirements */}
-                        <div className="space-y-3">
-                            <label className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.proofRequired}
-                                    onChange={(e) => handleInputChange('proofRequired', e.target.checked)}
-                                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                                />
-                                <span className="ml-2 text-sm text-gray-700">Require proof of completion</span>
-                            </label>
-                        </div>
 
                             {/* Aurora-Themed Actions */}
                             <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border/30 mt-6">
