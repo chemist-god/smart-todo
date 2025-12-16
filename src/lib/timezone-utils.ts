@@ -56,26 +56,50 @@ export function formatDeadlineFromUTC(utcDate: Date): string {
 }
 
 /**
+ * Default deadline constraints
+ * These can be customized per use case
+ */
+export const DEFAULT_DEADLINE_CONSTRAINTS = {
+    minHours: 1,        // Minimum 1 hour from now
+    maxDays: 90,       // Maximum 90 days from now
+} as const;
+
+/**
  * Validate deadline is within acceptable range
+ * Uses flexible, reasonable bounds that allow user-defined intervals
  * 
  * @param deadline - Date object to validate
- * @param minHoursFromNow - Minimum hours from now (default: 24)
- * @param maxDaysFromNow - Maximum days from now (default: 30)
+ * @param minHoursFromNow - Minimum hours from now (default: 1 hour)
+ * @param maxDaysFromNow - Maximum days from now (default: 90 days)
  * @returns Object with isValid flag and error message if invalid
  */
 export function validateDeadlineRange(
     deadline: Date,
-    minHoursFromNow: number = 24,
-    maxDaysFromNow: number = 30
+    minHoursFromNow: number = DEFAULT_DEADLINE_CONSTRAINTS.minHours,
+    maxDaysFromNow: number = DEFAULT_DEADLINE_CONSTRAINTS.maxDays
 ): { isValid: boolean; error?: string } {
     const now = new Date();
+    
+    // Check if deadline is in the past
+    if (deadline <= now) {
+        return {
+            isValid: false,
+            error: "Deadline must be in the future"
+        };
+    }
+
     const minDeadline = new Date(now.getTime() + minHoursFromNow * 60 * 60 * 1000);
     const maxDeadline = new Date(now.getTime() + maxDaysFromNow * 24 * 60 * 60 * 1000);
 
     if (deadline < minDeadline) {
+        const hours = minHoursFromNow;
+        const timeStr = hours < 24 
+            ? `${hours} hour${hours > 1 ? 's' : ''}`
+            : `${Math.floor(hours / 24)} day${Math.floor(hours / 24) > 1 ? 's' : ''}`;
+        
         return {
             isValid: false,
-            error: `Deadline must be at least ${minHoursFromNow} hours from now`
+            error: `Deadline must be at least ${timeStr} from now`
         };
     }
 
@@ -92,10 +116,10 @@ export function validateDeadlineRange(
 /**
  * Get minimum deadline datetime-local string for HTML input
  * 
- * @param minHoursFromNow - Minimum hours from now (default: 24)
+ * @param minHoursFromNow - Minimum hours from now (default: 1 hour)
  * @returns String in datetime-local format
  */
-export function getMinDeadlineString(minHoursFromNow: number = 24): string {
+export function getMinDeadlineString(minHoursFromNow: number = DEFAULT_DEADLINE_CONSTRAINTS.minHours): string {
     const minDeadline = new Date(Date.now() + minHoursFromNow * 60 * 60 * 1000);
     return formatDeadlineFromUTC(minDeadline);
 }
@@ -103,12 +127,54 @@ export function getMinDeadlineString(minHoursFromNow: number = 24): string {
 /**
  * Get maximum deadline datetime-local string for HTML input
  * 
- * @param maxDaysFromNow - Maximum days from now (default: 30)
+ * @param maxDaysFromNow - Maximum days from now (default: 90 days)
  * @returns String in datetime-local format
  */
-export function getMaxDeadlineString(maxDaysFromNow: number = 30): string {
+export function getMaxDeadlineString(maxDaysFromNow: number = DEFAULT_DEADLINE_CONSTRAINTS.maxDays): string {
     const maxDeadline = new Date(Date.now() + maxDaysFromNow * 24 * 60 * 60 * 1000);
     return formatDeadlineFromUTC(maxDeadline);
+}
+
+/**
+ * Calculate deadline from now by adding hours
+ * 
+ * @param hoursFromNow - Hours to add from now
+ * @returns Date object representing the deadline
+ */
+export function getDeadlineFromHours(hoursFromNow: number): Date {
+    return new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
+}
+
+/**
+ * Calculate deadline from now by adding days
+ * 
+ * @param daysFromNow - Days to add from now
+ * @returns Date object representing the deadline
+ */
+export function getDeadlineFromDays(daysFromNow: number): Date {
+    return new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Format deadline for display (human-readable)
+ * 
+ * @param deadline - Date object
+ * @returns Human-readable string (e.g., "in 2 hours", "in 3 days")
+ */
+export function formatDeadlineForDisplay(deadline: Date): string {
+    const now = new Date();
+    const diffMs = deadline.getTime() - now.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+        return `in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+    } else if (diffHours > 0) {
+        return `in ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+    } else {
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        return `in ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
+    }
 }
 
 /**
