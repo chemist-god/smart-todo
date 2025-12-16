@@ -171,8 +171,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Validate deadline range
-        const deadlineValidation = validateDeadlineRange(deadline);
+        // Validate deadline range with flexible constraints
+        // Allows user-defined intervals (1 hour minimum, 90 days maximum)
+        const deadlineValidation = validateDeadlineRange(
+            deadline,
+            1,   // Minimum 1 hour from now (flexible)
+            90   // Maximum 90 days from now (reasonable upper bound)
+        );
         if (!deadlineValidation.isValid) {
             throw new ValidationError(deadlineValidation.error || "Invalid deadline");
         }
