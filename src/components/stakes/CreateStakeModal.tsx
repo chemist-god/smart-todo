@@ -5,11 +5,11 @@ import { XMarkIcon, PlusIcon, MinusIcon, LinkIcon } from "@heroicons/react/24/ou
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import TodoSelection from "./TodoSelection";
+import DeadlineSelector from "./DeadlineSelector";
 import {
-    getMinDeadlineString,
-    getMaxDeadlineString,
     convertDateToDeadline,
     formatDeadlineFromUTC,
+    validateDeadlineRange,
 } from "@/lib/timezone-utils";
 
 interface CreateStakeModalProps {
@@ -104,16 +104,10 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                 if (isNaN(deadline.getTime())) {
                     newErrors.deadline = "Invalid deadline format";
                 } else {
-                    const now = new Date();
-                    const minDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
-                    const maxDeadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-                    if (deadline < minDeadline) {
-                        newErrors.deadline = "Deadline must be at least 24 hours from now";
-                    }
-
-                    if (deadline > maxDeadline) {
-                        newErrors.deadline = "Deadline cannot be more than 30 days from now";
+                    // Use flexible validation (1 hour min, 90 days max)
+                    const validation = validateDeadlineRange(deadline, 1, 90);
+                    if (!validation.isValid) {
+                        newErrors.deadline = validation.error || "Invalid deadline";
                     }
                 }
             } catch (error) {
@@ -377,22 +371,12 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
                                 </p>
                             </div>
 
-                            {/* Deadline */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Deadline *
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    value={formData.deadline}
-                                    onChange={(e) => handleInputChange('deadline', e.target.value)}
-                                    min={getMinDeadlineString(24)}
-                                    max={getMaxDeadlineString(30)}
-                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${errors.deadline ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                />
-                                {errors.deadline && <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>}
-                            </div>
+                            {/* Deadline - New Flexible Selector */}
+                            <DeadlineSelector
+                                value={formData.deadline}
+                                onChange={(deadline) => handleInputChange('deadline', deadline)}
+                                error={errors.deadline}
+                            />
 
                             {/* Social Settings */}
                             {formData.stakeType === 'SOCIAL_STAKE' && (
