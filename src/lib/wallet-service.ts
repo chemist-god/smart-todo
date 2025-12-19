@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 
 export interface WalletUpdate {
     balance?: number;
@@ -20,6 +21,15 @@ export interface TransactionData {
     description: string;
     referenceId?: string;
 }
+
+/**
+ * Type for Prisma transaction client
+ * Used for transaction-aware operations
+ */
+type PrismaTransactionClient = Omit<
+    Prisma.TransactionClient,
+    "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
 
 export class WalletService {
     /**
@@ -106,7 +116,151 @@ export class WalletService {
     }
 
     /**
+     * Get or create wallet within a transaction
+     * Transaction-aware version for use in Prisma transactions
+     */
+    static async getOrCreateWalletInTransaction(
+        tx: PrismaTransactionClient,
+        userId: string
+    ) {
+        let wallet = await tx.userWallet.findUnique({
+            where: { userId }
+        });
+
+        if (!wallet) {
+            wallet = await tx.userWallet.create({
+                data: {
+                    userId,
+                    balance: new Decimal(0),
+                    totalEarned: new Decimal(0),
+                    totalLost: new Decimal(0),
+                    totalStaked: new Decimal(0),
+                    completionRate: 0,
+                    currentStreak: 0,
+                    longestStreak: 0,
+                    rank: 0,
+                }
+            });
+        }
+
+        return wallet;
+    }
+
+    /**
+     * Update wallet within a transaction
+     * Transaction-aware version for use in Prisma transactions
+     */
+    static async updateWalletInTransaction(
+        tx: PrismaTransactionClient,
+        walletId: string,
+        updates: WalletUpdate
+    ) {
+        const processedUpdates: any = {
+            updatedAt: new Date()
+        };
+
+        if (updates.balance !== undefined) {
+            processedUpdates.balance = new Decimal(Number(updates.balance));
+        }
+        if (updates.totalEarned !== undefined) {
+            processedUpdates.totalEarned = new Decimal(Number(updates.totalEarned));
+        }
+        if (updates.totalLost !== undefined) {
+            processedUpdates.totalLost = new Decimal(Number(updates.totalLost));
+        }
+        if (updates.totalStaked !== undefined) {
+            processedUpdates.totalStaked = new Decimal(Number(updates.totalStaked));
+        }
+        if (updates.completionRate !== undefined) {
+            processedUpdates.completionRate = updates.completionRate;
+        }
+        if (updates.currentStreak !== undefined) {
+            processedUpdates.currentStreak = updates.currentStreak;
+        }
+        if (updates.longestStreak !== undefined) {
+            processedUpdates.longestStreak = updates.longestStreak;
+        }
+        if (updates.rank !== undefined) {
+            processedUpdates.rank = updates.rank;
+        }
+
+        return await tx.userWallet.update({
+            where: { id: walletId },
+            data: processedUpdates
+        });
+    }
+
+    /**
+     * Create wallet transaction within a transaction
+     * Transaction-aware version for use in Prisma transactions
+     */
+    static async createTransactionInTransaction(
+        tx: PrismaTransactionClient,
+        data: TransactionData
+    ) {
+        return await tx.walletTransaction.create({
+            data: {
+                walletId: data.walletId,
+                userId: data.userId,
+                type: data.type,
+                amount: new Decimal(data.amount),
+                description: data.description,
+                referenceId: data.referenceId
+            }
+        });
+    }
+
+    /**
+     * Process a stake creation (deduct from balance) within a transaction
+     * Transaction-aware version - use this when inside a Prisma transaction
+     * 
+     * @param tx - Prisma transaction client
+     * @param userId - User ID
+     * @param amount - Stake amount to deduct
+     * @param stakeId - Stake ID for reference
+     * @returns Updated wallet
+     * @throws Error if insufficient balance
+     */
+    static async processStakeCreationInTransaction(
+        tx: PrismaTransactionClient,
+        userId: string,
+        amount: number,
+        stakeId: string
+    ) {
+        const wallet = await this.getOrCreateWalletInTransaction(tx, userId);
+
+        // Check if user has sufficient balance
+        if (Number(wallet.balance) < amount) {
+            throw new Error("Insufficient balance");
+        }
+
+        // Calculate new values
+        const newBalance = Number(wallet.balance) - amount;
+        const newTotalStaked = Number(wallet.totalStaked) + amount;
+
+        // Update wallet within transaction
+        const updatedWallet = await this.updateWalletInTransaction(tx, wallet.id, {
+            balance: newBalance,
+            totalStaked: newTotalStaked
+        });
+
+        // Create transaction record within transaction
+        await this.createTransactionInTransaction(tx, {
+            walletId: wallet.id,
+            userId,
+            type: 'STAKE_CREATED',
+            amount: amount,
+            description: `Stake created for ₵${amount}`,
+            referenceId: stakeId
+        });
+
+        return updatedWallet;
+    }
+
+    /**
      * Process a stake creation (deduct from balance)
+     * Legacy method - kept for backward compatibility
+     * For new code, prefer using processStakeCreationInTransaction within a transaction
      */
     static async processStakeCreation(userId: string, amount: number, stakeId: string) {
         const wallet = await this.getOrCreateWallet(userId);
