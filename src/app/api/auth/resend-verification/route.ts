@@ -96,9 +96,13 @@ export async function POST(request: NextRequest) {
             if (process.env.NODE_ENV === 'development') {
                 console.log(`📱 PHONE VERIFICATION TOKEN (RESEND) for ${identifier}:`, token);
                 console.log(`📱 SMS verification for phone numbers will be implemented soon`);
+            } else {
+                // In production, return an error since SMS is not yet implemented
+                return NextResponse.json(
+                    { error: "Phone verification is not yet implemented" },
+                    { status: 501 } // Not Implemented
+                );
             }
-            // In production, this should return an error or be handled differently
-            // For now, we'll return success but note that SMS wasn't actually sent
         }
 
         return NextResponse.json({
