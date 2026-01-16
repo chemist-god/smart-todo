@@ -78,10 +78,11 @@ function VerifyRequestContent() {
         sessionStorage.removeItem('verification_identifier');
         sessionStorage.removeItem('verification_type');
 
-        setSuccess("Account verified successfully! You can now sign in.");
+        setSuccess("Account verified successfully! Redirecting to sign in...");
+        // User must now sign in manually after verification
         setTimeout(() => {
           router.push("/auth/signin");
-        }, 2000);
+        }, 1500);
       } else {
         setError(data.error || "Verification failed");
       }
