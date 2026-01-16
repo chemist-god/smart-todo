@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,14 @@ function SetupUsernameForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push('/auth/signin?callbackUrl=/auth/setup-username');
+    }
+  }, [status, router]);
 
   // Debounced availability check
   const checkAvailability = useCallback(async (value: string) => {
@@ -128,21 +137,9 @@ function SetupUsernameForm() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Get redirect URL from query params or default to verify-request
-        const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
-        const identifier = searchParams.get('identifier');
-        const type = searchParams.get('type');
-        const accepted = searchParams.get('accepted');
-        const inviterName = searchParams.get('inviterName');
-
-        // Build redirect URL preserving all query params
-        const url = new URL(redirectUrl, window.location.origin);
-        if (identifier) url.searchParams.set('identifier', identifier);
-        if (type) url.searchParams.set('type', type);
-        if (accepted) url.searchParams.set('accepted', accepted);
-        if (inviterName) url.searchParams.set('inviterName', inviterName);
-
-        router.push(url.pathname + url.search);
+        // Redirect to home/dashboard (user is authenticated and can set username anytime)
+        const redirectUrl = searchParams.get('redirect') || "/";
+        router.push(redirectUrl);
       } else {
         setError(data.error || "Failed to set username. Please try again.");
       }
@@ -154,21 +151,9 @@ function SetupUsernameForm() {
   };
 
   const handleSkip = () => {
-    // Get redirect URL from query params or default to verify-request
-    const redirectUrl = searchParams.get('redirect') || "/auth/verify-request";
-    const identifier = searchParams.get('identifier');
-    const type = searchParams.get('type');
-    const accepted = searchParams.get('accepted');
-    const inviterName = searchParams.get('inviterName');
-
-    // Build redirect URL preserving all query params
-    const url = new URL(redirectUrl, window.location.origin);
-    if (identifier) url.searchParams.set('identifier', identifier);
-    if (type) url.searchParams.set('type', type);
-    if (accepted) url.searchParams.set('accepted', accepted);
-    if (inviterName) url.searchParams.set('inviterName', inviterName);
-
-    router.push(url.pathname + url.search);
+    // Skip username setup - redirect to home/dashboard
+    const redirectUrl = searchParams.get('redirect') || "/";
+    router.push(redirectUrl);
   };
 
   const getStatusIcon = () => {
