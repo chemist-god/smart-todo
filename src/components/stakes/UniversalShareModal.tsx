@@ -12,7 +12,7 @@ import {
     SparklesIcon,
     ArrowTopRightOnSquareIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { SocialShareService, StakeShareData } from "@/lib/social-share-service";
 import { MessageTemplateService } from "@/lib/message-templates";
@@ -33,7 +33,7 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
     const [loading, setLoading] = useState(false);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
     const [templates, setTemplates] = useState<any[]>([]);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         if (isOpen) {
@@ -103,7 +103,7 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
         try {
             await navigator.clipboard.writeText(text);
             setCopiedItems(prev => new Set([...prev, itemId]));
-            addToast({ type: 'success', title: 'Copied!', message: 'Content copied to clipboard' });
+            toast.success('Copied!', { description: 'Content copied to clipboard' });
 
             // Remove from copied items after 2 seconds
             setTimeout(() => {
@@ -114,7 +114,7 @@ export default function UniversalShareModal({ isOpen, onClose, shareData }: Univ
                 });
             }, 2000);
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to copy to clipboard' });
+            toast.error('Error', { description: 'Failed to copy to clipboard' });
         }
     };
 
