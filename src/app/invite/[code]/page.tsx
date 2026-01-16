@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import InviteLandingClient from "@/components/invite/InviteLandingClient";
 import PlatformInviteLanding from "@/components/invite/PlatformInviteLanding";
-import { ToastProvider } from "@/components/ui/Toast";
+// import { ToastProvider } from "@/components/ui/Toast";
 
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/error-handler";
@@ -116,7 +116,7 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
       // Get acceptance count and check if current user has accepted (if session available)
       let acceptanceCount = 0;
       let userAcceptance = null;
-      
+
       const acceptanceModel = (prisma as any).platformInvitationAcceptance;
       if (acceptanceModel) {
         try {
@@ -124,7 +124,7 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
           acceptanceCount = await acceptanceModel.count({
             where: { invitationId: platformInvitation.id }
           });
-          
+
           // Try to get current user's session to check if they've accepted
           try {
             const { auth } = await import('@/lib/auth');
@@ -163,26 +163,26 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
       });
 
       return (
-        <ToastProvider>
-          <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
-            <PlatformInviteLanding
-              invitation={{
-                id: platformInvitation.id,
-                inviteCode: platformInvitation.inviteCode,
-                inviterName: platformInvitation.inviter.name || 'Someone',
-                inviterImage: platformInvitation.inviter.image ? platformInvitation.inviter.image : undefined,
-                inviterEmail: platformInvitation.inviter.email ? platformInvitation.inviter.email : undefined,
-                status: platformInvitation.status,
-                expiresAt: platformInvitation.expiresAt.toISOString(),
-                createdAt: platformInvitation.createdAt.toISOString(),
-                viewCount: platformInvitation.viewCount + 1,
-                acceptanceCount: acceptanceCount,
-                userHasAccepted: !!userAcceptance
-              }}
-              error={null}
-            />
-          </Suspense>
-        </ToastProvider>
+        // <ToastProvider>
+        <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
+          <PlatformInviteLanding
+            invitation={{
+              id: platformInvitation.id,
+              inviteCode: platformInvitation.inviteCode,
+              inviterName: platformInvitation.inviter.name || 'Someone',
+              inviterImage: platformInvitation.inviter.image ? platformInvitation.inviter.image : undefined,
+              inviterEmail: platformInvitation.inviter.email ? platformInvitation.inviter.email : undefined,
+              status: platformInvitation.status,
+              expiresAt: platformInvitation.expiresAt.toISOString(),
+              createdAt: platformInvitation.createdAt.toISOString(),
+              viewCount: platformInvitation.viewCount + 1,
+              acceptanceCount: acceptanceCount,
+              userHasAccepted: !!userAcceptance
+            }}
+            error={null}
+          />
+        </Suspense>
+        // </ToastProvider>
       );
     }
 
@@ -222,14 +222,14 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
 
       if (stakeInvitation.stake.status !== 'ACTIVE') {
         return (
-          <ToastProvider>
-            <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
-              <InviteLandingClient
-                invite={null}
-                error="This stake is no longer active"
-              />
-            </Suspense>
-          </ToastProvider>
+          // <ToastProvider>
+          <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
+            <InviteLandingClient
+              invite={null}
+              error="This stake is no longer active"
+            />
+          </Suspense>
+          // </ToastProvider>
         );
       }
 
@@ -243,53 +243,53 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
       });
 
       return (
-        <ToastProvider>
-          <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
-            <InviteLandingClient
-              invite={{
-                id: stakeInvitation.id,
-                stakeId: stakeInvitation.stakeId,
-                inviterName: stakeInvitation.inviter.name || 'Anonymous',
-                inviterImage: stakeInvitation.inviter.image,
-                stakeTitle: stakeInvitation.stake.title,
-                stakeAmount: Number(stakeInvitation.stake.userStake),
-                deadline: stakeInvitation.stake.deadline.toISOString(),
-                message: stakeInvitation.message,
-                status: stakeInvitation.status,
-                expiresAt: stakeInvitation.expiresAt.toISOString(),
-                createdAt: stakeInvitation.createdAt.toISOString(),
-                securityCode: stakeInvitation.securityCode
-              }}
-              error={null}
-            />
-          </Suspense>
-        </ToastProvider>
+        // <ToastProvider>
+        <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
+          <InviteLandingClient
+            invite={{
+              id: stakeInvitation.id,
+              stakeId: stakeInvitation.stakeId,
+              inviterName: stakeInvitation.inviter.name || 'Anonymous',
+              inviterImage: stakeInvitation.inviter.image,
+              stakeTitle: stakeInvitation.stake.title,
+              stakeAmount: Number(stakeInvitation.stake.userStake),
+              deadline: stakeInvitation.stake.deadline.toISOString(),
+              message: stakeInvitation.message,
+              status: stakeInvitation.status,
+              expiresAt: stakeInvitation.expiresAt.toISOString(),
+              createdAt: stakeInvitation.createdAt.toISOString(),
+              securityCode: stakeInvitation.securityCode
+            }}
+            error={null}
+          />
+        </Suspense>
+        // </ToastProvider>
       );
     }
 
     // Not found
     return (
-      <ToastProvider>
-        <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
-          <PlatformInviteLanding
-            invitation={null}
-            error="Invitation not found"
-          />
-        </Suspense>
-      </ToastProvider>
+      // <ToastProvider>
+      <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
+        <PlatformInviteLanding
+          invitation={null}
+          error="Invitation not found"
+        />
+      </Suspense>
+      // </ToastProvider>
     );
 
   } catch (error) {
     const { error: errorMessage } = handleApiError(error);
     return (
-      <ToastProvider>
-        <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
-          <PlatformInviteLanding
-            invitation={null}
-            error={errorMessage || "An error occurred"}
-          />
-        </Suspense>
-      </ToastProvider>
+      // <ToastProvider>
+      <Suspense fallback={<div className="p-8 text-center">Loading invitation...</div>}>
+        <PlatformInviteLanding
+          invitation={null}
+          error={errorMessage || "An error occurred"}
+        />
+      </Suspense>
+      // </ToastProvider>
     );
   }
 }
