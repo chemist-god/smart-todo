@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { EnhancedPenaltyService } from "@/lib/enhanced-penalty-service";
+import { PenaltyService } from "@/lib/penalty-service";
 import { handleApiError } from "@/lib/error-handler";
 import { z } from "zod";
 
@@ -27,7 +27,7 @@ export async function POST(
         const body = await request.json();
         const validatedData = partialCompletionSchema.parse(body);
 
-        const result = await EnhancedPenaltyService.processPartialCompletion(
+        const result = await PenaltyService.processPartialCompletion(
             id,
             validatedData.completionPercentage,
             validatedData.evidence
