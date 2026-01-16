@@ -1,11 +1,12 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Sidebar from "./Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "./app-sidebar"
 import AuthStatus from "../auth/AuthStatus";
 import SWRProvider from "../providers/SWRProvider";
 import ErrorBoundary from "../ui/ErrorBoundary";
-import { ToastProvider } from "../ui/Toast";
+import { Toaster } from "@/components/ui/sonner";
 import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface AppLayoutProps {
@@ -52,18 +53,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     return (
         <ErrorBoundary>
-            <ToastProvider>
-                <SWRProvider>
-                    <div className="flex h-screen bg-gradient-to-br from-background via-background to-muted/10">
-                        <Sidebar />
-                        <main className="flex-1 overflow-auto">
-                            <div className="p-4 sm:p-6 lg:p-8 lg:pl-4">
-                                {children}
+            <SWRProvider>
+                <SidebarProvider>
+                    <AppSidebar />
+                    <main className="flex min-h-screen flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out">
+                        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                            <div className="flex items-center gap-2">
+                                <SidebarTrigger />
+                                <div className="h-4 w-[1px] bg-border/60" />
+                                {/* Breadcrumb could go here */}
                             </div>
-                        </main>
-                    </div>
-                </SWRProvider>
-            </ToastProvider>
+                        </header>
+                        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+                            {children}
+                        </div>
+                    </main>
+                    <Toaster />
+                </SidebarProvider>
+            </SWRProvider>
         </ErrorBoundary>
     );
 }
