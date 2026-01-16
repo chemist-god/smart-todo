@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function SecuritySettings() {
@@ -14,26 +14,18 @@ export default function SecuritySettings() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (newPassword !== confirmPassword) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Passwords do not match'
-            });
+            toast.error('Error', { description: 'Passwords do not match' });
             return;
         }
 
         if (newPassword.length < 6) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Password must be at least 6 characters'
-            });
+            toast.error('Error', { description: 'Password must be at least 6 characters' });
             return;
         }
 
@@ -41,20 +33,12 @@ export default function SecuritySettings() {
         try {
             // TODO: Implement API endpoint to change password
             await new Promise(resolve => setTimeout(resolve, 1000));
-            addToast({
-                type: 'success',
-                title: 'Success!',
-                message: 'Password changed successfully'
-            });
+            toast.success('Success!', { description: 'Password changed successfully' });
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Failed to change password'
-            });
+            toast.error('Error', { description: 'Failed to change password' });
         } finally {
             setLoading(false);
         }
