@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function InvitationTest() {
@@ -10,13 +10,13 @@ export default function InvitationTest() {
     const [message, setMessage] = useState("");
     const [invitationId, setInvitationId] = useState("");
     const [loading, setLoading] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const createInvitation = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!stakeId.trim() || !email.trim()) {
-            addToast({ type: 'error', title: 'Error', message: 'Please fill in all fields' });
+            toast.error('Error', { description: 'Please fill in all fields' });
             return;
         }
 
@@ -38,23 +38,17 @@ export default function InvitationTest() {
 
             if (response.ok) {
                 setInvitationId(data.invitationId);
-                addToast({
-                    type: 'success',
-                    title: 'Invitation Created!',
-                    message: `Invitation ID: ${data.invitationId}`
+                toast.success('Invitation Created!', {
+                    description: `Invitation ID: ${data.invitationId}`
                 });
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to create invitation'
+                toast.error('Error', {
+                    description: data.error || 'Failed to create invitation'
                 });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while creating invitation'
+            toast.error('Error', {
+                description: 'An error occurred while creating invitation'
             });
         } finally {
             setLoading(false);
@@ -63,7 +57,7 @@ export default function InvitationTest() {
 
     const testInvitation = async () => {
         if (!invitationId.trim()) {
-            addToast({ type: 'error', title: 'Error', message: 'Please create an invitation first' });
+            toast.error('Error', { description: 'Please create an invitation first' });
             return;
         }
 
@@ -73,23 +67,17 @@ export default function InvitationTest() {
             const data = await response.json();
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Invitation Found!',
-                    message: `Stake: ${data.invitation.stakeTitle}`
+                toast.success('Invitation Found!', {
+                    description: `Stake: ${data.invitation.stakeTitle}`
                 });
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to fetch invitation'
+                toast.error('Error', {
+                    description: data.error || 'Failed to fetch invitation'
                 });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while testing invitation'
+            toast.error('Error', {
+                description: 'An error occurred while testing invitation'
             });
         } finally {
             setLoading(false);
