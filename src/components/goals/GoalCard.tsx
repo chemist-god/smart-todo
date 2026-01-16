@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { format, isAfter, isBefore } from 'date-fns';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { useToast } from '../ui/Toast';
+import { toast } from "sonner";
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,7 @@ export default function GoalCard({
     const [isExpanded, setIsExpanded] = useState(false);
     const [progressInput, setProgressInput] = useState((goal.current ?? 0).toString());
     const [isUpdating, setIsUpdating] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const getGoalTypeVariant = (type: GoalType): "default" | "secondary" | "destructive" | "outline" => {
         switch (type) {
@@ -82,21 +82,21 @@ export default function GoalCard({
     const handleProgressUpdate = async () => {
         const newProgress = parseInt(progressInput);
         if (isNaN(newProgress) || newProgress < 0) {
-            addToast({ type: 'error', title: 'Invalid progress value', message: 'Please enter a valid number' });
+            toast.error('Invalid progress value', { description: 'Please enter a valid number' });
             return;
         }
 
         if (newProgress > goal.target) {
-            addToast({ type: 'warning', title: 'Progress exceeds target', message: 'Progress cannot be higher than the target' });
+            toast.warning('Progress exceeds target', { description: 'Progress cannot be higher than the target' });
             return;
         }
 
         try {
             setIsUpdating(true);
             await onUpdateProgress(goal.id, newProgress);
-            addToast({ type: 'success', title: 'Progress updated', message: 'Your goal progress has been updated successfully' });
+            toast.success('Progress updated', { description: 'Your goal progress has been updated successfully' });
         } catch (error) {
-            addToast({ type: 'error', title: 'Update failed', message: 'Failed to update progress. Please try again.' });
+            toast.error('Update failed', { description: 'Failed to update progress. Please try again.' });
         } finally {
             setIsUpdating(false);
         }
