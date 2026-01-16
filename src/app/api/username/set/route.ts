@@ -6,6 +6,7 @@ import { validateUsername, sanitizeUsername } from "@/lib/username-validation";
 /**
  * POST /api/username/set
  * Set username for authenticated user
+ * Username is profile data - accessible to all authenticated users (verified or not)
  */
 export async function POST(request: NextRequest) {
     try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
 
         if (!user || !user.id) {
             return NextResponse.json(
-                { success: false, error: 'Unauthorized' },
+                { success: false, error: 'Unauthorized. Please sign in to set your username.' },
                 { status: 401 }
             );
         }
