@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LightBulbIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { Lightbulb, AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import TodoItem from "./TodoItem";
 
 // Convert Prisma Todo to component Todo type
@@ -108,7 +109,7 @@ export default function FocusTasks() {
           disabled={refreshing}
           className="mt-2 text-sm text-red-700 dark:text-red-300 hover:underline flex items-center"
         >
-          <ArrowPathIcon className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
           {refreshing ? 'Retrying...' : 'Retry'}
         </button>
       </div>
@@ -118,7 +119,7 @@ export default function FocusTasks() {
   if (focusTasks.length === 0) {
     return (
       <div className="text-center p-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <LightBulbIcon className="mx-auto h-12 w-12 text-blue-400" />
+        <Lightbulb className="mx-auto h-12 w-12 text-muted-foreground/50" />
         <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No focus tasks right now</h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Complete some todos or add new ones to see your focus tasks here.
@@ -129,24 +130,17 @@ export default function FocusTasks() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-          <LightBulbIcon className="h-5 w-5 inline-block mr-2 text-yellow-500" />
-          Focus Tasks (80/20 Rule)
-        </h2>
-        <div className="flex items-center">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 mr-2">
-            {focusTasks.length} tasks
-          </span>
-          <button
-            onClick={fetchFocusTasks}
-            disabled={refreshing}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            title="Refresh"
-          >
-            <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+      <div className="flex items-center justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={fetchFocusTasks}
+          disabled={refreshing}
+          className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+          title="Refresh"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       <div className="space-y-3">
@@ -170,7 +164,7 @@ export default function FocusTasks() {
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center">
-        <ExclamationTriangleIcon className="h-4 w-4 mr-1 text-yellow-500 flex-shrink-0" />
+        <AlertTriangle className="h-4 w-4 mr-1 text-yellow-500 flex-shrink-0" />
         <span>These are your highest impact tasks based on the 80/20 rule and Eisenhower matrix</span>
       </div>
     </div>
