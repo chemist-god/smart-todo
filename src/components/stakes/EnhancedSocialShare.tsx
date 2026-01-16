@@ -10,7 +10,7 @@ import {
     XMarkIcon,
     CheckIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { MessageTemplateService, MessageTemplate } from "@/lib/message-templates";
 import EnhancedUniversalShareModal from "./EnhancedUniversalShareModal";
@@ -45,7 +45,7 @@ export default function EnhancedSocialShare({
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
     const [securityCode, setSecurityCode] = useState<string | null>(null);
     const [shareUrl, setShareUrl] = useState<string>(`${window.location.origin}/stakes/invite/${stakeId}`);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     // Fetch securityCode for this stake
     useEffect(() => {
@@ -140,7 +140,7 @@ export default function EnhancedSocialShare({
         e.preventDefault();
 
         if (!email.trim()) {
-            addToast({ type: 'error', title: 'Error', message: 'Please enter an email address' });
+            toast.error('Error', { description: 'Please enter an email address' });
             return;
         }
 
@@ -161,10 +161,8 @@ export default function EnhancedSocialShare({
             });
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Invitation Sent!',
-                    message: `Your provocative message was sent to ${email}`
+                toast.success('Invitation Sent!', {
+                    description: `Your provocative message was sent to ${email}`
                 });
                 setEmail("");
                 setCustomMessage("");
@@ -172,10 +170,10 @@ export default function EnhancedSocialShare({
                 onShareSent();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to send invitation" });
+                toast.error('Error', { description: error.error || "Failed to send invitation" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while sending invitation" });
+            toast.error('Error', { description: "An error occurred while sending invitation" });
         } finally {
             setIsLoading(false);
         }
@@ -184,9 +182,9 @@ export default function EnhancedSocialShare({
     const copyToClipboard = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            addToast({ type: 'success', title: 'Copied!', message: 'Message copied to clipboard' });
+            toast.success('Copied!', { description: 'Message copied to clipboard' });
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to copy message' });
+            toast.error('Error', { description: 'Failed to copy message' });
         }
     };
 
