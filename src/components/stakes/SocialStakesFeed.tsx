@@ -15,7 +15,7 @@ import {
     SparklesIcon,
     PlusIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import StakeCard from "./StakeCard";
 import JoinStakeModal from "./JoinStakeModal";
@@ -68,7 +68,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStake, setSelectedStake] = useState<SocialStake | null>(null);
     const [showJoinModal, setShowJoinModal] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         fetchSocialStakes();
@@ -91,18 +91,10 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
                 const data = await response.json();
                 setStakes(data.stakes || []);
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: 'Failed to fetch social stakes'
-                });
+                toast.error('Error', { description: 'Failed to fetch social stakes' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while fetching social stakes'
-            });
+            toast.error('Error', { description: 'An error occurred while fetching social stakes' });
         } finally {
             setLoading(false);
         }
@@ -117,11 +109,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
         try {
             // Increment view count
             await fetch(`/api/stakes/${stakeId}/view`, { method: 'POST' });
-            addToast({
-                type: 'success',
-                title: 'Viewed!',
-                message: 'Stake view recorded'
-            });
+            toast.success('Viewed!', { description: 'Stake view recorded' });
             fetchSocialStakes(); // Refresh to update counts
         } catch (error) {
             console.error('Error viewing stake:', error);
@@ -132,11 +120,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
         try {
             // Toggle like status
             await fetch(`/api/stakes/${stakeId}/like`, { method: 'POST' });
-            addToast({
-                type: 'success',
-                title: 'Liked!',
-                message: 'You liked this stake'
-            });
+            toast.success('Liked!', { description: 'You liked this stake' });
             fetchSocialStakes(); // Refresh to update counts
         } catch (error) {
             console.error('Error liking stake:', error);
@@ -152,11 +136,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
             const shareUrl = `${window.location.origin}/stakes/invite/${stakeId}`;
             await navigator.clipboard.writeText(shareUrl);
 
-            addToast({
-                type: 'success',
-                title: 'Shared!',
-                message: 'Share link copied to clipboard'
-            });
+            toast.success('Shared!', { description: 'Share link copied to clipboard' });
             fetchSocialStakes(); // Refresh to update counts
         } catch (error) {
             console.error('Error sharing stake:', error);
@@ -172,11 +152,7 @@ export default function SocialStakesFeed({ userId }: SocialStakesFeedProps) {
         setShowJoinModal(false);
         setSelectedStake(null);
         fetchSocialStakes();
-        addToast({
-            type: 'success',
-            title: 'Joined Successfully!',
-            message: 'You are now supporting this stake'
-        });
+        toast.success('Joined Successfully!', { description: 'You are now supporting this stake' });
     };
 
     const getFilterIcon = (filterType: string) => {
