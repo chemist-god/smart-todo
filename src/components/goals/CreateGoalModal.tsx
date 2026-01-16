@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { useToast } from '../ui/Toast';
+import { toast } from "sonner";
 
 interface Milestone {
     title: string;
@@ -39,7 +39,7 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const goalTypes = [
         { value: 'TASKS_COMPLETED', label: 'Tasks Completed', unit: 'tasks' },
@@ -122,11 +122,7 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
         e.preventDefault();
 
         if (!validateForm()) {
-            addToast({
-                type: 'error',
-                title: 'Validation Error',
-                message: 'Please fix the errors in the form before submitting.'
-            });
+            toast.error('Validation Error', { description: 'Please fix the errors in the form before submitting.' });
             return;
         }
 
@@ -140,19 +136,11 @@ export default function CreateGoalModal({ isOpen, onClose, onSubmit }: CreateGoa
             };
 
             await onSubmit(goalData);
-            addToast({
-                type: 'success',
-                title: 'Goal created',
-                message: 'Your new goal has been created successfully!'
-            });
+            toast.success('Goal created', { description: 'Your new goal has been created successfully!' });
             onClose();
         } catch (error) {
             console.error('Error creating goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to create goal',
-                message: 'An error occurred while creating the goal. Please try again.'
-            });
+            toast.error('Failed to create goal', { description: 'An error occurred while creating the goal. Please try again.' });
         } finally {
             setIsSubmitting(false);
         }
