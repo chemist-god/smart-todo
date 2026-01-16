@@ -83,36 +83,24 @@ function SignUpForm() {
 
       if (response.ok && data.success) {
         // Store identifier in sessionStorage for resend functionality
-        // This is more secure than server-side lookup
         const identifierToStore = usePhone ? phone : email;
         if (identifierToStore) {
           sessionStorage.setItem('verification_identifier', identifierToStore);
           sessionStorage.setItem('verification_type', usePhone ? 'PHONE_VERIFICATION' : 'EMAIL_VERIFICATION');
         }
 
-        // Automatically sign in the user after successful registration
-        const signInResult = await signIn("credentials", {
-          email: usePhone ? undefined : email,
-          phone: usePhone ? phone : undefined,
-          password: password,
-          redirect: false,
+        // Redirect to verify-request page for email verification
+        // User must verify their email before they can sign in
+        setSuccess(data.message || "Account created successfully! Please check your email to verify your account.");
+        
+        // Build redirect URL with identifier and type for verification page
+        const verifyParams = new URLSearchParams({
+          identifier: identifierToStore,
+          type: usePhone ? 'PHONE_VERIFICATION' : 'EMAIL_VERIFICATION',
         });
-
-        if (signInResult?.error) {
-          // If sign-in fails, still redirect but user will need to sign in manually
-          console.error("Auto sign-in failed:", signInResult.error);
-          setError("Account created but sign-in failed. Please sign in manually.");
-          setTimeout(() => {
-            router.push("/auth/signin");
-          }, 2000);
-          return;
-        }
-
-        // Redirect to username setup (which will then redirect to verification/welcome)
-        const redirectUrl = data.redirectUrl || searchParams.get('redirect') || "/auth/setup-username";
-        setSuccess(data.message || "Account created successfully! Let's set up your username...");
+        
         setTimeout(() => {
-          router.push(redirectUrl);
+          router.push(`/auth/verify-request?${verifyParams.toString()}`);
         }, 1500);
       } else {
         setError(data.error || "An error occurred. Please try again.");
