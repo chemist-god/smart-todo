@@ -11,7 +11,7 @@ import {
     XCircleIcon,
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface StakeInvitation {
@@ -40,7 +40,7 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
     const [joinAmount, setJoinAmount] = useState(10);
     const [isSupporter, setIsSupporter] = useState(true);
     const [securityVerified, setSecurityVerified] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         fetchInvitation();
@@ -55,10 +55,10 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
                 setInvitation(data.invitation);
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || 'Invitation not found' });
+                toast.error('Error', { description: error.error || 'Invitation not found' });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to load invitation' });
+            toast.error('Error', { description: 'Failed to load invitation' });
         } finally {
             setLoading(false);
         }
@@ -74,13 +74,13 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
 
             if (response.ok) {
                 setSecurityVerified(true);
-                addToast({ type: 'success', title: 'Verified', message: 'Security code verified successfully' });
+                toast.success('Verified', { description: 'Security code verified successfully' });
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || 'Invalid security code' });
+                toast.error('Error', { description: error.error || 'Invalid security code' });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to verify security code' });
+            toast.error('Error', { description: 'Failed to verify security code' });
         }
     };
 
@@ -88,12 +88,12 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
         e.preventDefault();
 
         if (!securityVerified) {
-            addToast({ type: 'error', title: 'Error', message: 'Please verify security code first' });
+            toast.error('Error', { description: 'Please verify security code first' });
             return;
         }
 
         if (joinAmount < 1) {
-            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least ₵1' });
+            toast.error('Error', { description: 'Amount must be at least ₵1' });
             return;
         }
 
@@ -109,10 +109,8 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
             });
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Joined Successfully!',
-                    message: `You've joined ${invitation?.inviterName}'s stake with ₵${joinAmount}`
+                toast.success('Joined Successfully!', {
+                    description: `You've joined ${invitation?.inviterName}'s stake with ₵${joinAmount}`
                 });
                 // Redirect to stakes page after successful join
                 setTimeout(() => {
@@ -120,10 +118,10 @@ export default function StakeInvitationSystem({ invitationId }: StakeInvitationS
                 }, 2000);
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || 'Failed to join stake' });
+                toast.error('Error', { description: error.error || 'Failed to join stake' });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'An error occurred while joining' });
+            toast.error('Error', { description: 'An error occurred while joining' });
         } finally {
             setJoining(false);
         }
