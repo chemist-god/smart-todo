@@ -15,10 +15,10 @@ import {
     HeartIcon,
     FireIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { SocialShareService, StakeShareData } from "@/lib/social-share-service";
-import { MessageTemplateService } from "@/lib/enhanced-message-templates";
+import { MessageTemplateService } from "@/lib/message-templates";
 import QRCode from "qrcode";
 
 interface EnhancedUniversalShareModalProps {
@@ -36,7 +36,7 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
     const [loading, setLoading] = useState(false);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
     const [templates, setTemplates] = useState<any[]>([]);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     // Platform configurations with authentic logos and colors
     const platforms = [
@@ -207,7 +207,7 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
         try {
             await navigator.clipboard.writeText(text);
             setCopiedItems(prev => new Set([...prev, itemId]));
-            addToast({ type: 'success', title: 'Copied!', message: 'Link copied to clipboard' });
+            toast.success('Copied!', { description: 'Link copied to clipboard' });
             setTimeout(() => {
                 setCopiedItems(prev => {
                     const newSet = new Set(prev);
@@ -216,7 +216,7 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                 });
             }, 2000);
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to copy to clipboard' });
+            toast.error('Error', { description: 'Failed to copy to clipboard' });
         }
     };
 
@@ -278,8 +278,8 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex-1 justify-center ${activeTab === tab.id
-                                            ? 'bg-primary text-primary-foreground shadow-soft'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        ? 'bg-primary text-primary-foreground shadow-soft'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                         }`}
                                 >
                                     <tab.icon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -307,13 +307,13 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                         >
                                             {/* Glass morphism overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl pointer-events-none" />
-                                            
+
                                             <div className="relative text-center">
                                                 <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">{platform.icon}</div>
                                                 <h4 className="font-semibold text-foreground text-xs sm:text-sm group-hover:text-primary transition-colors">{platform.name}</h4>
                                                 <p className="text-xs text-muted-foreground/70 mt-1 hidden sm:block">{platform.description}</p>
                                             </div>
-                                            
+
                                             {/* Hover indicator */}
                                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-110">
                                                 <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
@@ -339,13 +339,13 @@ export default function EnhancedUniversalShareModal({ isOpen, onClose, shareData
                                             key={template.id}
                                             onClick={() => handleTemplateSelect(template)}
                                             className={`group relative bg-card/40 backdrop-blur-sm border rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-soft ${selectedTemplate?.id === template.id
-                                                    ? 'border-primary/30 bg-primary/5'
-                                                    : 'border-border/30 hover:border-primary/20 hover:bg-card/60'
+                                                ? 'border-primary/30 bg-primary/5'
+                                                : 'border-border/30 hover:border-primary/20 hover:bg-card/60'
                                                 }`}
                                         >
                                             {/* Glass morphism overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl pointer-events-none" />
-                                            
+
                                             <div className="relative flex items-start gap-3">
                                                 <div className="text-xl sm:text-2xl">{template.emoji}</div>
                                                 <div className="flex-1 min-w-0">
