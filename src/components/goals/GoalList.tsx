@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { useToast } from '../ui/Toast';
+import { toast } from "sonner";
 
 export default function GoalList() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -22,7 +22,7 @@ export default function GoalList() {
     const [filter, setFilter] = useState<GoalFilter['status']>('all');
     const [typeFilter, setTypeFilter] = useState<string>('all');
     const [isLoadingAction, setIsLoadingAction] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     // Use enhanced hook with real-time updates
     const {
@@ -38,19 +38,11 @@ export default function GoalList() {
         setIsLoadingAction(true);
         try {
             await addGoal(goalData);
-            addToast({
-                type: 'success',
-                title: 'Goal created',
-                message: 'Your new goal has been created successfully!'
-            });
+            toast.success('Goal created', { description: 'Your new goal has been created successfully!' });
             setIsCreateModalOpen(false);
         } catch (error) {
             console.error('Error creating goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to create goal',
-                message: 'Please try again or contact support if the issue persists.'
-            });
+            toast.error('Failed to create goal', { description: 'Please try again or contact support if the issue persists.' });
         } finally {
             setIsLoadingAction(false);
         }
@@ -65,24 +57,16 @@ export default function GoalList() {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, goalData);
-            addToast({
-                type: 'success',
-                title: 'Goal updated',
-                message: 'Your goal has been updated successfully!'
-            });
+            toast.success('Goal updated', { description: 'Your goal has been updated successfully!' });
             setIsEditModalOpen(false);
             setEditingGoal(null);
         } catch (error) {
             console.error('Error updating goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to update goal',
-                message: 'Please try again or contact support if the issue persists.'
-            });
+            toast.error('Failed to update goal', { description: 'Please try again or contact support if the issue persists.' });
         } finally {
             setIsLoadingAction(false);
         }
-    }, [updateGoal, addToast]);
+    }, [updateGoal]);
 
     const handleDeleteGoal = useCallback(async (goalId: string) => {
         const confirmed = window.confirm('Are you sure you want to delete this goal? This action cannot be undone.');
@@ -91,64 +75,40 @@ export default function GoalList() {
         setIsLoadingAction(true);
         try {
             await deleteGoal(goalId);
-            addToast({
-                type: 'success',
-                title: 'Goal deleted',
-                message: 'The goal has been deleted successfully.'
-            });
+            toast.success('Goal deleted', { description: 'The goal has been deleted successfully.' });
         } catch (error) {
             console.error('Error deleting goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to delete goal',
-                message: 'Please try again or contact support if the issue persists.'
-            });
+            toast.error('Failed to delete goal', { description: 'Please try again or contact support if the issue persists.' });
         } finally {
             setIsLoadingAction(false);
         }
-    }, [deleteGoal, addToast]);
+    }, [deleteGoal]);
 
     const handleToggleActive = useCallback(async (goalId: string, isActive: boolean) => {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { isActive });
-            addToast({
-                type: 'success',
-                title: isActive ? 'Goal activated' : 'Goal paused',
-                message: `The goal has been ${isActive ? 'activated' : 'paused'} successfully.`
-            });
+            toast.success(isActive ? 'Goal activated' : 'Goal paused', { description: `The goal has been ${isActive ? 'activated' : 'paused'} successfully.` });
         } catch (error) {
             console.error('Error updating goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to update goal',
-                message: 'Please try again or contact support if the issue persists.'
-            });
+            toast.error('Failed to update goal', { description: 'Please try again or contact support if the issue persists.' });
         } finally {
             setIsLoadingAction(false);
         }
-    }, [updateGoal, addToast]);
+    }, [updateGoal]);
 
     const handleUpdateProgress = useCallback(async (goalId: string, current: number) => {
         setIsLoadingAction(true);
         try {
             await updateGoal(goalId, { current });
-            addToast({
-                type: 'success',
-                title: 'Progress updated',
-                message: 'Your goal progress has been updated successfully!'
-            });
+            toast.success('Progress updated', { description: 'Your goal progress has been updated successfully!' });
         } catch (error) {
             console.error('Error updating progress:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to update progress',
-                message: 'Please try again or contact support if the issue persists.'
-            });
+            toast.error('Failed to update progress', { description: 'Please try again or contact support if the issue persists.' });
         } finally {
             setIsLoadingAction(false);
         }
-    }, [updateGoal, addToast]);
+    }, [updateGoal]);
 
     const getGoalTypeOptions = useMemo(() => {
         const goalsArray = Array.isArray(goals) ? goals : [];
