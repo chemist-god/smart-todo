@@ -227,9 +227,10 @@ export async function POST(request: NextRequest) {
         // Always include identifier and type for resend functionality
 
         // Determine final destination after username setup
+        // User is auto-signed in, so redirect to home/dashboard
         const finalDestination = invitationAccepted && inviterName
             ? '/welcome'
-            : '/auth/verify-request';
+            : '/';
 
         // Build URL params for username setup page
         const urlParams = new URLSearchParams({
