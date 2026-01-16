@@ -5,264 +5,287 @@ export interface MessageTemplate {
     category: string;
     difficulty: string;
     emoji: string;
+    description: string;
+    hashtags: string[];
 }
 
 export const MESSAGE_TEMPLATES: MessageTemplate[] = [
-    // Fitness & Health
+    // Fitness & Health - More Engaging
     {
-        id: 'fitness-1',
+        id: 'fitness-challenge-1',
         title: 'Fitness Challenge',
-        template: '🔥 I\'m putting ₵{amount} on the line to {goal} in {timeframe}! Think I can do it? Join me and let\'s prove the doubters wrong! 💪',
+        template: '🔥 CHALLENGE ALERT! I\'m putting ₵{amount} on the line to {title}! Think I\'ll fail? Think again! 💪 Join me and let\'s turn doubters into believers!',
         category: 'fitness',
         difficulty: 'MEDIUM',
-        emoji: '💪'
+        emoji: '💪',
+        description: 'Motivational fitness challenge',
+        hashtags: ['#FitnessChallenge', '#StakeToWin', '#NoExcuses', '#FitnessMotivation']
     },
     {
-        id: 'fitness-2',
+        id: 'fitness-challenge-2',
         title: 'Weight Loss Bet',
-        template: '⚖️ I\'m staking ₵{amount} to lose {goal} by {deadline}. If I fail, you get the money. If I succeed, we both win! Who\'s in? 🎯',
+        template: '⚖️ BET AGAINST ME! I\'m staking ₵{amount} to {title} by {deadline}. If I fail, you get the money. If I succeed, we both win! Who\'s brave enough? 🎯',
         category: 'fitness',
         difficulty: 'HARD',
-        emoji: '⚖️'
+        emoji: '⚖️',
+        description: 'High-stakes weight loss challenge',
+        hashtags: ['#WeightLoss', '#BetOnMe', '#FitnessBet', '#ChallengeAccepted']
     },
     {
-        id: 'fitness-3',
+        id: 'fitness-challenge-3',
         title: 'Gym Streak',
-        template: '🏋️‍♂️ I\'m betting ₵{amount} that I can hit the gym {frequency} for {timeframe}. Support me or watch me fail! 💀',
+        template: '🏋️‍♂️ STREAK ALERT! I\'m betting ₵{amount} that I can {title} for {timeframe}. Support me or watch me fail! 💀 This is where legends are made!',
         category: 'fitness',
         difficulty: 'EASY',
-        emoji: '🏋️‍♂️'
+        emoji: '🏋️‍♂️',
+        description: 'Gym consistency challenge',
+        hashtags: ['#GymStreak', '#Consistency', '#FitnessJourney', '#NoDaysOff']
+    },
+    {
+        id: 'fitness-challenge-4',
+        title: 'Transformation',
+        template: '🌟 TRANSFORMATION TIME! I\'m staking ₵{amount} to {title}! This is my "before" - help me create an epic "after"! 🚀 Let\'s make this legendary!',
+        category: 'fitness',
+        difficulty: 'HARD',
+        emoji: '🌟',
+        description: 'Body transformation challenge',
+        hashtags: ['#Transformation', '#GlowUp', '#FitnessJourney', '#BeastMode']
     },
 
-    // Work & Career
+    // Work & Career - More Professional
     {
-        id: 'work-1',
+        id: 'work-challenge-1',
         title: 'Project Deadline',
-        template: '💼 I\'m staking ₵{amount} to finish {project} by {deadline}. This is my accountability insurance! Who wants to hold me to it? 📈',
+        template: '💼 PROJECT COMMITMENT! I\'m staking ₵{amount} to {title} by {deadline}. This is my accountability insurance! Who wants to hold me to it? 📈 Let\'s build something amazing!',
         category: 'work',
         difficulty: 'HARD',
-        emoji: '💼'
+        emoji: '💼',
+        description: 'Professional project commitment',
+        hashtags: ['#ProjectCommitment', '#Accountability', '#ProfessionalGrowth', '#DeadlineChallenge']
     },
     {
-        id: 'work-2',
+        id: 'work-challenge-2',
         title: 'Skill Learning',
-        template: '📚 I\'m putting ₵{amount} on learning {skill} in {timeframe}. If I don\'t master it, you get paid! Challenge accepted? 🧠',
+        template: '📚 SKILL UP CHALLENGE! I\'m putting ₵{amount} on learning {title} in {timeframe}. If I don\'t master it, you get paid! Challenge accepted? 🧠 Let\'s level up together!',
         category: 'work',
         difficulty: 'MEDIUM',
-        emoji: '📚'
+        emoji: '📚',
+        description: 'Professional skill development',
+        hashtags: ['#SkillUp', '#Learning', '#ProfessionalDevelopment', '#ChallengeAccepted']
     },
     {
-        id: 'work-3',
-        title: 'Job Hunt',
-        template: '🎯 I\'m betting ₵{amount} that I\'ll land a job in {field} by {deadline}. Support my job hunt or profit from my failure! 💼',
+        id: 'work-challenge-3',
+        title: 'Career Goal',
+        template: '🎯 CAREER BET! I\'m staking ₵{amount} to {title} by {deadline}. This is my career insurance policy! Who\'s ready to bet on my success? 🚀 Let\'s make it happen!',
         category: 'work',
-        difficulty: 'EXTREME',
-        emoji: '🎯'
+        difficulty: 'HARD',
+        emoji: '🎯',
+        description: 'Career advancement challenge',
+        hashtags: ['#CareerGoals', '#ProfessionalGrowth', '#SuccessMindset', '#CareerBet']
+    },
+    {
+        id: 'work-challenge-4',
+        title: 'Productivity Challenge',
+        template: '⚡ PRODUCTIVITY BOOST! I\'m betting ₵{amount} that I can {title} for {timeframe}. This is my productivity insurance! Who\'s ready to see me crush it? 💪',
+        category: 'work',
+        difficulty: 'MEDIUM',
+        emoji: '⚡',
+        description: 'Productivity improvement challenge',
+        hashtags: ['#Productivity', '#Efficiency', '#WorkSmart', '#ProductivityChallenge']
     },
 
-    // Learning & Skills
+    // Learning & Education - More Inspiring
     {
-        id: 'learning-1',
+        id: 'learning-challenge-1',
+        title: 'Study Streak',
+        template: '📖 STUDY STREAK! I\'m staking ₵{amount} to {title} for {timeframe}. This is my knowledge insurance! Who\'s ready to see me become a genius? 🧠 Let\'s learn together!',
+        category: 'learning',
+        difficulty: 'MEDIUM',
+        emoji: '📖',
+        description: 'Consistent study challenge',
+        hashtags: ['#StudyStreak', '#Learning', '#Knowledge', '#StudyChallenge']
+    },
+    {
+        id: 'learning-challenge-2',
         title: 'Language Learning',
-        template: '🗣️ I\'m staking ₵{amount} to become fluent in {language} by {deadline}. Think I can do it? Join the challenge! 🌍',
+        template: '🗣️ LANGUAGE CHALLENGE! I\'m betting ₵{amount} that I can {title} in {timeframe}. This is my fluency insurance! Who\'s ready to hear me speak like a native? 🌍',
         category: 'learning',
         difficulty: 'HARD',
-        emoji: '🗣️'
+        emoji: '🗣️',
+        description: 'Language learning challenge',
+        hashtags: ['#LanguageLearning', '#Fluency', '#Multilingual', '#LanguageChallenge']
     },
     {
-        id: 'learning-2',
-        title: 'Coding Challenge',
-        template: '💻 I\'m putting ₵{amount} on building {project} in {timeframe}. Code or cash - what\'s it gonna be? 🚀',
-        category: 'learning',
-        difficulty: 'MEDIUM',
-        emoji: '💻'
-    },
-    {
-        id: 'learning-3',
-        title: 'Certification',
-        template: '🏆 I\'m betting ₵{amount} that I\'ll pass {certification} by {deadline}. Support my study grind! 📖',
+        id: 'learning-challenge-3',
+        title: 'Certification Goal',
+        template: '🏆 CERTIFICATION BET! I\'m staking ₵{amount} to {title} by {deadline}. This is my expertise insurance! Who\'s ready to see me become certified? 📜 Let\'s get qualified!',
         category: 'learning',
         difficulty: 'HARD',
-        emoji: '🏆'
+        emoji: '🏆',
+        description: 'Professional certification challenge',
+        hashtags: ['#Certification', '#ProfessionalDevelopment', '#Expertise', '#CertificationChallenge']
     },
 
-    // Personal Development
+    // Personal Development - More Motivational
     {
-        id: 'personal-1',
+        id: 'personal-challenge-1',
         title: 'Habit Formation',
-        template: '🔄 I\'m staking ₵{amount} to build the habit of {habit} for {timeframe}. Will you help me stay accountable? ⏰',
-        category: 'personal',
-        difficulty: 'EASY',
-        emoji: '🔄'
-    },
-    {
-        id: 'personal-2',
-        title: 'Social Challenge',
-        template: '👥 I\'m putting ₵{amount} on {social_goal} by {deadline}. Introvert vs. Social Life - who wins? 🤝',
+        template: '🌱 HABIT CHALLENGE! I\'m putting ₵{amount} on {title} for {timeframe}. This is my transformation insurance! Who\'s ready to see me become unstoppable? 💪 Let\'s build better habits!',
         category: 'personal',
         difficulty: 'MEDIUM',
-        emoji: '👥'
+        emoji: '🌱',
+        description: 'Habit formation challenge',
+        hashtags: ['#HabitFormation', '#PersonalGrowth', '#Transformation', '#HabitChallenge']
     },
     {
-        id: 'personal-3',
-        title: 'Mindfulness',
-        template: '🧘 I\'m betting ₵{amount} that I can meditate {frequency} for {timeframe}. Inner peace or financial loss? 🕯️',
+        id: 'personal-challenge-2',
+        title: 'Mindfulness Practice',
+        template: '🧘‍♀️ MINDFULNESS BET! I\'m staking ₵{amount} to {title} for {timeframe}. This is my peace insurance! Who\'s ready to see me become zen? 🌸 Let\'s find inner peace!',
         category: 'personal',
         difficulty: 'EASY',
-        emoji: '🧘'
+        emoji: '🧘‍♀️',
+        description: 'Mindfulness practice challenge',
+        hashtags: ['#Mindfulness', '#InnerPeace', '#MentalHealth', '#MindfulnessChallenge']
+    },
+    {
+        id: 'personal-challenge-3',
+        title: 'Financial Goal',
+        template: '💰 FINANCIAL CHALLENGE! I\'m betting ₵{amount} that I can {title} by {deadline}. This is my wealth insurance! Who\'s ready to see me become financially free? 🚀 Let\'s build wealth!',
+        category: 'personal',
+        difficulty: 'HARD',
+        emoji: '💰',
+        description: 'Financial goal challenge',
+        hashtags: ['#FinancialGoals', '#WealthBuilding', '#FinancialFreedom', '#MoneyChallenge']
     },
 
-    // Creative Projects
+    // Creative & Hobbies - More Artistic
     {
-        id: 'creative-1',
-        title: 'Art Project',
-        template: '🎨 I\'m staking ₵{amount} to complete {art_project} by {deadline}. Support my creative journey! ✨',
+        id: 'creative-challenge-1',
+        title: 'Creative Project',
+        template: '🎨 CREATIVE CHALLENGE! I\'m staking ₵{amount} to {title} by {deadline}. This is my creativity insurance! Who\'s ready to see me create something amazing? ✨ Let\'s make art!',
         category: 'creative',
         difficulty: 'MEDIUM',
-        emoji: '🎨'
+        emoji: '🎨',
+        description: 'Creative project challenge',
+        hashtags: ['#CreativeChallenge', '#Art', '#Creativity', '#CreativeProject']
     },
     {
-        id: 'creative-2',
+        id: 'creative-challenge-2',
         title: 'Writing Challenge',
-        template: '✍️ I\'m putting ₵{amount} on writing {writing_goal} by {deadline}. Words or wealth - what\'s your bet? 📝',
+        template: '✍️ WRITING CHALLENGE! I\'m putting ₵{amount} on {title} for {timeframe}. This is my storytelling insurance! Who\'s ready to read my masterpiece? 📚 Let\'s write the future!',
         category: 'creative',
         difficulty: 'HARD',
-        emoji: '✍️'
+        emoji: '✍️',
+        description: 'Writing consistency challenge',
+        hashtags: ['#WritingChallenge', '#Storytelling', '#Writing', '#CreativeWriting']
     },
     {
-        id: 'creative-3',
-        title: 'Music Creation',
-        template: '🎵 I\'m betting ₵{amount} that I\'ll create {music_goal} by {deadline}. Support my musical dreams! 🎶',
+        id: 'creative-challenge-3',
+        title: 'Music Practice',
+        template: '🎵 MUSIC CHALLENGE! I\'m betting ₵{amount} that I can {title} for {timeframe}. This is my musical insurance! Who\'s ready to hear me play like a pro? 🎸 Let\'s make music!',
         category: 'creative',
         difficulty: 'MEDIUM',
-        emoji: '🎵'
+        emoji: '🎵',
+        description: 'Music practice challenge',
+        hashtags: ['#MusicChallenge', '#MusicPractice', '#Musical', '#MusicLearning']
     },
 
-    // Financial Goals
+    // Social & Community - More Engaging
     {
-        id: 'financial-1',
-        title: 'Savings Challenge',
-        template: '💰 I\'m staking ₵{amount} to save ₵{savings_goal} by {deadline}. Money on money - let\'s go! 🏦',
-        category: 'financial',
-        difficulty: 'HARD',
-        emoji: '💰'
-    },
-    {
-        id: 'financial-2',
-        title: 'Investment Learning',
-        template: '📈 I\'m putting ₵{amount} on learning {investment_skill} by {deadline}. Financial literacy or financial loss? 💡',
-        category: 'financial',
-        difficulty: 'MEDIUM',
-        emoji: '📈'
-    },
-    {
-        id: 'financial-3',
-        title: 'Side Hustle',
-        template: '🚀 I\'m betting ₵{amount} that I\'ll launch {side_hustle} by {deadline}. Entrepreneur or employee? 🎯',
-        category: 'financial',
-        difficulty: 'EXTREME',
-        emoji: '🚀'
-    },
-
-    // Social & Relationships
-    {
-        id: 'social-1',
-        title: 'Networking',
-        template: '🤝 I\'m staking ₵{amount} to attend {networking_events} by {deadline}. Introvert vs. Network - who wins? 📞',
-        category: 'social',
-        difficulty: 'MEDIUM',
-        emoji: '🤝'
-    },
-    {
-        id: 'social-2',
-        title: 'Relationship Goal',
-        template: '💕 I\'m putting ₵{amount} on {relationship_goal} by {deadline}. Love or money - what matters more? ❤️',
-        category: 'social',
-        difficulty: 'HARD',
-        emoji: '💕'
-    },
-    {
-        id: 'social-3',
+        id: 'social-challenge-1',
         title: 'Community Service',
-        template: '🌍 I\'m betting ₵{amount} that I\'ll volunteer {volunteer_hours} by {deadline}. Service or selfishness? 🤲',
+        template: '🤝 COMMUNITY CHALLENGE! I\'m staking ₵{amount} to {title} by {deadline}. This is my impact insurance! Who\'s ready to see me make a difference? 🌟 Let\'s change the world!',
+        category: 'social',
+        difficulty: 'MEDIUM',
+        emoji: '🤝',
+        description: 'Community service challenge',
+        hashtags: ['#CommunityService', '#Impact', '#SocialGood', '#CommunityChallenge']
+    },
+    {
+        id: 'social-challenge-2',
+        title: 'Networking Goal',
+        template: '🌐 NETWORKING CHALLENGE! I\'m putting ₵{amount} on {title} for {timeframe}. This is my connection insurance! Who\'s ready to see me build an empire? 🚀 Let\'s connect!',
         category: 'social',
         difficulty: 'EASY',
-        emoji: '🌍'
+        emoji: '🌐',
+        description: 'Professional networking challenge',
+        hashtags: ['#Networking', '#Connections', '#ProfessionalNetwork', '#NetworkingChallenge']
+    },
+
+    // Extreme Challenges - More Intense
+    {
+        id: 'extreme-challenge-1',
+        title: 'Extreme Challenge',
+        template: '🔥 EXTREME CHALLENGE! I\'m staking ₵{amount} to {title} by {deadline}. This is my ultimate test! Who\'s ready to see me push beyond limits? 💀 Let\'s go EXTREME!',
+        category: 'extreme',
+        difficulty: 'EXTREME',
+        emoji: '🔥',
+        description: 'Ultimate challenge',
+        hashtags: ['#ExtremeChallenge', '#NoLimits', '#UltimateTest', '#ExtremeMode']
+    },
+    {
+        id: 'extreme-challenge-2',
+        title: 'Marathon Challenge',
+        template: '🏃‍♂️ MARATHON CHALLENGE! I\'m betting ₵{amount} that I can {title} by {deadline}. This is my endurance insurance! Who\'s ready to see me go the distance? 🏁 Let\'s run!',
+        category: 'extreme',
+        difficulty: 'EXTREME',
+        emoji: '🏃‍♂️',
+        description: 'Marathon training challenge',
+        hashtags: ['#MarathonChallenge', '#Endurance', '#Running', '#MarathonTraining']
     }
 ];
 
 export class MessageTemplateService {
-    /**
-     * Get templates by category
-     */
     static getTemplatesByCategory(category: string): MessageTemplate[] {
-        return MESSAGE_TEMPLATES.filter(template => template.category === category);
+        return MESSAGE_TEMPLATES.filter(template =>
+            template.category.toLowerCase() === category.toLowerCase()
+        );
     }
 
-    /**
-     * Get templates by difficulty
-     */
     static getTemplatesByDifficulty(difficulty: string): MessageTemplate[] {
-        return MESSAGE_TEMPLATES.filter(template => template.difficulty === difficulty);
+        return MESSAGE_TEMPLATES.filter(template =>
+            template.difficulty.toLowerCase() === difficulty.toLowerCase()
+        );
     }
 
-    /**
-     * Get random template
-     */
-    static getRandomTemplate(): MessageTemplate {
-        const randomIndex = Math.floor(Math.random() * MESSAGE_TEMPLATES.length);
-        return MESSAGE_TEMPLATES[randomIndex];
-    }
-
-    /**
-     * Generate personalized message
-     */
-    static generateMessage(
-        template: MessageTemplate,
-        variables: {
-            amount: number;
-            goal: string;
-            deadline: string;
-            timeframe?: string;
-            [key: string]: any;
-        }
-    ): string {
-        let message = template.template;
-
-        // Replace common variables
-        message = message.replace(/{amount}/g, variables.amount.toString());
-        message = message.replace(/{goal}/g, variables.goal);
-        message = message.replace(/{deadline}/g, variables.deadline);
-        message = message.replace(/{timeframe}/g, variables.timeframe || 'the deadline');
-
-        // Replace any other custom variables
-        Object.keys(variables).forEach(key => {
-            if (key !== 'amount' && key !== 'goal' && key !== 'deadline' && key !== 'timeframe') {
-                const placeholder = `{${key}}`;
-                message = message.replace(new RegExp(placeholder, 'g'), variables[key]);
-            }
-        });
-
-        return message;
-    }
-
-    /**
-     * Get template by ID
-     */
     static getTemplateById(id: string): MessageTemplate | undefined {
         return MESSAGE_TEMPLATES.find(template => template.id === id);
     }
 
-    /**
-     * Get all categories
-     */
+    static generateMessage(template: MessageTemplate, data: any): string {
+        let message = template.template;
+
+        // Replace variables in the template
+        message = message.replace(/{amount}/g, data.amount || '0');
+        message = message.replace(/{title}/g, data.title || 'this challenge');
+        message = message.replace(/{deadline}/g, data.deadline || 'the deadline');
+        message = message.replace(/{timeframe}/g, data.timeframe || 'the timeframe');
+        message = message.replace(/{goal}/g, data.goal || 'the goal');
+        message = message.replace(/{project}/g, data.project || 'the project');
+        message = message.replace(/{skill}/g, data.skill || 'the skill');
+        message = message.replace(/{frequency}/g, data.frequency || 'daily');
+
+        // Add hashtags
+        if (template.hashtags && template.hashtags.length > 0) {
+            message += '\n\n' + template.hashtags.join(' ');
+        }
+
+        return message;
+    }
+
+    static getRandomTemplate(category?: string): MessageTemplate {
+        const templates = category ?
+            this.getTemplatesByCategory(category) :
+            MESSAGE_TEMPLATES;
+
+        const randomIndex = Math.floor(Math.random() * templates.length);
+        return templates[randomIndex];
+    }
+
     static getCategories(): string[] {
         return [...new Set(MESSAGE_TEMPLATES.map(template => template.category))];
     }
 
-    /**
-     * Get all difficulties
-     */
     static getDifficulties(): string[] {
         return [...new Set(MESSAGE_TEMPLATES.map(template => template.difficulty))];
     }
