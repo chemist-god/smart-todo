@@ -79,22 +79,28 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+        <div className="flex flex-col gap-8 w-full max-w-[1600px] mx-auto pb-10">
             <DashboardHeader onRefresh={handleRefresh} refreshing={refreshing} />
 
-            <StatsGrid stats={stats} loading={loading} />
+            <div className="space-y-8 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
+                <StatsGrid stats={stats} loading={loading} />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <FocusTasksCard />
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-7 xl:grid-cols-4">
+                    {/* Main Content Area - Focus Tasks */}
+                    <div className="lg:col-span-4 xl:col-span-3 space-y-8">
+                        <FocusTasksCard />
+                    </div>
 
-                <div className="space-y-6">
-                    <StreakCard
-                        currentStreak={stats.currentStreak}
-                        longestStreak={stats.longestStreak}
-                        totalPoints={stats.totalPoints}
-                        level={stats.level}
-                    />
-                    <QuickActions />
+                    {/* Sidebar Area - Streak & Quick Actions */}
+                    <div className="lg:col-span-3 xl:col-span-1 flex flex-col gap-8">
+                        <StreakCard
+                            currentStreak={stats.currentStreak}
+                            longestStreak={stats.longestStreak}
+                            totalPoints={stats.totalPoints}
+                            level={stats.level}
+                        />
+                        <QuickActions />
+                    </div>
                 </div>
             </div>
         </div>
