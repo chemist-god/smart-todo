@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useSession } from "next-auth/react";
-import Sidebar from "./Sidebar";
+import { AppSidebar } from "./app-sidebar"
 import AuthStatus from "../auth/AuthStatus";
 import SWRProvider from "../providers/SWRProvider";
 import ErrorBoundary from "../ui/ErrorBoundary";
-import { ToastProvider } from "../ui/Toast";
+import { Toaster } from "@/components/ui/sonner";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -14,6 +18,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
     const { data: session, status } = useSession();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     if (status === "loading") {
         return (
@@ -52,18 +57,40 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     return (
         <ErrorBoundary>
-            <ToastProvider>
-                <SWRProvider>
-                    <div className="flex h-screen bg-gradient-to-br from-background via-background to-muted/10">
-                        <Sidebar />
-                        <main className="flex-1 overflow-auto">
-                            <div className="p-4 sm:p-6 lg:p-8 lg:pl-4">
-                                {children}
-                            </div>
-                        </main>
-                    </div>
-                </SWRProvider>
-            </ToastProvider>
+            <SWRProvider>
+                <div className="flex min-h-screen bg-background">
+                    {/* Desktop Sidebar */}
+                    <aside className="hidden lg:flex w-72 flex-col fixed inset-y-0 z-50 border-r bg-card shadow-sm">
+                        <AppSidebar />
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 lg:pl-72 flex flex-col min-w-0 transition-all duration-300">
+                        {/* Mobile Header */}
+                        <header className="lg:hidden flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur px-4 sticky top-0 z-40">
+                            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="shrink-0">
+                                        <Menu className="h-5 w-5" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="p-0 w-72">
+                                    <AppSidebar />
+                                </SheetContent>
+                            </Sheet>
+                            <div className="font-semibold text-lg">Smart Todo</div>
+                        </header>
+
+                        {/* Page Content */}
+                        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+                            {children}
+                        </div>
+                    </main>
+
+                    <Toaster />
+                </div>
+            </SWRProvider>
         </ErrorBoundary>
     );
 }

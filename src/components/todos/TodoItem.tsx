@@ -3,16 +3,15 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
-    PencilIcon,
-    TrashIcon,
-    ChevronDownIcon,
-    ClockIcon,
-    StarIcon,
-    PlayIcon,
-    PauseIcon,
-    StopIcon
-} from "@heroicons/react/24/outline";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+    Pencil,
+    Trash2,
+    ChevronDown,
+    Clock,
+    Star,
+    Play,
+    Pause,
+    Square
+} from "lucide-react";
 import UnifiedTimer from "./UnifiedTimer";
 
 interface Todo {
@@ -59,10 +58,10 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     const [isUpdating, setIsUpdating] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
     const [currentTimeSpent, setCurrentTimeSpent] = useState(todo.totalTimeSpent || 0);
-    
+
     // Persistent timer state using localStorage
     const getTimerStorageKey = (todoId: string) => `smart_todo_timer_${todoId}`;
-    
+
     const [timerState, setTimerState] = useState<{
         isRunning: boolean;
         isPaused: boolean;
@@ -87,7 +86,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
         }
         return { isRunning: false, isPaused: false, sessionTime: 0 };
     });
-    
+
     const priorityColors = {
         LOW: "bg-success/10 text-success border-success/20",
         MEDIUM: "bg-warning/10 text-warning border-warning/20",
@@ -165,13 +164,12 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     };
 
     return (
-        <div className={`bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-3 sm:p-4 lg:p-5 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99] group touch-manipulation ${
-            todo.completed
+        <div className={`bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-3 sm:p-4 lg:p-5 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99] group touch-manipulation ${todo.completed
                 ? 'border-success/30 bg-success/5 hover:bg-success/10'
                 : isOverdue
                     ? 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10'
                     : 'hover:border-primary/30 hover:bg-primary/5'
-        }`}>
+            }`}>
             <div className="flex items-start gap-2 sm:gap-3">
                 {/* Enhanced Checkbox */}
                 <div className="flex-shrink-0 mt-0.5">
@@ -189,19 +187,17 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                         <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm sm:text-base font-semibold leading-tight transition-all duration-200 ${
-                                todo.completed
+                            <h3 className={`text-sm sm:text-base font-semibold leading-tight transition-all duration-200 ${todo.completed
                                     ? "line-through text-muted-foreground"
                                     : "text-foreground group-hover:text-primary"
-                            }`}>
+                                }`}>
                                 {todo.title}
                             </h3>
                             {todo.description && (
-                                <p className={`text-xs sm:text-sm mt-1 leading-relaxed transition-colors duration-200 line-clamp-2 ${
-                                    todo.completed
+                                <p className={`text-xs sm:text-sm mt-1 leading-relaxed transition-colors duration-200 line-clamp-2 ${todo.completed
                                         ? "text-muted-foreground/70"
                                         : "text-muted-foreground"
-                                }`}>
+                                    }`}>
                                     {todo.description}
                                 </p>
                             )}
@@ -220,14 +216,14 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
                             {/* Points Badge */}
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                                <StarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                 {todo.points}
                             </span>
 
                             {/* Time Spent Badge */}
                             {currentTimeSpent > 0 && (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
-                                    <ClockIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                     {formatDuration(currentTimeSpent)}
                                 </span>
                             )}
@@ -245,7 +241,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-muted-foreground">
                         {todo.dueDate && (
                             <div className={`flex items-center gap-1 ${isOverdue ? 'text-destructive' : ''}`}>
-                                <ClockIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                                <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                                 <span className="font-medium truncate">
                                     {isOverdue ? 'Overdue' : 'Due'}: {format(new Date(todo.dueDate), "MMM d, yyyy")}
                                 </span>
@@ -264,36 +260,34 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                     {!todo.completed && (
                         <button
                             onClick={() => setShowTimer(!showTimer)}
-                            className={`relative p-2 sm:p-2.5 rounded-xl transition-all duration-200 group min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation ${
-                                showTimer || timerState.isRunning
+                            className={`relative p-2 sm:p-2.5 rounded-xl transition-all duration-200 group min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation ${showTimer || timerState.isRunning
                                     ? 'text-primary bg-primary/10 hover:bg-primary/20'
                                     : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                            }`}
+                                }`}
                             title={showTimer ? 'Hide Timer' : 'Show Timer'}
                         >
                             {timerState.isRunning ? (
                                 <div className="flex items-center gap-0.5">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${
-                                        timerState.isPaused 
-                                            ? 'bg-warning' 
+                                    <div className={`w-1.5 h-1.5 rounded-full ${timerState.isPaused
+                                            ? 'bg-warning'
                                             : 'bg-primary animate-pulse'
-                                    }`} />
+                                        }`} />
                                     <span className="text-xs font-mono font-medium">
                                         {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
                                     </span>
                                     {timerState.isPaused && (
-                                        <PauseIcon className="w-2 h-2 text-warning ml-0.5" />
+                                        <Pause className="w-2 h-2 text-warning ml-0.5" />
                                     )}
                                 </div>
                             ) : timerState.sessionTime > 0 ? (
                                 <div className="flex items-center gap-0.5">
-                                    <ClockIcon className="w-3 h-3 text-muted-foreground" />
+                                    <Clock className="w-3 h-3 text-muted-foreground" />
                                     <span className="text-xs font-mono text-muted-foreground">
                                         {Math.floor(timerState.sessionTime / 60)}:{(timerState.sessionTime % 60).toString().padStart(2, '0')}
                                     </span>
                                 </div>
                             ) : (
-                                <PlayIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                             )}
                         </button>
                     )}
@@ -303,7 +297,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                         className="p-2 sm:p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation"
                         title={isExpanded ? 'Collapse' : 'Expand'}
                     >
-                        <ChevronDownIcon className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     <button
                         onClick={handleDelete}
@@ -311,7 +305,7 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
                         className="p-2 sm:p-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center touch-manipulation"
                         title="Delete"
                     >
-                        <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
             </div>

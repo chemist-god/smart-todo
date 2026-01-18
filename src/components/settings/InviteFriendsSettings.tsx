@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import QRCode from "qrcode";
@@ -47,7 +47,7 @@ export default function InviteFriendsSettings() {
     const [generating, setGenerating] = useState(false);
     const [copied, setCopied] = useState(false);
     const [qrCode, setQrCode] = useState<string>("");
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         fetchInviteData();
@@ -67,18 +67,10 @@ export default function InviteFriendsSettings() {
                 });
                 generateQRCode(data.inviteLink);
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: 'Failed to load invite code'
-                });
+                toast.error('Error', { description: 'Failed to load invite code' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred'
-            });
+            toast.error('Error', { description: 'An error occurred' });
         } finally {
             setLoading(false);
         }
@@ -123,24 +115,16 @@ export default function InviteFriendsSettings() {
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
-            addToast({
-                type: 'success',
-                title: 'Copied!',
-                message: 'Invite link copied to clipboard'
-            });
+            toast.success('Copied!', { description: 'Invite link copied to clipboard' });
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Failed to copy to clipboard'
-            });
+            toast.error('Error', { description: 'Failed to copy to clipboard' });
         }
     };
 
     const shareToSocial = async () => {
         const message = `Join me on Smart Todo! Use my invite code: ${inviteData?.inviteCode}\n\n${inviteData?.inviteLink}`;
-        
+
         if (navigator.share) {
             try {
                 await navigator.share({

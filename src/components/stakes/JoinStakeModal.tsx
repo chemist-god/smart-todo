@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Stake {
@@ -28,13 +28,13 @@ export default function JoinStakeModal({ stake, isOpen, onClose, onSuccess }: Jo
     const [amount, setAmount] = useState(10);
     const [isSupporter, setIsSupporter] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (amount < 1) {
-            addToast({ type: 'error', title: 'Error', message: 'Amount must be at least ₵1' });
+            toast.error('Error', { description: 'Amount must be at least ₵1' });
             return;
         }
 
@@ -52,19 +52,17 @@ export default function JoinStakeModal({ stake, isOpen, onClose, onSuccess }: Jo
             });
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Success',
-                    message: `Successfully joined stake with ₵${amount}!`
+                toast.success('Success', {
+                    description: `Successfully joined stake with ₵${amount}!`
                 });
                 onSuccess();
                 onClose();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to join stake" });
+                toast.error('Error', { description: error.error || "Failed to join stake" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while joining the stake" });
+            toast.error('Error', { description: "An error occurred while joining the stake" });
         } finally {
             setIsLoading(false);
         }

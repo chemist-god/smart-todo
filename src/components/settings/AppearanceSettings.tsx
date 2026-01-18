@@ -4,21 +4,17 @@ import { useState } from 'react';
 import { PaintBrushIcon, SunIcon, MoonIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function AppearanceSettings() {
     const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
         setTheme(newTheme);
         // TODO: Implement theme switching
-        addToast({
-            type: 'success',
-            title: 'Theme Updated',
-            message: `Theme changed to ${newTheme}`
-        });
+        toast.success('Theme Updated', { description: `Theme changed to ${newTheme}` });
     };
 
     return (

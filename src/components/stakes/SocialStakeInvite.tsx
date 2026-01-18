@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UserPlusIcon, ShareIcon, LinkIcon } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface SocialStakeInviteProps {
@@ -22,7 +22,7 @@ export default function SocialStakeInvite({
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const inviteLink = `${window.location.origin}/stakes/invite/${stakeId}`;
 
@@ -30,7 +30,7 @@ export default function SocialStakeInvite({
         e.preventDefault();
 
         if (!email.trim()) {
-            addToast({ type: 'error', title: 'Error', message: 'Please enter an email address' });
+            toast.error('Error', { description: 'Please enter an email address' });
             return;
         }
 
@@ -49,21 +49,17 @@ export default function SocialStakeInvite({
             });
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Invitation Sent',
-                    message: `Invitation sent to ${email}`
-                });
+                toast.success('Invitation Sent', { description: `Invitation sent to ${email}` });
                 setEmail("");
                 setMessage("");
                 setShowInviteModal(false);
                 onInviteSent();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to send invitation" });
+                toast.error('Error', { description: error.error || "Failed to send invitation" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while sending invitation" });
+            toast.error('Error', { description: "An error occurred while sending invitation" });
         } finally {
             setIsLoading(false);
         }
@@ -72,9 +68,9 @@ export default function SocialStakeInvite({
     const copyInviteLink = async () => {
         try {
             await navigator.clipboard.writeText(inviteLink);
-            addToast({ type: 'success', title: 'Copied', message: 'Invite link copied to clipboard' });
+            toast.success('Copied', { description: 'Invite link copied to clipboard' });
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: 'Failed to copy link' });
+            toast.error('Error', { description: 'Failed to copy link' });
         }
     };
 
@@ -94,7 +90,7 @@ export default function SocialStakeInvite({
         } else {
             // Fallback to copying to clipboard
             await navigator.clipboard.writeText(shareText);
-            addToast({ type: 'success', title: 'Copied', message: 'Share text copied to clipboard' });
+            toast.success('Copied', { description: 'Share text copied to clipboard' });
         }
     };
 

@@ -13,7 +13,7 @@ import {
     SparklesIcon
 } from "@heroicons/react/24/outline";
 import DateTimePicker from "./DateTimePicker";
-import { toast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 
 interface CreateTodoButtonProps {
     onTodoCreated?: (newTodo: any) => void;
@@ -222,7 +222,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
             // Only remove potentially dangerous characters, keep all spaces including trailing ones
             value = value.replace(/[<>]/g, '');
         }
-        
+
         setFormData(prev => ({ ...prev, [field]: value }));
     }, [touchedFields]);
 
@@ -281,7 +281,7 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
 
         if (Object.keys(errors).length > 0) {
             setActiveTab('basic'); // Go to first tab with errors
-            toast.error("Please fix the errors below", "Some fields need your attention", 4000);
+            toast.error("Please fix the errors below", { description: "Some fields need your attention", duration: 4000 });
             return;
         }
 
@@ -323,11 +323,10 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
             setIsOpen(false);
 
             // Show success toast
-            toast.success(
-                "Task created successfully!",
-                `"${newTodo.title}" has been added to your todo list.`,
-                3000
-            );
+            toast.success("Task created successfully!", {
+                description: `"${newTodo.title}" has been added to your todo list.`,
+                duration: 3000
+            });
 
             // Notify parent component with the new todo for optimistic updates
             if (onTodoCreated) {
@@ -339,11 +338,10 @@ export default function CreateTodoButton({ onTodoCreated }: CreateTodoButtonProp
             const errorMessage = error instanceof Error ? error.message : 'Failed to create todo. Please try again.';
 
             // Show error toast with specific message
-            toast.error(
-                "Failed to create task",
-                errorMessage,
-                5000
-            );
+            toast.error("Failed to create task", {
+                description: errorMessage,
+                duration: 5000
+            });
         } finally {
             setIsSubmitting(false);
         }

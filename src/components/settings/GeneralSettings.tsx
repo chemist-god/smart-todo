@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export default function GeneralSettings() {
     const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
     const [validationError, setValidationError] = useState("");
     const [checkTimeout, setCheckTimeout] = useState<NodeJS.Timeout | null>(null);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     // Fetch current username
     useEffect(() => {
@@ -138,17 +138,9 @@ export default function GeneralSettings() {
         try {
             // TODO: Implement API endpoint to update user profile (name, etc.)
             await new Promise(resolve => setTimeout(resolve, 1000));
-            addToast({
-                type: 'success',
-                title: 'Saved!',
-                message: 'Your profile has been updated'
-            });
+            toast.success('Saved!', { description: 'Your profile has been updated' });
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Failed to update profile'
-            });
+            toast.error('Error', { description: 'Failed to update profile' });
         } finally {
             setLoading(false);
         }
@@ -156,11 +148,7 @@ export default function GeneralSettings() {
 
     const handleSaveUsername = async () => {
         if (availabilityStatus !== "available" || username.trim().length < 3) {
-            addToast({
-                type: 'error',
-                title: 'Invalid Username',
-                message: 'Please choose a valid and available username'
-            });
+            toast.error('Invalid Username', { description: 'Please choose a valid and available username' });
             return;
         }
 
@@ -179,24 +167,12 @@ export default function GeneralSettings() {
             if (response.ok && data.success) {
                 setCurrentUsername(data.username);
                 await update(); // Refresh session
-                addToast({
-                    type: 'success',
-                    title: 'Success!',
-                    message: data.message || 'Username updated successfully'
-                });
+                toast.success('Success!', { description: data.message || 'Username updated successfully' });
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to update username'
-                });
+                toast.error('Error', { description: data.error || 'Failed to update username' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while updating username'
-            });
+            toast.error('Error', { description: 'An error occurred while updating username' });
         } finally {
             setUsernameLoading(false);
         }

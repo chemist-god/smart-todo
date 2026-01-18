@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { EnhancedPenaltyService } from "@/lib/enhanced-penalty-service";
+import { PenaltyService } from "@/lib/penalty-service";
 
 export async function POST(request: NextRequest) {
     try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Process overdue stakes with enhanced features
-        const result = await EnhancedPenaltyService.processOverdueStakes();
+        const result = await PenaltyService.processOverdueStakes();
 
         return NextResponse.json({
             success: true,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 // Allow GET for manual testing
 export async function GET() {
     try {
-        const result = await EnhancedPenaltyService.processOverdueStakes();
+        const result = await PenaltyService.processOverdueStakes();
 
         return NextResponse.json({
             success: true,

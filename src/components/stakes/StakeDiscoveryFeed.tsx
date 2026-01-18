@@ -11,7 +11,7 @@ import {
     FireIcon,
     StarIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import JoinStakeModal from "./JoinStakeModal";
 
@@ -57,7 +57,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
     const [sortBy, setSortBy] = useState("popularity");
     const [selectedStake, setSelectedStake] = useState<DiscoverStake | null>(null);
     const [showJoinModal, setShowJoinModal] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const categories = [
         { value: "all", label: "All Categories" },
@@ -121,11 +121,7 @@ export default function StakeDiscoveryFeed({ userId }: StakeDiscoveryFeedProps) 
         setShowJoinModal(false);
         setSelectedStake(null);
         fetchStakes(); // Refresh the feed
-        addToast({
-            type: 'success',
-            title: 'Joined Stake!',
-            message: 'You successfully joined the stake. Good luck!'
-        });
+        toast.success('Joined Stake!', { description: 'You successfully joined the stake. Good luck!' });
     };
 
     const getDifficultyColor = (difficulty: string) => {

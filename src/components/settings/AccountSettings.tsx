@@ -4,20 +4,16 @@ import { useState } from "react";
 import { TrashIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AccountSettings() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleDeleteAccount = async () => {
         // TODO: Implement account deletion
-        addToast({
-            type: 'error',
-            title: 'Account Deletion',
-            message: 'This feature is not yet available. Please contact support.'
-        });
+        toast.error('Account Deletion', { description: 'This feature is not yet available. Please contact support.' });
     };
 
     return (

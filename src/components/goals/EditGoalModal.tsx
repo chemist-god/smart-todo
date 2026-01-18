@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { useToast } from '../ui/Toast';
+import { toast } from "sonner";
 
 interface Milestone {
     id?: string;
@@ -39,7 +39,7 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const goalTypes = [
         { value: 'TASKS_COMPLETED', label: 'Tasks Completed' },
@@ -96,11 +96,7 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
         if (!goal) return;
 
         if (!validateForm()) {
-            addToast({
-                type: 'error',
-                title: 'Validation Error',
-                message: 'Please fix the errors in the form before submitting.'
-            });
+            toast.error('Validation Error', { description: 'Please fix the errors in the form before submitting.' });
             return;
         }
 
@@ -115,23 +111,15 @@ export default function EditGoalModal({ isOpen, onClose, onSubmit, goal }: EditG
             };
 
             await onSubmit(goal.id, goalData);
-            addToast({
-                type: 'success',
-                title: 'Goal updated',
-                message: 'Your goal has been updated successfully!'
-            });
+            toast.success('Goal updated', { description: 'Your goal has been updated successfully!' });
             onClose();
         } catch (error) {
             console.error('Error updating goal:', error);
-            addToast({
-                type: 'error',
-                title: 'Failed to update goal',
-                message: 'An error occurred while updating the goal. Please try again.'
-            });
+            toast.error('Failed to update goal', { description: 'An error occurred while updating the goal. Please try again.' });
         } finally {
             setIsSubmitting(false);
         }
-    }, [goal, formData, addToast, onSubmit, onClose]);
+    }, [goal, formData, onSubmit, onClose]);
 
     const handleClose = useCallback(() => {
         onClose();

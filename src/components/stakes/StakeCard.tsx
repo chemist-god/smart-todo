@@ -10,7 +10,7 @@ import {
     CurrencyDollarIcon,
     CalendarIcon
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import JoinStakeModal from "./JoinStakeModal";
 import EnhancedSocialShare from "./EnhancedSocialShare";
@@ -47,7 +47,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
     const [showCompleteForm, setShowCompleteForm] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [proof, setProof] = useState("");
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const formatCurrency = (amount: number) => {
         return `₵${amount.toFixed(2)}`;
@@ -103,7 +103,7 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
     const handleCompleteStake = async () => {
         if (!proof.trim()) {
-            addToast({ type: 'error', title: 'Error', message: 'Please provide proof of completion' });
+            toast.error('Error', { description: 'Please provide proof of completion' });
             return;
         }
 
@@ -122,16 +122,16 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
 
             if (response.ok) {
                 const data = await response.json();
-                addToast({ type: 'success', title: 'Success', message: `Stake completed! You earned ${formatCurrency(data.reward.amount)}` });
+                toast.success('Success', { description: `Stake completed! You earned ${formatCurrency(data.reward.amount)}` });
                 setShowCompleteForm(false);
                 setProof("");
                 onUpdate();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to complete stake" });
+                toast.error('Error', { description: error.error || "Failed to complete stake" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while completing the stake" });
+            toast.error('Error', { description: "An error occurred while completing the stake" });
         } finally {
             setIsLoading(false);
         }
@@ -153,14 +153,14 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
             });
 
             if (response.ok) {
-                addToast({ type: 'success', title: 'Success', message: "Stake cancelled successfully" });
+                toast.success('Success', { description: "Stake cancelled successfully" });
                 onUpdate();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to cancel stake" });
+                toast.error('Error', { description: error.error || "Failed to cancel stake" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while cancelling the stake" });
+            toast.error('Error', { description: "An error occurred while cancelling the stake" });
         } finally {
             setIsLoading(false);
         }
@@ -333,10 +333,8 @@ export default function StakeCard({ stake, onUpdate }: StakeCardProps) {
                             category="personal" // Default category
                             difficulty="MEDIUM" // Default difficulty
                             onShareSent={() => {
-                                addToast({
-                                    type: 'success',
-                                    title: 'Invitation Sent!',
-                                    message: 'Your stake invitation has been shared successfully!'
+                                toast.success('Invitation Sent!', {
+                                    description: 'Your stake invitation has been shared successfully!'
                                 });
                             }}
                         />

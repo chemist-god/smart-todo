@@ -11,7 +11,7 @@ import {
     SparklesIcon,
     ClockIcon,
 } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface PlatformInvitation {
@@ -38,7 +38,7 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [accepting, setAccepting] = useState(false);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     // Auto-accept if user is logged in and has autoAccept param
     useEffect(() => {
@@ -72,27 +72,15 @@ export default function PlatformInviteLanding({ invitation, error }: PlatformInv
             const data = await response.json();
 
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Welcome!',
-                    message: data.message || `You've joined via ${invitation.inviterName}'s invitation!`
-                });
+                toast.success('Welcome!', { description: data.message || `You've joined via ${invitation.inviterName}'s invitation!` });
 
                 // Redirect to welcome page after accepting
                 router.push(`/welcome?accepted=true&inviterName=${encodeURIComponent(invitation.inviterName)}`);
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to accept invitation'
-                });
+                toast.error('Error', { description: data.error || 'Failed to accept invitation' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while accepting the invitation'
-            });
+            toast.error('Error', { description: 'An error occurred while accepting the invitation' });
         } finally {
             setAccepting(false);
         }

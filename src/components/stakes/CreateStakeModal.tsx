@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { XMarkIcon, PlusIcon, MinusIcon, LinkIcon } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import TodoSelection from "./TodoSelection";
 import DeadlineSelector from "./DeadlineSelector";
@@ -35,7 +35,7 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
     const [selectedTodo, setSelectedTodo] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -138,15 +138,15 @@ export default function CreateStakeModal({ isOpen, onClose, onSuccess }: CreateS
 
             if (response.ok) {
                 const data = await response.json();
-                addToast({ type: 'success', title: 'Success', message: `Stake created successfully! You staked ₵${formData.amount}` });
+                toast.success('Success', { description: `Stake created successfully! You staked ₵${formData.amount}` });
                 onSuccess();
                 resetForm();
             } else {
                 const error = await response.json();
-                addToast({ type: 'error', title: 'Error', message: error.error || "Failed to create stake" });
+                toast.error('Error', { description: error.error || "Failed to create stake" });
             }
         } catch (error) {
-            addToast({ type: 'error', title: 'Error', message: "An error occurred while creating the stake" });
+            toast.error('Error', { description: "An error occurred while creating the stake" });
         } finally {
             setIsLoading(false);
         }

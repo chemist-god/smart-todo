@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CheckIcon, XMarkIcon, ListBulletIcon, ClockIcon } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface Todo {
@@ -28,7 +28,7 @@ export default function TodoSelection({ onTodoSelect, selectedTodo }: TodoSelect
     const [loading, setLoading] = useState(true);
     const [showSelection, setShowSelection] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         fetchTodos();
@@ -48,19 +48,11 @@ export default function TodoSelection({ onTodoSelect, selectedTodo }: TodoSelect
                 setTodos(pendingTodos);
             } else {
                 const errorData = await response.json();
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: errorData.error || 'Failed to fetch todos'
-                });
+                toast.error('Error', { description: errorData.error || 'Failed to fetch todos' });
             }
         } catch (error) {
             console.error('Error fetching todos:', error);
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred while fetching todos'
-            });
+            toast.error('Error', { description: 'An error occurred while fetching todos' });
         } finally {
             setLoading(false);
         }
@@ -69,20 +61,12 @@ export default function TodoSelection({ onTodoSelect, selectedTodo }: TodoSelect
     const handleTodoSelect = (todo: Todo) => {
         onTodoSelect(todo);
         setShowSelection(false);
-        addToast({
-            type: 'success',
-            title: 'Todo Selected!',
-            message: `"${todo.title}" has been selected for staking`
-        });
+        toast.success('Todo Selected!', { description: `"${todo.title}" has been selected for staking` });
     };
 
     const handleClearSelection = () => {
         onTodoSelect(null);
-        addToast({
-            type: 'info',
-            title: 'Selection Cleared',
-            message: 'No todo selected for staking'
-        });
+        toast.info('Selection Cleared', { description: 'No todo selected for staking' });
     };
 
     const filteredTodos = todos.filter(todo =>

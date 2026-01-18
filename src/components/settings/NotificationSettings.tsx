@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 
 export default function NotificationSettings() {
     const [settings, setSettings] = useState({
@@ -18,7 +18,7 @@ export default function NotificationSettings() {
         weeklyDigest: true,
         marketingEmails: false
     });
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     const handleToggle = (key: keyof typeof settings) => {
         setSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -26,11 +26,7 @@ export default function NotificationSettings() {
 
     const handleSave = () => {
         // TODO: Implement API endpoint to save notification preferences
-        addToast({
-            type: 'success',
-            title: 'Saved!',
-            message: 'Notification preferences updated'
-        });
+        toast.success('Saved!', { description: 'Notification preferences updated' });
     };
 
     return (

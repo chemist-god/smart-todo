@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ export default function InvitationManagement() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'platform' | 'stake'>('all');
     const [processing, setProcessing] = useState<string | null>(null);
-    const { addToast } = useToast();
+    // const { addToast } = useToast();
 
     useEffect(() => {
         fetchInvitations();
@@ -57,7 +57,7 @@ export default function InvitationManagement() {
             setLoading(true);
             const type = activeTab === 'all' ? null : (activeTab === 'platform' ? 'PLATFORM' : 'STAKE');
             const url = type ? `/api/invite/invitations?type=${type}` : '/api/invite/invitations?type=PLATFORM';
-            
+
             const [platformRes, stakeRes] = await Promise.all([
                 fetch('/api/invite/invitations?type=PLATFORM'),
                 fetch('/api/invite/invitations?type=STAKE')
@@ -73,11 +73,7 @@ export default function InvitationManagement() {
 
             setInvitations(allInvitations);
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'Failed to load invitations'
-            });
+            toast.error('Error', { description: 'Failed to load invitations' });
         } finally {
             setLoading(false);
         }
@@ -94,24 +90,12 @@ export default function InvitationManagement() {
 
             const data = await response.json();
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Success',
-                    message: data.message || 'Invitation resent successfully'
-                });
+                toast.success('Success', { description: data.message || 'Invitation resent successfully' });
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to resend invitation'
-                });
+                toast.error('Error', { description: data.error || 'Failed to resend invitation' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred'
-            });
+            toast.error('Error', { description: 'An error occurred' });
         } finally {
             setProcessing(null);
         }
@@ -130,25 +114,13 @@ export default function InvitationManagement() {
 
             const data = await response.json();
             if (response.ok) {
-                addToast({
-                    type: 'success',
-                    title: 'Success',
-                    message: 'Invitation cancelled successfully'
-                });
+                toast.success('Success', { description: 'Invitation cancelled successfully' });
                 fetchInvitations();
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: data.error || 'Failed to cancel invitation'
-                });
+                toast.error('Error', { description: data.error || 'Failed to cancel invitation' });
             }
         } catch (error) {
-            addToast({
-                type: 'error',
-                title: 'Error',
-                message: 'An error occurred'
-            });
+            toast.error('Error', { description: 'An error occurred' });
         } finally {
             setProcessing(null);
         }
